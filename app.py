@@ -1,6 +1,6 @@
 """
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║  Yev Capital | LoanLogic v3.0                                                ║
+║  Yev Capital | LoanLogic v3.0                                            ║
 ║  Professional Credit Analysis & Reporting System                             ║
 ║                                                                              ║
 ║  Copyright (c) 2026 Bohdan Yevtushenko (MrCemper)                            ║
@@ -5426,7 +5426,101 @@ div[data-testid="metric-container"] div[data-testid="metric-value"]{
   background:rgba(15,23,42,.85);
   padding:3px 10px;border-radius:20px;
   border:1px solid #1E2D3D}
-footer{visibility:hidden}#MainMenu{visibility:hidden}header{visibility:hidden}
+/* Скрываем дефолтный футер и меню "More", но header оставляем —
+   в нём живёт кнопка-стрелка для возврата боковой панели после её
+   закрытия (без неё на мобильных её было не достучаться, нужно было
+   перезагружать страницу). Делаем header прозрачным, но интерактивным. */
+footer{visibility:hidden}
+#MainMenu{visibility:hidden}
+header[data-testid="stHeader"]{
+  background:transparent!important;
+  /* Сохраняем фон вокруг кнопки-стрелки, чтобы её было видно на любом фоне */
+}
+/* Кнопка раскрытия боковой панели — должна быть видна ВСЕГДА когда панель
+   закрыта, не только при наведении. По умолчанию Streamlit мобильно
+   делает её прозрачной/мерцающей, что и провоцирует жалобы "стрелка
+   пропала и не могу открыть сайдбар". */
+button[data-testid="stSidebarCollapsedControl"],
+button[data-testid="collapsedControl"],
+[data-testid="stSidebarCollapsedControl"],
+[data-testid="collapsedControl"]{
+  visibility:visible!important;
+  opacity:1!important;
+  display:flex!important;
+  background:rgba(29,78,216,.85)!important;
+  border:1px solid #4FC3F7!important;
+  border-radius:8px!important;
+  box-shadow:0 2px 8px rgba(0,0,0,.4)!important;
+  z-index:99999!important;
+}
+button[data-testid="stSidebarCollapsedControl"] svg,
+button[data-testid="collapsedControl"] svg,
+[data-testid="stSidebarCollapsedControl"] svg,
+[data-testid="collapsedControl"] svg{
+  color:#FFFFFF!important;
+  fill:#FFFFFF!important;
+}
+/* Тот же фикс для родительского контейнера header — не давать ему
+   стянуться в ноль (иногда Streamlit делает header высотой 0px,
+   из-за чего кнопка фактически некликабельна). */
+header[data-testid="stHeader"]{
+  height:auto!important;
+  min-height:2.5rem!important;
+}
+/* ── Контрастный текст в полях ввода (mobile-fix) ──────────────────────
+   На мобильных Safari/Chrome дефолтный цвет текста в input/select
+   отображается тусклым серым (#A8B0BD), сливается с фоном. Принудительно
+   возвращаем читаемый цвет и убираем системные стилизации iOS. */
+.stTextInput input,
+.stNumberInput input,
+.stTextArea textarea,
+.stDateInput input,
+.stTimeInput input,
+div[data-baseweb="input"] input,
+div[data-baseweb="select"] div,
+div[data-baseweb="select"] span,
+input[type="text"],
+input[type="number"],
+input[type="email"],
+input[type="tel"],
+input[type="search"],
+textarea,
+select{
+  color:#F1F5F9!important;
+  -webkit-text-fill-color:#F1F5F9!important;  /* iOS Safari fix */
+  opacity:1!important;
+  font-weight:500!important;
+  caret-color:#4FC3F7!important;
+}
+/* Placeholder остаётся приглушённым, но не сливается */
+.stTextInput input::placeholder,
+.stNumberInput input::placeholder,
+.stTextArea textarea::placeholder,
+input::placeholder,
+textarea::placeholder{
+  color:#64748B!important;
+  -webkit-text-fill-color:#64748B!important;
+  opacity:.85!important;
+}
+/* Отключённые поля — чуть бледнее, но всё ещё читаемы (а не как сейчас
+   — почти невидимые на iOS) */
+.stTextInput input:disabled,
+.stNumberInput input:disabled,
+input:disabled,
+textarea:disabled,
+select:disabled{
+  color:#94A3B8!important;
+  -webkit-text-fill-color:#94A3B8!important;
+  opacity:.7!important;
+}
+/* Selectbox: значение в свёрнутом виде. На iOS оно унаследует серый
+   цвет из BaseWeb и сольётся с фоном — переопределяем явно. */
+div[data-baseweb="select"] > div{
+  color:#F1F5F9!important;
+}
+div[data-baseweb="select"] [class*="placeholder"]{
+  color:#64748B!important;
+}
 </style>
 """
 
