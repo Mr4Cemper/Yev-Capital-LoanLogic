@@ -1,6 +1,6 @@
 """
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║  Yev Capital | LoanLogic v3.0                                            ║
+║  Yev Capital | LoanLogic v3.0                                                ║
 ║  Professional Credit Analysis & Reporting System                             ║
 ║                                                                              ║
 ║  Copyright (c) 2026 Bohdan Yevtushenko (MrCemper)                            ║
