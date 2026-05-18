@@ -46,15 +46,34 @@ from reportlab.pdfbase.ttfonts import TTFont
 # ─────────────────────────────────────────────────────────────────────────────
 #  РЕГИСТРАЦИЯ ШРИФТОВ С ПОДДЕРЖКОЙ КИРИЛЛИЦЫ
 #  Порядок поиска:
-#    1) DejaVuSans   — Linux / Mac / Docker (встроен)
+#    0) DejaVuSans рядом с этим .py файлом (для деплоя на Streamlit Cloud /
+#                                            GitHub: положи DejaVuSans.ttf в
+#                                            корень репозитория)
+#    1) DejaVuSans   — Linux / Mac / Docker (системный)
 #    2) Arial        — Windows  C:\Windows\Fonts\arial.ttf
 #    3) FreeSans     — fallback Linux
 #    4) Helvetica    — встроенный PDF-шрифт (без кириллицы, но без краша)
 # ─────────────────────────────────────────────────────────────────────────────
 import os as _os
 
+# Корень проекта — там, где лежит этот .py файл. На Streamlit Cloud это
+# совпадает с корнем GitHub-репозитория, так что положенный туда шрифт
+# подхватится без правки кода. `__file__` может отсутствовать в редких
+# окружениях (например, REPL/exec) — тогда честно деградируем к системным
+# путям.
+try:
+    _PROJECT_DIR = _os.path.dirname(_os.path.abspath(__file__))
+except NameError:
+    _PROJECT_DIR = _os.getcwd()
+
 _FONT_CANDIDATES = [
     # (regular_path, bold_path, family_name)
+    # 0) Project-local — приоритет, чтобы на Streamlit Cloud / GitHub
+    #    DejaVuSans.ttf можно было закоммитить рядом с приложением.
+    (_os.path.join(_PROJECT_DIR, "DejaVuSans.ttf"),
+     _os.path.join(_PROJECT_DIR, "DejaVuSans-Bold.ttf"),
+     "DejaVuSans"),
+    # 1..3) Системные пути (legacy)
     ("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
      "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
      "DejaVuSans"),
@@ -94,8 +113,9 @@ if PDF_FONT == "Helvetica":
     PDF_FONT_WARN = (
         "⚠️ Кириллический шрифт не найден. "
         "В PDF кириллица может отображаться как □. "
-        "Поместите DejaVuSans.ttf в /usr/share/fonts/truetype/dejavu/ "
-        "или arial.ttf в C:\\Windows\\Fonts\\"
+        "Положите DejaVuSans.ttf рядом с loan_calculator.py "
+        "(или в /usr/share/fonts/truetype/dejavu/ на Linux, "
+        "C:\\Windows\\Fonts\\arial.ttf на Windows)."
     )
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -6072,9 +6092,9 @@ def main():
               the implied warranty of MERCHANTABILITY or FITNESS FOR A
               PARTICULAR PURPOSE.<br><br>
               Copyright (c) 2026 Bohdan Yevtushenko (MrCemper)<br>
-              <a href="https://github.com/MrCemper/Yev-Capital-LoanLogic"
+              <a href="https://github.com/Mr4Cemper/Yev-Capital-LoanLogic"
                  style="color:#93C5FD;text-decoration:none" target="_blank">
-                https://github.com/MrCemper/Yev-Capital-LoanLogic
+                https://github.com/Mr4Cemper/Yev-Capital-LoanLogic
               </a>
             </div>
             """,
@@ -6085,7 +6105,7 @@ def main():
         st.markdown(
             """
             <div style="margin-top:8px;text-align:center">
-              <a href="https://github.com/MrCemper/Yev-Capital-LoanLogic"
+              <a href="https://github.com/Mr4Cemper/Yev-Capital-LoanLogic"
                  target="_blank"
                  style="display:inline-flex;align-items:center;gap:6px;
                         padding:5px 14px;
