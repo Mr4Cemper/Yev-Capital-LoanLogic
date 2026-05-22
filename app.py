@@ -1422,8 +1422,8 @@ def term_to_periods_in_base(term: int, unit: str, base_unit: str = "months") -> 
     months_per_base = months_per_unit[base_unit]
     months_total    = term * months_per_unit[unit]
     periods         = months_total / months_per_base
-    # Use math.ceil so a fractional period still requires a full extra slot;
-    # this is the safer choice for amortization (we never under-count).
+    # Round up: a fractional period requires a full extra slot, which is the
+    # safer choice for amortization (never under-counts).
     import math
     return max(0, int(math.ceil(periods - 1e-9)))
 
@@ -1553,9 +1553,8 @@ def year_fraction(d1: date, d2: date, method: str = "30/360") -> float:
     if d2 == d1:
         return 0.0
     if d2 < d1:
-        # d2 < d1 — это всегда ошибка вызывающего кода (даты перепутаны).
-        # Старый код возвращал 0.0, маскируя баг. Теперь выбрасываем
-        # явное исключение, чтобы дефект всплывал сразу.
+        # Reverse date ordering is undefined for a period length —
+        # surface as an explicit error rather than a zero-length result.
         raise ValueError(
             f"year_fraction: d2 ({d2}) must be ≥ d1 ({d1}). "
             f"Negative-period day-count is undefined; check date ordering."
@@ -1661,8 +1660,6 @@ def calc_annuity(principal, n, rate_pa, unit, monthly_comm,
         Feb-29 starts, and rates from 0.01% to 200% p.a.
     """
     # ── Input validation ──────────────────────────────────────────────────────
-    # Catch nonsensical inputs early with a clear message instead of crashing
-    # deep in the math with ZeroDivisionError / TypeError.
     if not isinstance(n, int):
         try:
             n = int(n)
@@ -1679,8 +1676,8 @@ def calc_annuity(principal, n, rate_pa, unit, monthly_comm,
             f"calc_annuity: rate_pa and principal must be numeric, got "
             f"rate_pa={rate_pa!r}, principal={principal!r}")
     if principal < 0:
-        # Old code silently produced negative payments (signaling a phantom
-        # credit from the bank to the borrower). Economically meaningless.
+        # Negative principal would yield negative payments — outside the
+        # supported domain.
         raise ValueError(
             f"calc_annuity: 'principal' must be ≥ 0, got {principal}.")
 
@@ -1927,12 +1924,8 @@ def calc_effective_rate(principal, schedule, one_time_comm, ppy):
 
     Returns: annualised rate in % (or None on failure).
     """
-    cf = [-(principal - one_time_comm)] + [-r["payment"] for r in schedule]
-    # NB: in this convention the loan disbursement is NEGATIVE outflow from
-    # the lender's POV; payments are ALSO negative (borrower outflows). For
-    # IRR purposes we just need NPV=0, and the sign-flip below works because
-    # the original code used `cf = [-(P - oc), pmt, pmt, ...]` which has
-    # CF_0 negative and CF_t positive — that sign convention. Restore it:
+    # Sign convention: CF_0 = −(principal − one_time_comm) is the borrower's
+    # initial inflow expressed negatively; CF_t = +payment_t is each outflow.
     cf = [-(principal - one_time_comm)] + [r["payment"] for r in schedule]
 
     if not schedule or principal <= 0:
@@ -1971,8 +1964,8 @@ def calc_effective_rate(principal, schedule, one_time_comm, ppy):
     lo, hi = -0.99, 5.0
     f_lo, f_hi = npv(lo), npv(hi)
     if f_lo * f_hi > 0:
-        # Same sign across the range: no sign change → root lies outside
-        # bounds or doesn't exist. Return None instead of bogus value.
+        # No sign change across the bracket — root lies outside [-0.99, 5.0]
+        # or does not exist.
         return None
 
     for _ in range(200):
@@ -2079,9 +2072,8 @@ def calc_balloon_breakeven(principal: float, n: int, rate_pa: float,
         # Balloon can be justified with 0 % investment return — no break-even.
         return 0.0
 
-    # ── Binary search on [0 %, 1000 %] ───────────────────────────────────────
-    # portfolio_fv is strictly increasing in r_annual_pct.
-    # We know FV(0) < principal  →  the root lies above 0.
+    # Binary search on [0 %, 1000 %]: portfolio_fv is strictly increasing in
+    # r_annual_pct, and FV(0) < principal implies the root lies above 0.
     lo, hi = 0.0, 1_000.0
     for _ in range(150):           # 150 iterations → precision ≈ 1000/2^150 ≈ 0
         mid = (lo + hi) * 0.5
@@ -2093,19 +2085,15 @@ def calc_balloon_breakeven(principal: float, n: int, rate_pa: float,
             break
 
     result = (lo + hi) * 0.5
-    # If the search converged anywhere near the upper bound (1000 %), it means
-    # no realistic investment return inside [0, 1000 %] can amortize the
-    # principal from the freed cash. Reporting 1000 % verbatim would mislead;
-    # the honest answer is "no solution in a reasonable range".
+    # Convergence near the upper bound indicates no realistic investment
+    # return inside [0, 1000 %] can amortize the principal — return None
+    # rather than a misleading saturated value.
     if result > 999.0:
         return None
     return result
 
 # ─────────────────────────────────────────────────────────────────────────────
-#  ГЛАВНЫЙ РАСЧЁТ
-# ─────────────────────────────────────────────────────────────────────────────
-# ─────────────────────────────────────────────────────────────────────────────
-#  НОВЫЕ РАСЧЁТНЫЕ ФУНКЦИИ — Investment Break-even, Inflation, Grace, Risk
+#  ГЛАВНЫЙ РАСЧЁТ — Investment Break-even, Inflation, Grace, Risk
 # ─────────────────────────────────────────────────────────────────────────────
 
 def calc_universal_breakeven(payments: list, total_interest: float,
@@ -2329,10 +2317,8 @@ def apply_grace_period(sched: list, grace_start: int, grace_duration: int,
     if not sched or grace_duration <= 0 or grace_start < 1:
         return sched
 
-    # ── grace_type validation ─────────────────────────────────────────────────
-    # Old code did `if grace_type == "interest_only" else full_holiday`, which
-    # silently treated unknown values (typos, stale state) as "full_holiday".
-    # Raise explicitly instead so misconfiguration surfaces in the UI banner.
+    # Only the two documented grace modes are supported; reject any other
+    # value so misconfiguration surfaces in the UI banner.
     if grace_type not in ("interest_only", "full_holiday"):
         raise ValueError(
             f"apply_grace_period: grace_type must be 'interest_only' "
@@ -2362,12 +2348,10 @@ def apply_grace_period(sched: list, grace_start: int, grace_duration: int,
     grace_end      = min(grace_start + grace_duration - 1, n)
     grace_duration = grace_end - grace_start + 1
 
-    # ── Reject configurations that mathematically leave principal unpaid ──────
-    # If the grace period extends to the FINAL period of the loan (grace_end == n),
-    # there's no after-grace runway to amortize the principal. The loan would
-    # end with the full balance still outstanding — economically nonsensical.
-    # We surface this as a hard error rather than producing a "schedule" that
-    # silently leaves the debt unsettled.
+    # Reject configurations that mathematically leave principal unpaid:
+    # if the grace window reaches the final period, no remaining periods are
+    # available to amortize the balance — the loan would close with debt
+    # still outstanding.
     if grace_end >= n:
         raise ValueError(
             f"Grace period covers the final loan period (grace_end={grace_end}, "
@@ -2408,12 +2392,11 @@ def apply_grace_period(sched: list, grace_start: int, grace_duration: int,
             })
         else:  # full_holiday — проценты капитализируются
             balance += interest
-            # ── NEGATIVE AMORTIZATION SAFETY GUARD ────────────────────────────
-            # If interest capitalisation drives balance beyond 2× the principal
-            # at grace start, we're in a "debt spiral" — the schedule will
-            # produce nonsensical payment values and possibly explode the chart.
-            # Stop the recalculation cleanly and raise — caller's try/except
-            # will record this in `grace_error` and the UI will surface it.
+            # ── Negative-amortization safety guard ────────────────────────────
+            # If interest capitalization drives the balance past 2× the
+            # principal at grace start, the schedule is in a debt-spiral
+            # regime that produces meaningless payments. Abort cleanly so
+            # the caller records the failure in `grace_error`.
             if balance > initial_balance * 2.0:
                 raise ValueError(
                     f"Negative amortization spiral detected: balance "
@@ -2628,10 +2611,7 @@ def calc_refinance_analysis(
     }
     if current_balance <= 0 or remaining_months <= 0 or new_term_months <= 0:
         return invalid_result
-    # Penalty and fees are CASH OUTFLOWS — negative values are nonsense.
-    # Old code accepted negative penalty and produced verdict='worth' with
-    # a negative breakeven_months, which would mislead the user into thinking
-    # refinancing pays back BEFORE it starts.
+    # Penalty and fees represent cash outflows: negative values are invalid.
     if penalty < 0 or new_fees < 0:
         invalid_result["total_costs"] = penalty + new_fees
         return invalid_result
@@ -2893,13 +2873,12 @@ def _run_syndicated(tranches: list[dict], t: dict, sym: str,
     Builds the consolidated master schedule for a multi-tranche syndicated loan.
     Returns (df_display, summary) compatible with downstream renderers.
 
-    `grace_requested`: tells us the user enabled the Grace Period feature.
-    Multi-tranche grace is NOT currently supported (per-tranche capitalization
-    rules are ambiguous when several loans share a holiday). We surface this
-    via `grace_error` in summary rather than silently producing a non-grace
-    schedule.
+    `grace_requested`: indicates the user enabled the Grace Period feature.
+    Multi-tranche grace is not currently supported (per-tranche capitalization
+    rules are ambiguous when several loans share a holiday); when this flag
+    is true, the resulting schedule omits the grace and reports the limitation
+    via `grace_error` in the summary.
     """
-    # Surface unsupported feature combinations early
     synd_grace_error = None
     if grace_requested:
         synd_grace_error = (
@@ -2995,10 +2974,8 @@ def _run_syndicated(tranches: list[dict], t: dict, sym: str,
     if inflation_enabled and inflation_rate != 0:
         try:
             full_payments = [r["payment"] for r in master]
-            # The one-time fee is paid AT t=0 (today), so it should NOT be
-            # discounted. We add it separately AFTER computing PV of the
-            # future payment stream, rather than prepending it (which would
-            # erroneously shift it to t=1 inside calc_real_cost).
+            # One-time fees are paid at t=0 and remain undiscounted; they are
+            # added after computing the PV of the future payment stream.
             pv_future = calc_real_cost(full_payments, inflation_rate, "months")
             ot_fee_today = totals.get("total_one_time_comm", 0) or 0
             real_cost_val = pv_future + ot_fee_today
@@ -3111,8 +3088,8 @@ def run_calculation(principal, n, rate_pa, unit, scheme,
             dti_other_debts=dti_other_debts,
             day_count_enabled=day_count_enabled,
             day_count_method=day_count_method,
-            # Surface the unsupported "synd + grace" combination instead of
-            # silently producing a non-grace schedule.
+            # Pass through the grace flag so the syndicated path can report
+            # the unsupported combination via grace_error.
             grace_requested=grace_enabled and grace_duration > 0,
         )
 
@@ -4158,8 +4135,7 @@ def export_excel(df, summary, t, sym):
 
             cell.border = border(BORDER_C, "thin")
 
-    # ── Строка с СУММАМИ (формулы Excel) поверх итоговой строки данных ────────
-    # Добавляем ещё одну строку с Excel-формулами SUM для проверяемости
+    # ── SUM-formula verification row below the data totals ────────────────────
     formula_row = HDR_ROW + len(df) + 2
     ws2.row_dimensions[formula_row].height = 20
     ws2.merge_cells(f"A{formula_row}:B{formula_row}")
@@ -4429,10 +4405,8 @@ def export_excel(df, summary, t, sym):
                 write_kv_row(ws3, r, lbl, val, fmt, i_r%2==0, hl)
                 r += 1
         except Exception:
-            # Best-effort: deposit-mode comparison is informational. If
-            # calc_deposit fails (e.g. degenerate principal or term), the
-            # Excel file still exports without this section rather than
-            # losing the whole file.
+            # Informational comparison: omit the section on failure rather
+            # than aborting the whole export.
             pass
 
     # ── Дисклеймер на Analysis ────────────────────────────────────────────────
@@ -5156,8 +5130,6 @@ def calc_syndicated_master_schedule(
                 sched = calc_balloon(amt, n_months, rate, "months", mo_val,
                                       day_count=day_count, start_date=tranche_start)
             else:
-                # Surface typos rather than silently defaulting to annuity
-                # (old behaviour, which masked configuration errors).
                 raise ValueError(
                     f"Unknown scheme {scheme!r} — expected one of "
                     f"'annuity', 'classic', 'balloon'.")
@@ -5369,10 +5341,8 @@ def record_audit_entry(t: dict, sym: str,
     snapshot keys: "amount", "rate", "term"
     impact  keys: "total_interest", "first_payment"
 
-    NOTE: лог ограничен 50 последними записями (FIFO). Это защищает от
-    того, что длинная сессия раздует session_state и замедлит st.rerun().
-    Используем `collections.deque(maxlen=50)`, но прозрачно превращаем
-    в list при доступе извне, чтобы не ломать существующий рендер.
+    Лог ограничен 50 последними записями (FIFO trim через list-slice),
+    чтобы избежать неограниченного роста session_state в длинных сессиях.
     """
     AUDIT_LOG_MAX = 50
 
@@ -5429,10 +5399,8 @@ def record_audit_entry(t: dict, sym: str,
     }
     log = st.session_state.audit_log
     log.append(new_entry)
-    # FIFO trim — keeps memory and rerun-payload bounded
+    # FIFO trim to keep memory and rerun-payload bounded
     if len(log) > AUDIT_LOG_MAX:
-        # Drop oldest entries; list slicing keeps it a list (rendering code
-        # iterates simply, no need for deque API exposure).
         st.session_state.audit_log = log[-AUDIT_LOG_MAX:]
 
 
@@ -5590,9 +5558,8 @@ def build_css(theme: dict) -> str:
     t = {**base, **(theme or {})}
 
     # ── Safe numeric coercion ─────────────────────────────────────────────────
-    # Old code did `float(t.get('font_size', 1.0))` which crashed on string
-    # values like 'abc' (e.g. from a corrupt localStorage entry, or a malicious
-    # query param). Coerce defensively and fall back to default on failure.
+    # Coerce defensively: a non-numeric value (e.g. from a corrupt browser
+    # storage entry) falls back to the default rather than crashing CSS build.
     def _safe_num(val, default: float) -> float:
         try:
             return float(val)
@@ -5600,7 +5567,7 @@ def build_css(theme: dict) -> str:
             return float(default)
     def _safe_int(val, default: int) -> int:
         try:
-            return int(float(val))    # tolerate "8.0" strings too
+            return int(float(val))    # accept "8.0" strings
         except (TypeError, ValueError):
             return int(default)
 
@@ -5613,10 +5580,10 @@ def build_css(theme: dict) -> str:
 
     # ── Safe color sanitization (CSS-injection defense) ───────────────────────
     # Color fields are interpolated raw into `:root { --app-bg: <value>; }`,
-    # so a value like `"#000; } body { display: none; } /*"` would inject
-    # arbitrary CSS. We accept only well-formed hex colors (#RGB, #RRGGBB,
-    # #RRGGBBAA) and the literal "transparent". Anything else falls back to
-    # the default-preset color for that field.
+    # so an unsanitized string like `"#000; } body { display: none; } /*"`
+    # could inject arbitrary CSS. Only well-formed hex colors (3/4/6/8 hex
+    # digits) and the keyword "transparent" are accepted; anything else
+    # falls back to the default-preset color for that field.
     import re as _re
     _HEX_RE = _re.compile(r'^#(?:[0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$')
 
@@ -5876,16 +5843,16 @@ div[data-baseweb="select"] [class*="placeholder"]{{color:var(--app-text-subtle)!
 
 def _theme_persistence_js() -> str:
     """
-    Returns an HTML snippet (rendered via streamlit.components.v1.html) that:
-      • on first render, reads `yev_theme` from localStorage and posts it
-        to Streamlit via streamlit-component message (we instead use a tiny
-        URL-param ping fallback for full reliability);
-      • on every theme change from Python, writes the JSON to localStorage.
+    Returns an HTML snippet (rendered via streamlit.components.v1.html) that
+    bridges browser localStorage to Streamlit's query_params.
 
-    Streamlit doesn't natively round-trip localStorage → session_state, so we
-    use a small bridge: an iframe component that, on load, sends the saved
-    theme to a query-param `?theme_b64=...`. Main app reads st.query_params on
-    each rerun. Persists across sessions without any backend.
+    On first render: reads `yev_theme_v1` from localStorage and, if present,
+    appends `?theme_b64=<base64-json>` to the URL, then triggers a one-time
+    reload so Python can pick the value up via st.query_params. A sessionStorage
+    guard prevents the reload from looping.
+
+    Saving is handled separately by `_theme_save_js`, which writes the JSON
+    back to localStorage whenever the theme changes.
     """
     return """
 <script>
@@ -6314,17 +6281,13 @@ def main():
                     blended = calc_syndicated_blended_apr(
                         _per_tr, _totals.get("total_one_time_comm", 0))
 
-                    # Sync into session_state.
-                    # IMPORTANT: when blended IRR fails (None), we DON'T write
-                    # 0.0 into st.session_state.interest_rate — that would be a
-                    # silent lie. We leave interest_rate unchanged (last good
-                    # value) so it doesn't poison downstream UI elements, and
-                    # we still display "N/A (IRR failed)" so the user knows.
+                    # Sync results into session_state. If the IRR fails
+                    # (blended is None), interest_rate is left at its prior
+                    # value to avoid feeding a misleading zero into the rest
+                    # of the UI; the rendered string reports "N/A" instead.
                     st.session_state.loan_amount = _totals["total_principal"]
                     if blended is not None:
                         st.session_state.interest_rate = blended
-                    # else: keep prior interest_rate; the blended_str below
-                    # tells the user the real value is unavailable.
 
                     # Save tranches for later access in run_calculation/render
                     st.session_state["_syndicated_tranches"] = tranches_input
@@ -6880,15 +6843,14 @@ def main():
     m2.metric(t["total_interest"],   fmt_money(smry["total_interest"],   sym),
                help=t.get("help_total_interest", ""))
     m3.metric(t["total_commission"], fmt_money(smry["total_commission"], sym))
-    # APR / Effective rate — show "N/A" if IRR failed, instead of nominal-rate substitution
+    # APR / Effective rate — render "N/A" when IRR fails (no nominal-rate substitution)
     eff_val = smry.get("effective_rate")
     eff_err = smry.get("effective_rate_error")
     eff_display = fmt_pct(eff_val) if eff_val is not None else "N/A"
     m4.metric(t["effective_rate"], eff_display,
                help=t.get("help_eff_rate", ""))
     if eff_err:
-        # Display a small caption under the metric so the user sees the
-        # computation failed rather than silently believing the value.
+        # Show a caption under the metric so the failure is visible.
         m4.caption(f"⚠️ {t.get('apr_failed_caption', 'APR computation failed.')}")
     m5.metric(t["monthly_payment"],  fmt_money(smry["first_payment"],    sym),
                help=t.get("help_first_payment", ""))
