@@ -44,23 +44,19 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 
 # ─────────────────────────────────────────────────────────────────────────────
-#  РЕГИСТРАЦИЯ ШРИФТОВ С ПОДДЕРЖКОЙ КИРИЛЛИЦЫ
-#  Порядок поиска:
-#    0) DejaVuSans рядом с этим .py файлом (для деплоя на Streamlit Cloud /
-#                                            GitHub: положи DejaVuSans.ttf в
-#                                            корень репозитория)
-#    1) DejaVuSans   — Linux / Mac / Docker (системный)
+#  Cyrillic-capable PDF font registration
+#  Search order:
+#    0) DejaVuSans.ttf next to this script (project-local)
+#    1) DejaVuSans   — system path on Linux / Mac / Docker
 #    2) Arial        — Windows  C:\Windows\Fonts\arial.ttf
-#    3) FreeSans     — fallback Linux
-#    4) Helvetica    — встроенный PDF-шрифт (без кириллицы, но без краша)
+#    3) FreeSans     — Linux fallback
+#    4) Helvetica    — built-in PDF font (no Cyrillic, but never crashes)
 # ─────────────────────────────────────────────────────────────────────────────
 import os as _os
 
-# Корень проекта — там, где лежит этот .py файл. На Streamlit Cloud это
-# совпадает с корнем GitHub-репозитория, так что положенный туда шрифт
-# подхватится без правки кода. `__file__` может отсутствовать в редких
-# окружениях (например, REPL/exec) — тогда честно деградируем к системным
-# путям.
+# Resolve the directory of the current script. Used to look for a bundled
+# font file next to the .py. In a small number of environments (REPL / exec)
+# __file__ may not be defined; fall back to the current working directory.
 try:
     _PROJECT_DIR = _os.path.dirname(_os.path.abspath(__file__))
 except NameError:
@@ -68,12 +64,12 @@ except NameError:
 
 _FONT_CANDIDATES = [
     # (regular_path, bold_path, family_name)
-    # 0) Project-local — приоритет, чтобы на Streamlit Cloud / GitHub
-    #    DejaVuSans.ttf можно было закоммитить рядом с приложением.
+    # 0) Project-local — checked first so a bundled font next to the script
+    #    takes precedence over system fonts.
     (_os.path.join(_PROJECT_DIR, "DejaVuSans.ttf"),
      _os.path.join(_PROJECT_DIR, "DejaVuSans-Bold.ttf"),
      "DejaVuSans"),
-    # 1..3) Системные пути (legacy)
+    # 1..3) System paths
     ("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
      "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
      "DejaVuSans"),
@@ -111,11 +107,10 @@ for _reg, _bold, _family in _FONT_CANDIDATES:
 
 if PDF_FONT == "Helvetica":
     PDF_FONT_WARN = (
-        "⚠️ Кириллический шрифт не найден. "
-        "В PDF кириллица может отображаться как □. "
-        "Положите DejaVuSans.ttf рядом с loan_calculator.py "
-        "(или в /usr/share/fonts/truetype/dejavu/ на Linux, "
-        "C:\\Windows\\Fonts\\arial.ttf на Windows)."
+        "⚠️ Кириллический шрифт не найден на этом устройстве. "
+        "В PDF-отчётах кириллические символы могут отображаться как □. "
+        "Чтобы это исправить — установите шрифт DejaVuSans или Arial "
+        "в систему."
     )
 
 # ─────────────────────────────────────────────────────────────────────────────
