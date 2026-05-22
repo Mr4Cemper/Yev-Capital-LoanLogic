@@ -389,6 +389,32 @@ TRANSLATIONS = {
         "partial_result_banner":  "ЧАСТИЧНЫЙ РЕЗУЛЬТАТ — ОТНОСИТЕСЬ КАК К НЕНАДЁЖНОМУ",
         "partial_grace":          "Кредитные каникулы НЕ были применены — график показан БЕЗ них",
         "partial_apr":            "Эффективная APR не была рассчитана — IRR не сошёлся",
+        # ── Theme editor ─────────────────────────────────────────────────────
+        "theme_section":          "🎨 Тема оформления",
+        "theme_preset_label":     "Готовый пресет",
+        "theme_preset_help":      "Выберите готовую цветовую схему или 'Custom' для ручной настройки.",
+        "theme_custom":           "Своя тема (редактировать ниже)",
+        "theme_custom_hint":      "Меняйте любой цвет — изменения применяются мгновенно.",
+        "theme_field_bg":         "Фон приложения",
+        "theme_field_bg_secondary": "Боковая панель / Карточки",
+        "theme_field_bg_tertiary":  "Третичный фон",
+        "theme_field_text":       "Основной текст",
+        "theme_field_text_muted": "Приглушённый текст",
+        "theme_field_text_subtle":"Едва заметный текст",
+        "theme_field_accent":     "Акцент / Ссылки",
+        "theme_field_accent_strong":"Сильный акцент",
+        "theme_field_success":    "Успех",
+        "theme_field_warning":    "Предупреждение",
+        "theme_field_danger":     "Опасность",
+        "theme_field_border":     "Границы",
+        "theme_field_input_text": "Текст в полях ввода",
+        "theme_font_size":        "Размер шрифта",
+        "theme_font_size_help":   "Масштаб всего текста (0.75-1.4×)",
+        "theme_density":          "Плотность UI",
+        "theme_density_help":     "Отступы вокруг элементов (0.7-1.4×)",
+        "theme_radius":           "Скругление углов",
+        "theme_radius_help":      "Радиус закругления, px (0-24)",
+        "theme_reset":            "↻ Сбросить к дефолту",
         "syndicated_tranche_offset":      "Сдвиг выдачи (мес.) ({tranche})",
         "syndicated_tranche_offset_help": "Через сколько месяцев после общей даты старта банк фактически выдаст этот транш. 0 = в день старта.",
         "refi_recommendation":   "Рекомендация",
@@ -763,6 +789,31 @@ TRANSLATIONS = {
         "partial_result_banner":  "ЧАСТКОВИЙ РЕЗУЛЬТАТ — ВВАЖАЙТЕ НЕНАДІЙНИМ",
         "partial_grace":          "Кредитні канікули НЕ було застосовано — графік показано БЕЗ них",
         "partial_apr":            "Ефективну APR не вдалось розрахувати — IRR не зійшовся",
+        "theme_section":          "🎨 Тема оформлення",
+        "theme_preset_label":     "Готовий пресет",
+        "theme_preset_help":      "Виберіть готову колірну схему або 'Custom' для ручного налаштування.",
+        "theme_custom":           "Своя тема (редагувати нижче)",
+        "theme_custom_hint":      "Змінюйте будь-який колір — зміни застосовуються миттєво.",
+        "theme_field_bg":         "Фон додатка",
+        "theme_field_bg_secondary": "Бічна панель / Картки",
+        "theme_field_bg_tertiary":  "Третинний фон",
+        "theme_field_text":       "Основний текст",
+        "theme_field_text_muted": "Приглушений текст",
+        "theme_field_text_subtle":"Ледь помітний текст",
+        "theme_field_accent":     "Акцент / Посилання",
+        "theme_field_accent_strong":"Сильний акцент",
+        "theme_field_success":    "Успіх",
+        "theme_field_warning":    "Попередження",
+        "theme_field_danger":     "Небезпека",
+        "theme_field_border":     "Межі",
+        "theme_field_input_text": "Текст у полях вводу",
+        "theme_font_size":        "Розмір шрифту",
+        "theme_font_size_help":   "Масштаб усього тексту (0.75-1.4×)",
+        "theme_density":          "Щільність UI",
+        "theme_density_help":     "Відступи навколо елементів (0.7-1.4×)",
+        "theme_radius":           "Закруглення кутів",
+        "theme_radius_help":      "Радіус закруглення, px (0-24)",
+        "theme_reset":            "↻ Скинути до дефолту",
         "syndicated_tranche_offset":      "Зсув видачі (міс.) ({tranche})",
         "syndicated_tranche_offset_help": "Через скільки місяців після спільної дати старту банк фактично видасть цей транш. 0 = у день старту.",
         "refi_recommendation":   "Рекомендація",
@@ -1147,6 +1198,31 @@ TRANSLATIONS = {
         "partial_result_banner":  "PARTIAL RESULT — TREAT AS UNRELIABLE",
         "partial_grace":          "Grace Period was NOT applied — schedule shown WITHOUT it",
         "partial_apr":            "Effective APR could not be computed — IRR did not converge",
+        "theme_section":          "🎨 Theme",
+        "theme_preset_label":     "Preset",
+        "theme_preset_help":      "Pick a ready palette, or 'Custom' to tweak manually.",
+        "theme_custom":           "Custom (edit below)",
+        "theme_custom_hint":      "Tweak any color — changes apply instantly.",
+        "theme_field_bg":         "App Background",
+        "theme_field_bg_secondary": "Sidebar / Cards",
+        "theme_field_bg_tertiary":  "Tertiary Background",
+        "theme_field_text":       "Main Text",
+        "theme_field_text_muted": "Muted Text",
+        "theme_field_text_subtle":"Subtle Text",
+        "theme_field_accent":     "Accent / Links",
+        "theme_field_accent_strong":"Accent (Strong)",
+        "theme_field_success":    "Success",
+        "theme_field_warning":    "Warning",
+        "theme_field_danger":     "Danger",
+        "theme_field_border":     "Borders",
+        "theme_field_input_text": "Input Text",
+        "theme_font_size":        "Font Size",
+        "theme_font_size_help":   "Scales all text (0.75-1.4×)",
+        "theme_density":          "UI Density",
+        "theme_density_help":     "Padding around UI elements (0.7-1.4×)",
+        "theme_radius":           "Border Radius",
+        "theme_radius_help":      "Corner roundness, px (0-24)",
+        "theme_reset":            "↻ Reset to Default",
         "syndicated_tranche_offset":      "Disbursement offset (months) ({tranche})",
         "syndicated_tranche_offset_help": "How many months after the common start date this tranche is actually disbursed. 0 = at start.",
         "refi_recommendation":   "Recommendation",
@@ -1326,19 +1402,31 @@ def term_to_periods_in_base(term: int, unit: str, base_unit: str = "months") -> 
     For weeks→months we round up so that 1–4 weeks remain at least 1 month
     while 5+ weeks become 2 months, etc. — but the underlying number of
     real periods is always preserved when `unit == base_unit`.
+
+    Raises:
+      ValueError — for unknown units (consistency with period_dates_for_schedule;
+                    old behavior silently used months=1.0 as a fallback, which
+                    masked typos in upstream code).
     """
+    SUPPORTED = ("weeks", "months", "quarters", "halfyears", "years")
+    if unit not in SUPPORTED:
+        raise ValueError(
+            f"term_to_periods_in_base: unknown unit {unit!r}. "
+            f"Supported: {list(SUPPORTED)}.")
+    if base_unit not in SUPPORTED:
+        raise ValueError(
+            f"term_to_periods_in_base: unknown base_unit {base_unit!r}. "
+            f"Supported: {list(SUPPORTED)}.")
+
     if unit == base_unit:
         return max(0, int(term))
 
     # Convert via months as a common denominator
     months_per_unit = {"weeks": 7.0 / 30.4375, "months": 1.0,
                         "quarters": 3.0, "halfyears": 6.0, "years": 12.0}
-    months_per_base = months_per_unit.get(base_unit, 1.0)
-    if months_per_base <= 0:
-        return max(0, int(term))
-
-    months_total = term * months_per_unit.get(unit, 1.0)
-    periods = months_total / months_per_base
+    months_per_base = months_per_unit[base_unit]
+    months_total    = term * months_per_unit[unit]
+    periods         = months_total / months_per_base
     # Use math.ceil so a fractional period still requires a full extra slot;
     # this is the safer choice for amortization (we never under-count).
     import math
@@ -1349,11 +1437,20 @@ def generate_dates(n: int, unit: str, start: date | None = None) -> list:
     Генерирует список дат платежей.
     start — дата начала кредита/вклада (первый платёж = start + 1 период).
     Если start не передан — берётся сегодняшняя дата.
+
+    Raises ValueError для неизвестного unit (раньше тихо использовал months).
     """
     from dateutil.relativedelta import relativedelta
-    delta = {"weeks": relativedelta(weeks=1), "months": relativedelta(months=1),
-             "quarters": relativedelta(months=3), "halfyears": relativedelta(months=6),
-             "years": relativedelta(years=1)}.get(unit, relativedelta(months=1))
+    delta_map = {"weeks":     relativedelta(weeks=1),
+                  "months":    relativedelta(months=1),
+                  "quarters":  relativedelta(months=3),
+                  "halfyears": relativedelta(months=6),
+                  "years":     relativedelta(years=1)}
+    if unit not in delta_map:
+        raise ValueError(
+            f"generate_dates: unknown unit {unit!r}. "
+            f"Supported: {list(delta_map.keys())}.")
+    delta = delta_map[unit]
     d = start if start is not None else date.today()
     result = []
     for _ in range(n):
@@ -2000,7 +2097,14 @@ def calc_balloon_breakeven(principal: float, n: int, rate_pa: float,
         if hi - lo < 1e-8:
             break
 
-    return (lo + hi) * 0.5
+    result = (lo + hi) * 0.5
+    # If the search converged anywhere near the upper bound (1000 %), it means
+    # no realistic investment return inside [0, 1000 %] can amortize the
+    # principal from the freed cash. Reporting 1000 % verbatim would mislead;
+    # the honest answer is "no solution in a reasonable range".
+    if result > 999.0:
+        return None
+    return result
 
 # ─────────────────────────────────────────────────────────────────────────────
 #  ГЛАВНЫЙ РАСЧЁТ
@@ -2229,6 +2333,15 @@ def apply_grace_period(sched: list, grace_start: int, grace_duration: int,
     """
     if not sched or grace_duration <= 0 or grace_start < 1:
         return sched
+
+    # ── grace_type validation ─────────────────────────────────────────────────
+    # Old code did `if grace_type == "interest_only" else full_holiday`, which
+    # silently treated unknown values (typos, stale state) as "full_holiday".
+    # Raise explicitly instead so misconfiguration surfaces in the UI banner.
+    if grace_type not in ("interest_only", "full_holiday"):
+        raise ValueError(
+            f"apply_grace_period: grace_type must be 'interest_only' "
+            f"or 'full_holiday', got {grace_type!r}.")
 
     n   = len(sched)
     ppy = periods_per_year(unit)
@@ -4321,6 +4434,10 @@ def export_excel(df, summary, t, sym):
                 write_kv_row(ws3, r, lbl, val, fmt, i_r%2==0, hl)
                 r += 1
         except Exception:
+            # Best-effort: deposit-mode comparison is informational. If
+            # calc_deposit fails (e.g. degenerate principal or term), the
+            # Excel file still exports without this section rather than
+            # losing the whole file.
             pass
 
     # ── Дисклеймер на Analysis ────────────────────────────────────────────────
@@ -4961,6 +5078,9 @@ def init_state():
         # ── Day-Count Convention ──────────────────────────────────────────────
         "day_count_enabled":   False,                # OFF by default per spec
         "day_count_method":    DAY_COUNT_DEFAULT,    # "30/360"
+        # ── Theme (resolved lazily by get_active_theme() if not set) ─────────
+        "theme":               None,                 # dict — filled by get_active_theme
+        "theme_preset":        THEME_DEFAULT_KEY,
     }
     for k, v in defs.items():
         if k not in st.session_state:
@@ -5340,137 +5460,380 @@ def del_tpl(name):
 # ─────────────────────────────────────────────────────────────────────────────
 #  CSS
 # ─────────────────────────────────────────────────────────────────────────────
-CSS = """
+# ─────────────────────────────────────────────────────────────────────────────
+#  ТЕМЫ — пресеты и кастомизация
+# ─────────────────────────────────────────────────────────────────────────────
+#  Каждая тема — словарь полей, которые подставляются в CSS-переменные.
+#  Изменяешь пресет → весь UI меняется на лету (без st.rerun()).
+#  Кастомные значения хранятся в browser localStorage (через JS-мост).
+# ─────────────────────────────────────────────────────────────────────────────
+
+THEME_PRESETS = {
+    "dark_navy": {
+        "name":            "Dark Navy",
+        "bg":              "#0F172A",
+        "bg_secondary":    "#1E293B",
+        "bg_tertiary":     "#0F2444",
+        "text":            "#E2E8F0",
+        "text_muted":      "#94A3B8",
+        "text_subtle":     "#64748B",
+        "accent":          "#4FC3F7",
+        "accent_strong":   "#1D4ED8",
+        "accent_gradient": "linear-gradient(135deg,#1D4ED8,#0EA5E9)",
+        "success":         "#10B981",
+        "warning":         "#F59E0B",
+        "danger":          "#DC2626",
+        "border":          "#334155",
+        "border_subtle":   "#1E2D3D",
+        "input_text":      "#F1F5F9",
+        "font_size":       1.0,     # multiplier
+        "density":         1.0,     # multiplier for padding/spacing
+        "radius":          8,       # px base border-radius
+    },
+    "light": {
+        "name":            "Light",
+        "bg":              "#F8FAFC",
+        "bg_secondary":    "#FFFFFF",
+        "bg_tertiary":     "#E2E8F0",
+        "text":            "#0F172A",
+        "text_muted":      "#475569",
+        "text_subtle":     "#64748B",
+        "accent":          "#0284C7",
+        "accent_strong":   "#0369A1",
+        "accent_gradient": "linear-gradient(135deg,#0369A1,#0EA5E9)",
+        "success":         "#059669",
+        "warning":         "#D97706",
+        "danger":          "#DC2626",
+        "border":          "#CBD5E1",
+        "border_subtle":   "#E2E8F0",
+        "input_text":      "#0F172A",
+        "font_size":       1.0,
+        "density":         1.0,
+        "radius":          8,
+    },
+    "high_contrast": {
+        "name":            "High Contrast",
+        "bg":              "#000000",
+        "bg_secondary":    "#0A0A0A",
+        "bg_tertiary":     "#141414",
+        "text":            "#FFFFFF",
+        "text_muted":      "#D4D4D4",
+        "text_subtle":     "#A3A3A3",
+        "accent":          "#FFD700",
+        "accent_strong":   "#FFA500",
+        "accent_gradient": "linear-gradient(135deg,#FFA500,#FFD700)",
+        "success":         "#00FF7F",
+        "warning":         "#FFD700",
+        "danger":          "#FF4444",
+        "border":          "#FFFFFF",
+        "border_subtle":   "#404040",
+        "input_text":      "#FFFFFF",
+        "font_size":       1.1,
+        "density":         1.1,
+        "radius":          4,
+    },
+    "midnight": {
+        "name":            "Midnight",
+        "bg":              "#1A0B2E",
+        "bg_secondary":    "#2D1B4E",
+        "bg_tertiary":     "#1E0F3D",
+        "text":            "#E9D5FF",
+        "text_muted":      "#A78BFA",
+        "text_subtle":     "#7C3AED",
+        "accent":          "#C084FC",
+        "accent_strong":   "#9333EA",
+        "accent_gradient": "linear-gradient(135deg,#9333EA,#C084FC)",
+        "success":         "#A78BFA",
+        "warning":         "#F59E0B",
+        "danger":          "#F472B6",
+        "border":          "#5B21B6",
+        "border_subtle":   "#3B0764",
+        "input_text":      "#F5F3FF",
+        "font_size":       1.0,
+        "density":         1.0,
+        "radius":          12,
+    },
+    "ocean": {
+        "name":            "Ocean",
+        "bg":              "#0C1929",
+        "bg_secondary":    "#0E2235",
+        "bg_tertiary":     "#0A3553",
+        "text":            "#CFFAFE",
+        "text_muted":      "#67E8F9",
+        "text_subtle":     "#22D3EE",
+        "accent":          "#06B6D4",
+        "accent_strong":   "#0891B2",
+        "accent_gradient": "linear-gradient(135deg,#0891B2,#06B6D4)",
+        "success":         "#34D399",
+        "warning":         "#FBBF24",
+        "danger":          "#F87171",
+        "border":          "#155E75",
+        "border_subtle":   "#0E4C6B",
+        "input_text":      "#ECFEFF",
+        "font_size":       1.0,
+        "density":         1.0,
+        "radius":          10,
+    },
+}
+
+THEME_DEFAULT_KEY = "dark_navy"
+
+
+def build_css(theme: dict) -> str:
+    """
+    Builds the full CSS payload from a theme dict. All visible colors,
+    paddings, radii and font sizes are driven by CSS-variables, which lets
+    us swap themes (and live-edit via the sidebar) without touching the
+    rest of the markup.
+
+    Theme dict keys (see THEME_PRESETS for the full list of fields).
+    Missing keys fall back to dark_navy values. Field values are also
+    *defensively* validated/sanitized: a corrupt entry in localStorage
+    must not be able to either crash build_css() or inject arbitrary CSS.
+    """
+    base = THEME_PRESETS[THEME_DEFAULT_KEY]
+    t = {**base, **(theme or {})}
+
+    # ── Safe numeric coercion ─────────────────────────────────────────────────
+    # Old code did `float(t.get('font_size', 1.0))` which crashed on string
+    # values like 'abc' (e.g. from a corrupt localStorage entry, or a malicious
+    # query param). Coerce defensively and fall back to default on failure.
+    def _safe_num(val, default: float) -> float:
+        try:
+            return float(val)
+        except (TypeError, ValueError):
+            return float(default)
+    def _safe_int(val, default: int) -> int:
+        try:
+            return int(float(val))    # tolerate "8.0" strings too
+        except (TypeError, ValueError):
+            return int(default)
+
+    fs       = max(0.75, min(1.4, _safe_num(t.get("font_size"), 1.0)))
+    density  = max(0.7,  min(1.4, _safe_num(t.get("density"),   1.0)))
+    radius   = max(0,    min(24,  _safe_int(t.get("radius"),    8)))
+    pad_md   = round(10 * density)
+    pad_lg   = round(16 * density)
+    pad_xs   = round(6  * density)
+
+    # ── Safe color sanitization (CSS-injection defense) ───────────────────────
+    # Color fields are interpolated raw into `:root { --app-bg: <value>; }`,
+    # so a value like `"#000; } body { display: none; } /*"` would inject
+    # arbitrary CSS. We accept only well-formed hex colors (#RGB, #RRGGBB,
+    # #RRGGBBAA) and the literal "transparent". Anything else falls back to
+    # the default-preset color for that field.
+    import re as _re
+    _HEX_RE = _re.compile(r'^#(?:[0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$')
+
+    def _safe_color(field: str) -> str:
+        val = t.get(field, base[field])
+        if isinstance(val, str):
+            v = val.strip()
+            if _HEX_RE.match(v) or v.lower() == "transparent":
+                return v
+        return base[field]
+
+    # Gradient field can legitimately contain commas, spaces, and the word
+    # "linear-gradient(...)" — sanitize separately by checking for known-bad
+    # characters that would close the CSS declaration.
+    def _safe_gradient() -> str:
+        val = t.get("accent_gradient", base["accent_gradient"])
+        if isinstance(val, str) and not any(c in val for c in ('{', '}', ';', '/*', '*/')):
+            return val
+        return base["accent_gradient"]
+
+    bg              = _safe_color("bg")
+    bg_secondary    = _safe_color("bg_secondary")
+    bg_tertiary     = _safe_color("bg_tertiary")
+    text            = _safe_color("text")
+    text_muted      = _safe_color("text_muted")
+    text_subtle     = _safe_color("text_subtle")
+    accent          = _safe_color("accent")
+    accent_strong   = _safe_color("accent_strong")
+    accent_gradient = _safe_gradient()
+    success         = _safe_color("success")
+    warning         = _safe_color("warning")
+    danger          = _safe_color("danger")
+    border          = _safe_color("border")
+    border_subtle   = _safe_color("border_subtle")
+    input_text      = _safe_color("input_text")
+
+    return f"""
 <style>
-.stApp{background:#0F172A;color:#E2E8F0}
-section[data-testid="stSidebar"]{background:#1E293B!important;border-right:1px solid #334155}
-section[data-testid="stSidebar"] *{color:#E2E8F0!important}
-div[data-testid="metric-container"]{
-  background:linear-gradient(135deg,#1E293B,#0F2444);
-  border:1px solid #334155;border-radius:12px;padding:16px 18px;
-  box-shadow:0 4px 20px rgba(0,0,0,.4)}
-div[data-testid="metric-container"] label{
-  color:#94A3B8!important;font-size:.74rem!important;font-weight:600;
-  text-transform:uppercase;letter-spacing:.06em}
-div[data-testid="metric-container"] div[data-testid="metric-value"]{
-  color:#4FC3F7!important;font-size:1.2rem!important;font-weight:700}
+:root{{
+  --app-bg:           {bg};
+  --app-bg-secondary: {bg_secondary};
+  --app-bg-tertiary:  {bg_tertiary};
+  --app-text:         {text};
+  --app-text-muted:   {text_muted};
+  --app-text-subtle:  {text_subtle};
+  --app-accent:       {accent};
+  --app-accent-strong:{accent_strong};
+  --app-accent-grad:  {accent_gradient};
+  --app-success:      {success};
+  --app-warning:      {warning};
+  --app-danger:       {danger};
+  --app-border:       {border};
+  --app-border-subtle:{border_subtle};
+  --app-input-text:   {input_text};
+  --app-radius:       {radius}px;
+  --app-radius-lg:    {radius + 4}px;
+  --app-pad-md:       {pad_md}px;
+  --app-pad-lg:       {pad_lg}px;
+  --app-pad-xs:       {pad_xs}px;
+  --app-font-scale:   {fs};
+}}
+html{{font-size:calc(16px * var(--app-font-scale))}}
+.stApp{{background:var(--app-bg);color:var(--app-text)}}
+section[data-testid="stSidebar"]{{
+  background:var(--app-bg-secondary)!important;
+  border-right:1px solid var(--app-border)
+}}
+section[data-testid="stSidebar"] *{{color:var(--app-text)!important}}
+div[data-testid="metric-container"]{{
+  background:linear-gradient(135deg,var(--app-bg-secondary),var(--app-bg-tertiary));
+  border:1px solid var(--app-border);
+  border-radius:var(--app-radius-lg);
+  padding:var(--app-pad-lg) calc(var(--app-pad-lg) + 2px);
+  box-shadow:0 4px 20px rgba(0,0,0,.35)
+}}
+div[data-testid="metric-container"] label{{
+  color:var(--app-text-muted)!important;
+  font-size:.74rem!important;font-weight:600;
+  text-transform:uppercase;letter-spacing:.06em
+}}
+div[data-testid="metric-container"] div[data-testid="metric-value"]{{
+  color:var(--app-accent)!important;font-size:1.2rem!important;font-weight:700
+}}
 /* ── Шапка приложения ── */
-.app-header{
-  background:linear-gradient(135deg,#0F2444 0%,#1E3A5F 50%,#0F172A 100%);
-  border:1px solid #1D4ED8;border-radius:16px;
+.app-header{{
+  background:linear-gradient(135deg,
+    var(--app-bg-tertiary) 0%,
+    var(--app-bg-secondary) 50%,
+    var(--app-bg) 100%);
+  border:1px solid var(--app-accent-strong);
+  border-radius:var(--app-radius-lg);
   padding:24px 32px;margin-bottom:20px;text-align:center;
-  box-shadow:0 8px 32px rgba(14,165,233,0.15)}
-.app-header .brand{
+  box-shadow:0 8px 32px rgba(14,165,233,0.15)
+}}
+.app-header .brand{{
   font-size:1.9rem;font-weight:900;letter-spacing:.04em;margin:0;
-  background:linear-gradient(90deg,#4FC3F7,#7DD3FC,#38BDF8);
+  background:linear-gradient(90deg,var(--app-accent),var(--app-accent-strong));
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-  background-clip:text}
-.app-header .slogan{
-  color:#64748B;font-size:.82rem;font-style:italic;
-  letter-spacing:.12em;margin:6px 0 2px;font-weight:500}
-.app-header p{color:#94A3B8;font-size:.86rem;margin:2px 0 0}
+  background-clip:text
+}}
+.app-header .slogan{{
+  color:var(--app-text-subtle);font-size:.82rem;font-style:italic;
+  letter-spacing:.12em;margin:6px 0 2px;font-weight:500
+}}
+.app-header p{{color:var(--app-text-muted);font-size:.86rem;margin:2px 0 0}}
 /* ── Сайдбар брендинг ── */
-.sidebar-brand{
+.sidebar-brand{{
   text-align:center;padding:12px 8px 4px;
-  border-bottom:1px solid #334155;margin-bottom:8px}
-.sidebar-brand .brand-name{
+  border-bottom:1px solid var(--app-border);margin-bottom:8px
+}}
+.sidebar-brand .brand-name{{
   font-size:1rem;font-weight:800;
-  background:linear-gradient(90deg,#4FC3F7,#7DD3FC);
+  background:linear-gradient(90deg,var(--app-accent),var(--app-accent-strong));
   -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-  background-clip:text;letter-spacing:.04em}
-.sidebar-brand .brand-slogan{
-  font-size:.64rem;color:#475569!important;font-style:italic;
-  letter-spacing:.08em;margin-top:2px}
+  background-clip:text;letter-spacing:.04em
+}}
+.sidebar-brand .brand-slogan{{
+  font-size:.64rem;color:var(--app-text-subtle)!important;font-style:italic;
+  letter-spacing:.08em;margin-top:2px
+}}
 /* ── Дисклеймер ── */
-.disclaimer{
-  background:#0A0F1E;border:1px solid #1E2D3D;border-radius:10px;
-  padding:12px 14px;margin-top:16px;
-  font-size:.65rem;line-height:1.55;color:#475569!important}
-.disclaimer b{color:#64748B!important;font-size:.67rem}
+.disclaimer{{
+  background:var(--app-bg);border:1px solid var(--app-border-subtle);
+  border-radius:var(--app-radius);
+  padding:var(--app-pad-md) calc(var(--app-pad-md) + 2px);
+  margin-top:16px;font-size:.65rem;line-height:1.55;
+  color:var(--app-text-subtle)!important
+}}
+.disclaimer b{{color:var(--app-text-muted)!important;font-size:.67rem}}
 /* ── Кнопки ── */
-.stButton>button{
-  background:linear-gradient(135deg,#1D4ED8,#0EA5E9);color:#fff;
-  border:none;border-radius:8px;font-weight:700;font-size:.88rem;
-  padding:10px 18px;transition:all .2s;box-shadow:0 4px 12px rgba(14,165,233,.3)}
-.stButton>button:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(14,165,233,.5)}
-.sec-title{
-  font-size:.95rem;font-weight:700;color:#7DD3FC;
-  padding:5px 0 3px;border-bottom:1px solid #334155;
-  margin-bottom:12px;letter-spacing:.03em}
-.scheme-info{
-  background:#162033;border-left:3px solid #4FC3F7;
-  border-radius:6px;padding:7px 11px;color:#94A3B8;
-  font-size:.8rem;margin-top:3px}
-.invest-header{
-  background:linear-gradient(135deg,#062034,#032818);
-  border:1px solid #10B981;border-radius:10px;
-  padding:12px 16px;margin:8px 0}
-.invest-header p{color:#6EE7B7;font-weight:600;margin:0;font-size:.9rem}
-.savings-box{
-  background:linear-gradient(135deg,#064E3B,#065F46);
-  border:1px solid #10B981;border-radius:10px;
-  padding:11px 18px;color:#6EE7B7;font-weight:600;
-  text-align:center;margin-top:8px}
-.deposit-box{
-  background:#0F1B2E;border:1px solid #4FC3F7;
-  border-radius:10px;padding:12px 16px;margin:6px 0}
-.tpl-badge{
-  display:inline-block;background:#1D4ED8;color:#fff;
-  padding:2px 9px;border-radius:20px;font-size:.72rem;font-weight:600}
+.stButton>button{{
+  background:var(--app-accent-grad);color:#fff;
+  border:none;border-radius:var(--app-radius);
+  font-weight:700;font-size:.88rem;
+  padding:var(--app-pad-md) calc(var(--app-pad-lg) + 2px);
+  transition:all .2s;box-shadow:0 4px 12px rgba(14,165,233,.3)
+}}
+.stButton>button:hover{{
+  transform:translateY(-1px);box-shadow:0 6px 18px rgba(14,165,233,.5)
+}}
+.sec-title{{
+  font-size:.95rem;font-weight:700;color:var(--app-accent);
+  padding:5px 0 3px;border-bottom:1px solid var(--app-border);
+  margin-bottom:12px;letter-spacing:.03em
+}}
+.scheme-info{{
+  background:var(--app-bg-tertiary);border-left:3px solid var(--app-accent);
+  border-radius:6px;padding:var(--app-pad-xs) calc(var(--app-pad-xs) + 5px);
+  color:var(--app-text-muted);font-size:.8rem;margin-top:3px
+}}
+.invest-header{{
+  background:linear-gradient(135deg,var(--app-bg-tertiary),var(--app-bg-secondary));
+  border:1px solid var(--app-success);border-radius:var(--app-radius);
+  padding:var(--app-pad-md) var(--app-pad-lg);margin:8px 0
+}}
+.invest-header p{{color:var(--app-success);font-weight:600;margin:0;font-size:.9rem}}
+.savings-box{{
+  background:linear-gradient(135deg,var(--app-bg-tertiary),var(--app-bg-secondary));
+  border:1px solid var(--app-success);border-radius:var(--app-radius);
+  padding:var(--app-pad-md) calc(var(--app-pad-lg) + 2px);
+  color:var(--app-success);font-weight:600;
+  text-align:center;margin-top:8px
+}}
+.deposit-box{{
+  background:var(--app-bg-tertiary);border:1px solid var(--app-accent);
+  border-radius:var(--app-radius);
+  padding:var(--app-pad-md) var(--app-pad-lg);margin:6px 0
+}}
+.tpl-badge{{
+  display:inline-block;background:var(--app-accent-strong);color:#fff;
+  padding:2px 9px;border-radius:20px;font-size:.72rem;font-weight:600
+}}
 /* ── Подпись "Made by Yevtush" ── */
-.made-by{
+.made-by{{
   position:fixed;bottom:10px;right:14px;
-  color:#334155;font-size:.68rem;font-weight:700;
+  color:var(--app-border);font-size:.68rem;font-weight:700;
   letter-spacing:.05em;z-index:9999;
   pointer-events:none;user-select:none;
-  background:rgba(15,23,42,.85);
+  background:var(--app-bg-secondary);
   padding:3px 10px;border-radius:20px;
-  border:1px solid #1E2D3D}
-/* Скрываем дефолтный футер и меню "More", но header оставляем —
-   в нём живёт кнопка-стрелка для возврата боковой панели после её
-   закрытия (без неё на мобильных её было не достучаться, нужно было
-   перезагружать страницу). Делаем header прозрачным, но интерактивным. */
-footer{visibility:hidden}
-#MainMenu{visibility:hidden}
-header[data-testid="stHeader"]{
+  border:1px solid var(--app-border-subtle)
+}}
+/* Хедер: оставляем видимым (там кнопка сайдбара), но прозрачным */
+footer{{visibility:hidden}}
+#MainMenu{{visibility:hidden}}
+header[data-testid="stHeader"]{{
   background:transparent!important;
-  /* Сохраняем фон вокруг кнопки-стрелки, чтобы её было видно на любом фоне */
-}
-/* Кнопка раскрытия боковой панели — должна быть видна ВСЕГДА когда панель
-   закрыта, не только при наведении. По умолчанию Streamlit мобильно
-   делает её прозрачной/мерцающей, что и провоцирует жалобы "стрелка
-   пропала и не могу открыть сайдбар". */
+  height:auto!important;
+  min-height:2.5rem!important;
+}}
+/* Кнопка раскрытия сайдбара — всегда видна */
 button[data-testid="stSidebarCollapsedControl"],
 button[data-testid="collapsedControl"],
 [data-testid="stSidebarCollapsedControl"],
-[data-testid="collapsedControl"]{
+[data-testid="collapsedControl"]{{
   visibility:visible!important;
   opacity:1!important;
   display:flex!important;
-  background:rgba(29,78,216,.85)!important;
-  border:1px solid #4FC3F7!important;
-  border-radius:8px!important;
+  background:var(--app-accent-strong)!important;
+  border:1px solid var(--app-accent)!important;
+  border-radius:var(--app-radius)!important;
   box-shadow:0 2px 8px rgba(0,0,0,.4)!important;
   z-index:99999!important;
-}
+}}
 button[data-testid="stSidebarCollapsedControl"] svg,
 button[data-testid="collapsedControl"] svg,
 [data-testid="stSidebarCollapsedControl"] svg,
-[data-testid="collapsedControl"] svg{
+[data-testid="collapsedControl"] svg{{
   color:#FFFFFF!important;
   fill:#FFFFFF!important;
-}
-/* Тот же фикс для родительского контейнера header — не давать ему
-   стянуться в ноль (иногда Streamlit делает header высотой 0px,
-   из-за чего кнопка фактически некликабельна). */
-header[data-testid="stHeader"]{
-  height:auto!important;
-  min-height:2.5rem!important;
-}
-/* ── Контрастный текст в полях ввода (mobile-fix) ──────────────────────
-   На мобильных Safari/Chrome дефолтный цвет текста в input/select
-   отображается тусклым серым (#A8B0BD), сливается с фоном. Принудительно
-   возвращаем читаемый цвет и убираем системные стилизации iOS. */
+}}
+/* ── Контрастный текст в полях ввода (mobile-fix + theme support) ── */
 .stTextInput input,
 .stNumberInput input,
 .stTextArea textarea,
@@ -5485,44 +5848,245 @@ input[type="email"],
 input[type="tel"],
 input[type="search"],
 textarea,
-select{
-  color:#F1F5F9!important;
-  -webkit-text-fill-color:#F1F5F9!important;  /* iOS Safari fix */
+select{{
+  color:var(--app-input-text)!important;
+  -webkit-text-fill-color:var(--app-input-text)!important;
   opacity:1!important;
   font-weight:500!important;
-  caret-color:#4FC3F7!important;
-}
-/* Placeholder остаётся приглушённым, но не сливается */
+  caret-color:var(--app-accent)!important;
+}}
 .stTextInput input::placeholder,
 .stNumberInput input::placeholder,
 .stTextArea textarea::placeholder,
 input::placeholder,
-textarea::placeholder{
-  color:#64748B!important;
-  -webkit-text-fill-color:#64748B!important;
+textarea::placeholder{{
+  color:var(--app-text-subtle)!important;
+  -webkit-text-fill-color:var(--app-text-subtle)!important;
   opacity:.85!important;
-}
-/* Отключённые поля — чуть бледнее, но всё ещё читаемы (а не как сейчас
-   — почти невидимые на iOS) */
+}}
 .stTextInput input:disabled,
 .stNumberInput input:disabled,
 input:disabled,
 textarea:disabled,
-select:disabled{
-  color:#94A3B8!important;
-  -webkit-text-fill-color:#94A3B8!important;
+select:disabled{{
+  color:var(--app-text-muted)!important;
+  -webkit-text-fill-color:var(--app-text-muted)!important;
   opacity:.7!important;
-}
-/* Selectbox: значение в свёрнутом виде. На iOS оно унаследует серый
-   цвет из BaseWeb и сольётся с фоном — переопределяем явно. */
-div[data-baseweb="select"] > div{
-  color:#F1F5F9!important;
-}
-div[data-baseweb="select"] [class*="placeholder"]{
-  color:#64748B!important;
-}
+}}
+div[data-baseweb="select"] > div{{color:var(--app-input-text)!important}}
+div[data-baseweb="select"] [class*="placeholder"]{{color:var(--app-text-subtle)!important}}
 </style>
 """
+
+
+def _theme_persistence_js() -> str:
+    """
+    Returns an HTML snippet (rendered via streamlit.components.v1.html) that:
+      • on first render, reads `yev_theme` from localStorage and posts it
+        to Streamlit via streamlit-component message (we instead use a tiny
+        URL-param ping fallback for full reliability);
+      • on every theme change from Python, writes the JSON to localStorage.
+
+    Streamlit doesn't natively round-trip localStorage → session_state, so we
+    use a small bridge: an iframe component that, on load, sends the saved
+    theme to a query-param `?theme_b64=...`. Main app reads st.query_params on
+    each rerun. Persists across sessions without any backend.
+    """
+    return """
+<script>
+(function(){
+  const KEY = 'yev_theme_v1';
+  // On first load: if localStorage has saved theme AND query param is missing,
+  // append ?theme_b64=... to the URL so Streamlit picks it up on the next run.
+  try {
+    const params = new URLSearchParams(window.parent.location.search);
+    if (!params.has('theme_b64')) {
+      const saved = window.parent.localStorage.getItem(KEY);
+      if (saved) {
+        const b64 = window.parent.btoa(unescape(encodeURIComponent(saved)));
+        params.set('theme_b64', b64);
+        const newUrl = window.parent.location.pathname + '?' + params.toString();
+        window.parent.history.replaceState(null, '', newUrl);
+        // Trigger a one-time reload so Streamlit re-reads query params
+        if (!window.parent.sessionStorage.getItem('yev_theme_loaded')) {
+          window.parent.sessionStorage.setItem('yev_theme_loaded', '1');
+          window.parent.location.reload();
+        }
+      }
+    }
+  } catch(e) { /* localStorage may be blocked; degrade silently */ }
+})();
+</script>
+"""
+
+
+def _theme_save_js(theme_json: str) -> str:
+    """JS snippet that saves a theme JSON into localStorage."""
+    # Escape JSON for safe inlining in JS string literal
+    import json as _json
+    safe = _json.dumps(theme_json)  # double-encode for safe JS embedding
+    return f"""
+<script>
+(function(){{
+  try {{
+    window.parent.localStorage.setItem('yev_theme_v1', {safe});
+  }} catch(e) {{ /* blocked; theme will persist only this session */ }}
+}})();
+</script>
+"""
+
+
+def get_active_theme() -> dict:
+    """
+    Resolves the active theme:
+      1. If `theme` is in st.session_state → use it.
+      2. Else if `?theme_b64=...` query param exists (set by localStorage
+         bridge) → decode and use, also write to session_state.
+      3. Else → default preset.
+    """
+    if "theme" in st.session_state and isinstance(st.session_state.theme, dict):
+        return st.session_state.theme
+
+    # Try to recover from localStorage via query param
+    try:
+        qp = st.query_params
+        b64 = qp.get("theme_b64")
+        if b64:
+            import base64, json as _json
+            decoded = base64.b64decode(b64).decode("utf-8")
+            theme = _json.loads(decoded)
+            if isinstance(theme, dict):
+                # Merge with default to fill missing fields
+                merged = {**THEME_PRESETS[THEME_DEFAULT_KEY], **theme}
+                st.session_state.theme = merged
+                return merged
+    except Exception:
+        pass
+
+    # Default
+    default = dict(THEME_PRESETS[THEME_DEFAULT_KEY])
+    st.session_state.theme = default
+    return default
+
+
+def render_theme_editor(t: dict):
+    """Renders the theme editor in the sidebar."""
+    import json as _json
+    import streamlit.components.v1 as _components
+
+    current_theme = get_active_theme()
+
+    with st.expander(t.get("theme_section", "🎨 Theme"), expanded=False):
+        # ── 1) Preset selector ────────────────────────────────────────────────
+        preset_labels = {
+            k: v["name"] for k, v in THEME_PRESETS.items()
+        }
+        preset_labels["__custom__"] = t.get("theme_custom", "Custom (edit below)")
+
+        current_preset_key = st.session_state.get("theme_preset", THEME_DEFAULT_KEY)
+        new_preset_key = st.selectbox(
+            t.get("theme_preset_label", "Preset"),
+            options=list(preset_labels.keys()),
+            format_func=lambda k: preset_labels[k],
+            index=list(preset_labels.keys()).index(current_preset_key)
+                   if current_preset_key in preset_labels else 0,
+            key="theme_preset_select",
+            help=t.get("theme_preset_help", ""),
+        )
+
+        if new_preset_key != current_preset_key:
+            st.session_state.theme_preset = new_preset_key
+            if new_preset_key in THEME_PRESETS:
+                st.session_state.theme = dict(THEME_PRESETS[new_preset_key])
+            # __custom__: keep current colors, just allow editing
+            _save_theme_to_localstorage(st.session_state.theme)
+            st.rerun()
+
+        # ── 2) Advanced editor (only if Custom) ───────────────────────────────
+        if new_preset_key == "__custom__":
+            st.caption(t.get("theme_custom_hint",
+                              "Tweak any color. Changes apply instantly."))
+
+            new_theme = dict(current_theme)
+
+            color_fields = [
+                ("bg",            "theme_bg",        "App Background"),
+                ("bg_secondary",  "theme_bg_sec",    "Sidebar / Cards"),
+                ("bg_tertiary",   "theme_bg_ter",    "Tertiary Background"),
+                ("text",          "theme_text",      "Main Text"),
+                ("text_muted",    "theme_text_m",    "Muted Text"),
+                ("text_subtle",   "theme_text_s",    "Subtle Text"),
+                ("accent",        "theme_accent",    "Accent / Links"),
+                ("accent_strong", "theme_accent_s",  "Accent (Strong)"),
+                ("success",       "theme_success",   "Success"),
+                ("warning",       "theme_warning",   "Warning"),
+                ("danger",        "theme_danger",    "Danger"),
+                ("border",        "theme_border",    "Borders"),
+                ("input_text",    "theme_input_txt", "Input Text"),
+            ]
+
+            for field, key, label in color_fields:
+                new_theme[field] = st.color_picker(
+                    t.get(f"theme_field_{field}", label),
+                    value=current_theme.get(field, "#000000"),
+                    key=key,
+                )
+
+            # Re-derive accent_gradient automatically when accent colors change
+            new_theme["accent_gradient"] = (
+                f"linear-gradient(135deg,{new_theme['accent_strong']},"
+                f"{new_theme['accent']})"
+            )
+
+            st.markdown("---")
+
+            new_theme["font_size"] = st.slider(
+                t.get("theme_font_size", "Font Size"),
+                min_value=0.75, max_value=1.4,
+                value=float(current_theme.get("font_size", 1.0)),
+                step=0.05, key="theme_font_size_slider",
+                help=t.get("theme_font_size_help", "Scales all text proportionally"),
+            )
+            new_theme["density"] = st.slider(
+                t.get("theme_density", "UI Density"),
+                min_value=0.7, max_value=1.4,
+                value=float(current_theme.get("density", 1.0)),
+                step=0.05, key="theme_density_slider",
+                help=t.get("theme_density_help", "Padding around UI elements"),
+            )
+            new_theme["radius"] = st.slider(
+                t.get("theme_radius", "Border Radius"),
+                min_value=0, max_value=24,
+                value=int(current_theme.get("radius", 8)),
+                step=1, key="theme_radius_slider",
+                help=t.get("theme_radius_help", "Roundness of corners (px)"),
+            )
+
+            if new_theme != current_theme:
+                st.session_state.theme = new_theme
+                _save_theme_to_localstorage(new_theme)
+                st.rerun()
+
+        # ── 3) Reset & info ───────────────────────────────────────────────────
+        if st.button(t.get("theme_reset", "↻ Reset to Default"),
+                       key="btn_theme_reset",
+                       use_container_width=True):
+            st.session_state.theme = dict(THEME_PRESETS[THEME_DEFAULT_KEY])
+            st.session_state.theme_preset = THEME_DEFAULT_KEY
+            _save_theme_to_localstorage(st.session_state.theme)
+            st.rerun()
+
+
+def _save_theme_to_localstorage(theme: dict):
+    """Pushes theme JSON to browser localStorage via an invisible JS snippet."""
+    try:
+        import json as _json
+        import streamlit.components.v1 as _components
+        js = _theme_save_js(_json.dumps(theme))
+        _components.html(js, height=0)
+    except Exception:
+        # Component-rendering may fail in unusual harnesses; silently degrade.
+        pass
 
 # ─────────────────────────────────────────────────────────────────────────────
 #  ГЛАВНАЯ ФУНКЦИЯ
@@ -5531,7 +6095,19 @@ def main():
     st.set_page_config(page_title="Yev Capital LoanLogic", page_icon="💼",
                        layout="wide", initial_sidebar_state="expanded")
     init_state()
-    st.markdown(CSS, unsafe_allow_html=True)
+
+    # ── Theme: read from session_state / localStorage / default ───────────────
+    active_theme = get_active_theme()
+    st.markdown(build_css(active_theme), unsafe_allow_html=True)
+
+    # ── localStorage bridge: on first load, recover saved theme via query param.
+    # Rendered as zero-height iframe; runs JS that copies localStorage →
+    # ?theme_b64=... and reloads once (sessionStorage guards re-reload loop).
+    try:
+        import streamlit.components.v1 as _components
+        _components.html(_theme_persistence_js(), height=0)
+    except Exception:
+        pass
 
     # Постоянная подпись
     st.markdown('<div class="made-by">© 2026 Bohdan Yevtushenko · Yev Capital v3.0</div>', unsafe_allow_html=True)
@@ -5565,6 +6141,9 @@ def main():
     #  БОКОВАЯ ПАНЕЛЬ
     # ═══════════════════════════════════════════════════════════════════════════
     with st.sidebar:
+        # ── Theme editor (presets + custom colors/sizes) ──────────────────────
+        render_theme_editor(t)
+
         st.markdown(f"### {t['section_params']}")
 
         # Валюта
