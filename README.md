@@ -12,7 +12,7 @@ The full license text is available in the `LICENSE` file.
 
 ## Description
 
-Yev Capital | LoanLogic was created for educational and support purposes, not for commercial purposes. This app allows you to calculate and analyze loans and deposits. Select the amount, interest rate, and loan type, and click the "Calculate" button. You'll receive all the information you could possibly need.
+Yev Capital | LoanLogic was created for educational and support purposes. This app allows you to calculate and analyze loans and deposits. Select the amount, interest rate, and loan type, and click the "Calculate" button. You'll receive all the information you could possibly need.
 
 To run on a local device you will need libraries, they are located in the `requirements.txt` file
 
