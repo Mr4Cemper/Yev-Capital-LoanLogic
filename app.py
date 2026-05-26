@@ -1,7 +1,7 @@
 """
 ╔══════════════════════════════════════════════════════════════════════════════╗
-║  Yev Capital | LoanLogic v3.0                                            ║
-║  Professional Credit Analysis & Reporting System                             ║
+║  Yev Capital | LoanLogic v3.0                                                ║
+║  Credit Analysis & Reporting System                                          ║
 ║                                                                              ║
 ║  Copyright (c) 2026 Bohdan Yevtushenko (MrCemper)                            ║
 ║  SPDX-License-Identifier: AGPL-3.0-or-later                                  ║
@@ -119,7 +119,7 @@ if PDF_FONT == "Helvetica":
 TRANSLATIONS = {
     "ru": {
         "app_title": "Yev Capital LoanLogic",
-        "app_subtitle": "Профессиональный расчёт банковских кредитов и вкладов",
+        "app_subtitle": "Расчёт банковских кредитов и вкладов",
         "section_params": "⚙️ Параметры кредита",
         "loan_amount": "Сумма кредита",
         "loan_amount_slider": "Ползунок суммы",
@@ -185,7 +185,7 @@ TRANSLATIONS = {
         "download_docx": "⬇️ Word",
         "overpayment_pct": "Переплата от суммы",
         "compare_schemes": "⚖️ Сравнить схемы",
-        "annuity_vs_classic": "Аннуитет vs Классика",
+        "annuity_vs_classic": "Сравнение схем кредитования",
         "savings_classic": "Экономия при классике",
         "annuity_short": "Аннуитет",
         "classic_short": "Классика",
@@ -293,6 +293,11 @@ TRANSLATIONS = {
         "invest_breakeven_abs_tip":      "Минимальная доходность, при которой FV сэкономленных средств покрывает всю переплату по балунному кредиту.",
         "invest_breakeven_vs_ann":       "Vs. Аннуитет (Буллит)",
         "invest_breakeven_vs_ann_tip":   "Минимальная доходность, при которой буллит выгоднее аннуитета.",
+        "invest_breakeven_vs_cla_balloon":     "Vs. Классика (Буллит)",
+        "invest_breakeven_vs_cla_balloon_tip": "Минимальная годовая доходность, при которой буллитная схема (с отложенной выплатой тела) к концу срока выходит на тот же результат, что и классическая.",
+        "invest_breakeven_vs_cla_annuity":     "Vs. Классика (Аннуитет)",
+        "invest_breakeven_vs_cla_annuity_tip": "Минимальная годовая доходность, при которой инвестирование сэкономленных средств (аннуитет в ранние периоды дешевле классики) компенсирует переплату в поздние периоды.",
+        "annuity_be_caption":            "Если вы можете заработать ≥ этой ставки на сэкономленных в ранние периоды деньгах — аннуитет к концу срока выйдет на тот же или лучший результат, чем классика.",
         "sp500_disclaimer": "Примечание: доходность S&P 500 в 12% основана на среднегодовом показателе за последние 10 лет. Прошлые результаты не гарантируют будущих. Значение используется как статистический ориентир и может корректироваться согласно текущим рыночным ожиданиям.",
         # ── Инфляция ──────────────────────────────────────────────────────────
         "inflation_expander":      "Учёт инфляции",
@@ -410,6 +415,17 @@ TRANSLATIONS = {
         "theme_radius":           "Скругление углов",
         "theme_radius_help":      "Радиус закругления, px (0-24)",
         "theme_reset":            "↻ Сбросить к дефолту",
+        # ── Day-Count comparison chart ────────────────────────────────────────
+        "daycount_compare_tab":     "Сравнение Day-Count",
+        "daycount_compare_title":   "💰 Сумма процентов по разным Day-Count Conventions",
+        "daycount_compare_caption": "Тот же кредит, посчитанный пятью разными правилами начисления дней — наглядно показывает, какое правило выгоднее.",
+        "daycount_best":            "Самый дешёвый",
+        "daycount_worst":           "Самый дорогой",
+        "daycount_spread":          "Разница",
+        "daycount_no_data":         "Не удалось рассчитать сравнение Day-Count.",
+        "compare_partial_fail":     "⚠️ Одна или несколько схем не были рассчитаны из-за конфликта параметров (например, каникул). Сравнение показано по успешным.",
+        "compare_savings_vs":       "Экономия относительно",
+        "compare_overpay_vs":       "Переплата относительно",
         "syndicated_tranche_offset":      "Сдвиг выдачи (мес.) ({tranche})",
         "syndicated_tranche_offset_help": "Через сколько месяцев после общей даты старта банк фактически выдаст этот транш. 0 = в день старта.",
         "refi_recommendation":   "Рекомендация",
@@ -546,7 +562,7 @@ TRANSLATIONS = {
     },
     "uk": {
         "app_title": "Yev Capital LoanLogic",
-        "app_subtitle": "Професійний розрахунок банківських кредитів та вкладів",
+        "app_subtitle": "Розрахунок банківських кредитів і вкладів",
         "section_params": "⚙️ Параметри кредиту",
         "loan_amount": "Сума кредиту",
         "loan_amount_slider": "Повзунок суми",
@@ -612,7 +628,7 @@ TRANSLATIONS = {
         "download_docx": "⬇️ Word",
         "overpayment_pct": "Переплата від суми",
         "compare_schemes": "⚖️ Порівняти схеми",
-        "annuity_vs_classic": "Ануїтет vs Класика",
+        "annuity_vs_classic": "Порівняння схем кредитування",
         "savings_classic": "Економія при класиці",
         "annuity_short": "Ануїтет",
         "classic_short": "Класика",
@@ -701,6 +717,11 @@ TRANSLATIONS = {
         "invest_breakeven_abs_tip":      "Мінімальна дохідність, при якій FV заощаджених коштів покриє всю переплату.",
         "invest_breakeven_vs_ann":       "Vs. Ануїтет (Бульовий)",
         "invest_breakeven_vs_ann_tip":   "Мінімальна дохідність, при якій бульовий вигідніший за ануїтет.",
+        "invest_breakeven_vs_cla_balloon":     "Vs. Класика (Бульовий)",
+        "invest_breakeven_vs_cla_balloon_tip": "Мінімальна річна дохідність, при якій бульова схема (з відкладеною виплатою тіла) до кінця терміну досягає того ж результату, що й класична.",
+        "invest_breakeven_vs_cla_annuity":     "Vs. Класика (Ануїтет)",
+        "invest_breakeven_vs_cla_annuity_tip": "Мінімальна річна дохідність, при якій інвестування зекономлених коштів (ануїтет у ранні періоди дешевший за класику) компенсує переплату в пізні періоди.",
+        "annuity_be_caption":            "Якщо ви можете заробляти ≥ цієї ставки на зекономлених у ранні періоди грошах — ануїтет до кінця терміну буде не гіршим, ніж класика.",
         "sp500_disclaimer": "Примітка: дохідність S&P 500 у 12% ґрунтується на середньорічному показнику за останні 10 років. Минулі результати не гарантують майбутніх.",
         "inflation_expander":      "Облік інфляції",
         "inflation_toggle":        "Увімкнути облік інфляції",
@@ -809,6 +830,16 @@ TRANSLATIONS = {
         "theme_radius":           "Закруглення кутів",
         "theme_radius_help":      "Радіус закруглення, px (0-24)",
         "theme_reset":            "↻ Скинути до дефолту",
+        "daycount_compare_tab":     "Порівняння Day-Count",
+        "daycount_compare_title":   "💰 Сума відсотків за різними Day-Count Conventions",
+        "daycount_compare_caption": "Той самий кредит, обчислений п'ятьма різними правилами нарахування днів — наочно показує, яке правило вигідніше.",
+        "daycount_best":            "Найдешевший",
+        "daycount_worst":           "Найдорожчий",
+        "daycount_spread":          "Різниця",
+        "daycount_no_data":         "Не вдалося розрахувати порівняння Day-Count.",
+        "compare_partial_fail":     "⚠️ Одну або декілька схем не вдалось розрахувати через конфлікт параметрів (наприклад, канікул). Порівняння показано за успішними.",
+        "compare_savings_vs":       "Економія відносно",
+        "compare_overpay_vs":       "Переплата відносно",
         "syndicated_tranche_offset":      "Зсув видачі (міс.) ({tranche})",
         "syndicated_tranche_offset_help": "Через скільки місяців після спільної дати старту банк фактично видасть цей транш. 0 = у день старту.",
         "refi_recommendation":   "Рекомендація",
@@ -937,7 +968,7 @@ TRANSLATIONS = {
     },
     "en": {
         "app_title": "Yev Capital LoanLogic",
-        "app_subtitle": "Professional Credit Analysis & Reporting System · v3.0",
+        "app_subtitle": "Credit Analysis & Reporting System · v3.0",
         "section_params": "⚙️ Loan Parameters",
         "loan_amount": "Loan / Deposit Amount",
         "loan_amount_slider": "Amount Slider",
@@ -1012,7 +1043,7 @@ TRANSLATIONS = {
         "download_csv": "⬇️ CSV",
         "overpayment_pct": "Overpayment %",
         "compare_schemes": "⚖️ Compare Schemes",
-        "annuity_vs_classic": "Annuity vs Classic",
+        "annuity_vs_classic": "Loan Scheme Comparison",
         "savings_classic": "Savings with Classic",
         "annuity_short": "Annuity",
         "classic_short": "Classic",
@@ -1110,6 +1141,11 @@ TRANSLATIONS = {
         "invest_breakeven_abs_tip":      "For Balloon loans: minimum compound return at which the FV of invested freed cash (vs Annuity) covers the entire interest cost of the Balloon loan.",
         "invest_breakeven_vs_ann":       "Vs. Annuity Break-even (Balloon)",
         "invest_breakeven_vs_ann_tip":   "Minimum return to make Balloon cheaper than Annuity by reinvesting principal portions.",
+        "invest_breakeven_vs_cla_balloon":     "Vs. Classic (Balloon)",
+        "invest_breakeven_vs_cla_balloon_tip": "Min. annual yield at which Balloon (with all its deferred principal) matches Classic by maturity.",
+        "invest_breakeven_vs_cla_annuity":     "Vs. Classic (Annuity)",
+        "invest_breakeven_vs_cla_annuity_tip": "Min. annual yield at which investing the early-period savings of Annuity-over-Classic compensates for the later-period overpayment by maturity.",
+        "annuity_be_caption":            "If you can earn ≥ this rate on the early-period cash you save with Annuity, you finish at least as well off as you would have with Classic.",
         "sp500_disclaimer": "Note: The 12% S&P 500 return is based on the average annual performance over the past 10 years. Historical performance does not guarantee future results. This value is used as a statistical benchmark and can be adjusted based on current market expectations.",
         "inflation_expander":      "Inflation Accounting",
         "inflation_toggle":        "Enable Inflation Adjustment",
@@ -1218,6 +1254,16 @@ TRANSLATIONS = {
         "theme_radius":           "Border Radius",
         "theme_radius_help":      "Corner roundness, px (0-24)",
         "theme_reset":            "↻ Reset to Default",
+        "daycount_compare_tab":     "Day-Count Compare",
+        "daycount_compare_title":   "💰 Total Interest by Day-Count Convention",
+        "daycount_compare_caption": "Same loan, five interest-day conventions side by side — at a glance, which rule is cheapest.",
+        "daycount_best":            "Cheapest",
+        "daycount_worst":           "Most expensive",
+        "daycount_spread":          "Spread",
+        "daycount_no_data":         "Could not compute day-count comparison.",
+        "compare_partial_fail":     "⚠️ One or more schemes failed due to parameter conflicts (e.g. grace settings). Comparison shows the successful ones.",
+        "compare_savings_vs":       "Savings vs",
+        "compare_overpay_vs":       "Overpayment vs",
         "syndicated_tranche_offset":      "Disbursement offset (months) ({tranche})",
         "syndicated_tranche_offset_help": "How many months after the common start date this tranche is actually disbursed. 0 = at start.",
         "refi_recommendation":   "Recommendation",
@@ -2091,6 +2137,126 @@ def calc_balloon_breakeven(principal: float, n: int, rate_pa: float,
     if result > 999.0:
         return None
     return result
+
+
+def calc_pairwise_breakeven(chosen_payments: list,
+                             alt_payments: list,
+                             unit: str) -> float | None:
+    """
+    Pairwise Investment Break-even Rate between two payment schemes.
+
+    Asks: "If I choose scheme A (with payments `chosen_payments`) over
+    scheme B (`alt_payments`), at what investment return r do the
+    per-period savings (or extra costs) accumulate to exactly zero by
+    maturity?"
+
+    Mathematical formulation
+    ────────────────────────
+    Let diff[i] = alt_pmt[i] − chosen_pmt[i]   for i = 1 … n.
+      • diff[i] > 0  →  you save this much vs the alternative this period
+                         (invest the surplus).
+      • diff[i] < 0  →  you pay this much more this period
+                         (must liquidate prior investments).
+
+    Future value at maturity n of investing each diff[i] at per-period
+    rate r_per:
+
+        FV(r_per) = Σ diff[i] · (1 + r_per)^(n−i)
+
+    Break-even: FV(r_per) = 0.
+
+    Interpretation
+    ──────────────
+      • Schemes with identical totals → r = NaN (no time-value answer).
+      • A vs B where A is uniformly cheaper at every period → FV > 0 for
+        any r ≥ 0; no break-even — A is unconditionally better. Returns None.
+      • Otherwise: a unique positive rate exists when the cash-flow stream
+        has at least one sign change.
+
+    Returns
+    ───────
+      • Annualised break-even rate in % (positive float).
+      • 0.0 if the totals already match at r=0 (the alt-cheaper-overall case
+        means FV(0) = Σ diff > 0 already; you don't need any return).
+      • None for degenerate inputs (mismatched lengths, empty streams, or
+        no realistic root in [-0.99, 100.0]).
+    """
+    if not chosen_payments or not alt_payments:
+        return None
+    if len(chosen_payments) != len(alt_payments):
+        return None
+
+    n = len(chosen_payments)
+    diff = [a - c for a, c in zip(alt_payments, chosen_payments)]
+    ppy = periods_per_year(unit)
+
+    # Total nominal savings of the chosen scheme: Σ diff
+    sum_diff = sum(diff)
+
+    # Degenerate / trivial cases
+    if all(abs(d) < 1e-9 for d in diff):
+        return None                       # streams identical
+    if sum_diff <= 0:
+        # Chosen scheme costs more nominally already. Either it costs more
+        # at every period (no surplus to invest at all — no break-even
+        # exists), or it costs less early but enough more later to outweigh.
+        # In both sub-cases we still attempt the search; bisection below
+        # decides.
+        pass
+
+    def fv(r_per: float) -> float:
+        # Future value at maturity of investing each diff[i] from period i
+        # forward until period n.
+        if 1.0 + r_per <= 0:
+            return float('inf')           # invalid domain
+        total = 0.0
+        for i, d in enumerate(diff, start=1):
+            total += d * (1.0 + r_per) ** (n - i)
+        return total
+
+    # If FV(0) ≤ 0 ⇒ even with zero return, accumulated savings don't reach
+    # the deficit. We need a HIGHER return; root must lie in (0, +∞).
+    # If FV(0) > 0 ⇒ already in surplus at r=0; alt scheme is unconditionally
+    # worse than chosen.
+    fv0 = fv(0.0)
+    if fv0 > 0:
+        # Chosen scheme is unconditionally better than alt — even with no
+        # investment return, you end up ahead.
+        return 0.0
+
+    # Now bisect on r ∈ [0, 100/ppy] (i.e. up to 10000% pa)
+    # fv is monotonically increasing in r when sum_diff < 0 (we need higher r
+    # to grow the surplus to cover the late deficit). Verify by checking the
+    # bracket has a sign change.
+    lo, hi = 0.0, 100.0
+    f_lo = fv0
+    f_hi = fv(hi)
+    if f_lo * f_hi > 0:
+        # No sign change — root outside [0, 10000% pa]. Unrealistic.
+        return None
+
+    for _ in range(200):
+        mid = (lo + hi) * 0.5
+        f_mid = fv(mid)
+        if abs(f_mid) < 1e-6:
+            break
+        if f_lo * f_mid < 0:
+            hi, f_hi = mid, f_mid
+        else:
+            lo, f_lo = mid, f_mid
+        if hi - lo < 1e-10:
+            break
+
+    r_per_be = (lo + hi) * 0.5
+    # Annualise
+    r_annual = (1 + r_per_be) ** ppy - 1
+    rate_pct = r_annual * 100.0
+
+    # Reject if result saturated the upper bound (unrealistic)
+    if rate_pct > 9_999.0:
+        return None
+    return rate_pct
+
 
 # ─────────────────────────────────────────────────────────────────────────────
 #  ГЛАВНЫЙ РАСЧЁТ — Investment Break-even, Inflation, Grace, Risk
@@ -3195,6 +3361,8 @@ def run_calculation(principal, n, rate_pa, unit, scheme,
     breakeven_rate = None
     breakeven_abs  = None
     universal_be   = None
+    breakeven_vs_classic = None   # pairwise: chosen vs classic
+    breakeven_vs_annuity = None   # pairwise: chosen vs annuity (mostly for balloon)
 
     try:
         universal_be = calc_universal_breakeven(
@@ -3209,6 +3377,36 @@ def run_calculation(principal, n, rate_pa, unit, scheme,
             breakeven_abs = calc_balloon_absolute_breakeven(
                 principal, n, rate_pa, unit, mo_comm)
         except Exception:
+            pass
+
+    # Pairwise comparisons: at what investment return does the chosen scheme
+    # break even with the alternative? Computed only for loan schemes (not
+    # deposit / synd), and only against schemes the chosen one differs from.
+    if scheme in ("annuity", "classic", "balloon"):
+        try:
+            if scheme != "classic":
+                alt_classic = (calc_annuity, calc_balloon)  # placeholder
+                # Reuse legacy (no day-count) calc to keep apples-to-apples
+                # with the chosen schedule. If user enabled day-count, both
+                # schedules should use the same convention.
+                _dc  = day_count_method if day_count_enabled else None
+                _sd  = start_date if day_count_enabled else None
+                cl_sched = calc_classic(principal, n, rate_pa, unit, mo_comm,
+                                          day_count=_dc, start_date=_sd)
+                cl_pmts  = [r["payment"] for r in cl_sched]
+                breakeven_vs_classic = calc_pairwise_breakeven(
+                    payments_list, cl_pmts, unit)
+
+            if scheme == "balloon":
+                _dc  = day_count_method if day_count_enabled else None
+                _sd  = start_date if day_count_enabled else None
+                an_sched = calc_annuity(principal, n, rate_pa, unit, mo_comm,
+                                          day_count=_dc, start_date=_sd)
+                an_pmts  = [r["payment"] for r in an_sched]
+                breakeven_vs_annuity = calc_pairwise_breakeven(
+                    payments_list, an_pmts, unit)
+        except Exception:
+            # Pairwise BE is informational — failure shouldn't propagate.
             pass
 
     # ── Инфляция (real cost) ──────────────────────────────────────────────────
@@ -3236,6 +3434,8 @@ def run_calculation(principal, n, rate_pa, unit, scheme,
         "is_deposit":            False,
         "scheme_key":            scheme,
         "rate_pa":               rate_pa,
+        "n_periods":             n,
+        "commission_per_period": mo_comm,
         "start_date":            start_date or date.today(),
         "total_payment":         tot_payment,
         "total_interest":        tot_interest,
@@ -3243,11 +3443,9 @@ def run_calculation(principal, n, rate_pa, unit, scheme,
         "effective_rate":        eff,
         "effective_rate_error":  eff_error,
         "grace_error":           grace_error,
-        # Hard "result is partial / not what user requested" flag.
-        # True when grace was requested but couldn't be applied (negative-amort
-        # spiral or other math failure). The UI uses this to mark the entire
-        # result as untrustworthy rather than letting the user think they got
-        # a valid grace-period schedule.
+        # True when grace was requested but couldn't be applied (e.g. a
+        # negative-amortization spiral). The UI uses this to mark the whole
+        # result as unreliable rather than presenting a half-valid schedule.
         "partial_result":        bool(grace_error) or bool(eff_error),
         "day_count_enabled":     day_count_enabled,
         "day_count_method":      day_count_method if day_count_enabled else None,
@@ -3264,6 +3462,8 @@ def run_calculation(principal, n, rate_pa, unit, scheme,
         "balloon_breakeven":     breakeven_rate,
         "balloon_breakeven_abs": breakeven_abs,
         "universal_breakeven":   universal_be,
+        "breakeven_vs_classic":  breakeven_vs_classic,
+        "breakeven_vs_annuity":  breakeven_vs_annuity,
         # Grace period
         "grace_enabled":         grace_enabled,
         "grace_start":           grace_start if grace_enabled else None,
@@ -3292,9 +3492,8 @@ def _run_deposit(principal, n, rate_pa, unit, mode, sym, t, start_date=None,
     Расчёт депозита.
     start_date — дата открытия вклада; первое начисление = start + 1 период.
 
-    Опционально считает реальную (PV-скорректированную) итоговую стоимость
-    при включённой инфляции. До этого фикса флаг инфляции в UI был, но
-    для депозитов молча игнорировался.
+    Опционально вычисляет реальную (PV-скорректированную) итоговую стоимость
+    при ненулевой инфляции.
     """
     sched = calc_deposit(principal, n, rate_pa, unit, mode)
     dates = generate_dates(n, unit, start=start_date)
@@ -3559,7 +3758,14 @@ def chart_balance(df, t):
     _apply_layout(fig, t.get("chart_balance_title", "📉 Remaining Balance"), height=300)
     return fig
 
-def chart_compare(ann_total, cla_total, ann_int, cla_int, t):
+def chart_compare(ann_total, cla_total, ann_int, cla_int, t,
+                   bal_total=None, bal_int=None):
+    """
+    Side-by-side scheme comparison (Annuity / Classic / optional Balloon).
+    Bar groups: Total Payment, Total Interest. Balloon is rendered only
+    when its totals are supplied (kept optional for backwards compatibility
+    with older call sites).
+    """
     cats = [t["total_payment"], t["total_interest"]]
     fig  = go.Figure()
     fig.add_trace(go.Bar(name=t["annuity_short"], x=cats, y=[ann_total, ann_int],
@@ -3570,9 +3776,81 @@ def chart_compare(ann_total, cla_total, ann_int, cla_int, t):
                          marker_color=C["principal"],
                          text=[f"{v:,.0f}" for v in [cla_total, cla_int]],
                          textposition="outside", textfont=dict(color=C["text"])))
+    if bal_total is not None and bal_int is not None:
+        fig.add_trace(go.Bar(
+            name=t.get("balloon_short", "Balloon"),
+            x=cats, y=[bal_total, bal_int],
+            marker_color="#FFD166",  # amber — visually distinct from blue / red
+            text=[f"{v:,.0f}" for v in [bal_total, bal_int]],
+            textposition="outside", textfont=dict(color=C["text"])))
     fig.update_layout(barmode="group")
     _apply_layout(fig, t["annuity_vs_classic"], height=380)
     return fig
+
+def chart_daycount_compare(principal: float, n: int, rate_pa: float, unit: str,
+                             scheme: str, start_dt, mo_comm: float, t: dict):
+    """
+    Side-by-side total-interest comparison across the five day-count
+    conventions for the same loan. Helps the user see which convention
+    yields the lowest cost (which depends on calendar, start date, and
+    rate magnitude).
+
+    Returns (figure, results_dict). `results_dict` maps method → total_interest
+    so the caller can also render it as a table. Methods that fail to compute
+    are skipped from the figure.
+    """
+    methods = ["30/360", "30E/360", "ACT/360", "ACT/365", "ACT/ACT"]
+    sched_fn = {
+        "annuity": calc_annuity,
+        "classic": calc_classic,
+        "balloon": calc_balloon,
+    }.get(scheme, calc_annuity)
+
+    results = {}
+    for m in methods:
+        try:
+            sched = sched_fn(principal, n, rate_pa, unit, mo_comm,
+                              day_count=m, start_date=start_dt)
+            results[m] = sum(r["interest"] for r in sched)
+        except Exception:
+            results[m] = None
+
+    # Build the figure from successful computations
+    valid_methods = [m for m, v in results.items() if v is not None]
+    valid_values  = [results[m] for m in valid_methods]
+
+    if not valid_methods:
+        return None, results
+
+    # Highlight the lowest-interest method in green, the highest in red,
+    # the rest in neutral blue. Tied methods all share the same color.
+    min_v = min(valid_values)
+    max_v = max(valid_values)
+    bar_colors = []
+    for v in valid_values:
+        if v == min_v and min_v != max_v:
+            bar_colors.append("#10B981")  # cheapest — green
+        elif v == max_v and min_v != max_v:
+            bar_colors.append("#DC2626")  # most expensive — red
+        else:
+            bar_colors.append("#4FC3F7")  # neutral
+
+    fig = go.Figure()
+    fig.add_trace(go.Bar(
+        x=valid_methods,
+        y=valid_values,
+        marker_color=bar_colors,
+        text=[f"{v:,.2f}" for v in valid_values],
+        textposition="outside",
+        textfont=dict(color=C["text"], size=11),
+        hovertemplate="<b>%{x}</b><br>Total interest: %{y:,.2f}<extra></extra>",
+    ))
+    _apply_layout(fig, t.get("daycount_compare_title",
+                              "💰 Total Interest by Day-Count Convention"),
+                   height=360)
+    fig.update_layout(showlegend=False)
+    return fig, results
+
 
 def chart_invest(df_chart, invest_vals, t, yield_label):
     """Остаток долга vs инвестиционный портфель."""
@@ -5453,27 +5731,6 @@ THEME_PRESETS = {
         "density":         1.0,     # multiplier for padding/spacing
         "radius":          8,       # px base border-radius
     },
-    "light": {
-        "name":            "Light",
-        "bg":              "#F8FAFC",
-        "bg_secondary":    "#FFFFFF",
-        "bg_tertiary":     "#E2E8F0",
-        "text":            "#0F172A",
-        "text_muted":      "#475569",
-        "text_subtle":     "#64748B",
-        "accent":          "#0284C7",
-        "accent_strong":   "#0369A1",
-        "accent_gradient": "linear-gradient(135deg,#0369A1,#0EA5E9)",
-        "success":         "#059669",
-        "warning":         "#D97706",
-        "danger":          "#DC2626",
-        "border":          "#CBD5E1",
-        "border_subtle":   "#E2E8F0",
-        "input_text":      "#0F172A",
-        "font_size":       1.0,
-        "density":         1.0,
-        "radius":          8,
-    },
     "high_contrast": {
         "name":            "High Contrast",
         "bg":              "#000000",
@@ -6079,7 +6336,7 @@ def main():
         st.warning(PDF_FONT_WARN)
 
     # ── Выбор языка ───────────────────────────────────────────────────────────
-    lang_map = {"🇷🇺 Русский": "ru", "🇺🇦 Українська": "uk", "🇬🇧 English": "en"}
+    lang_map = {"🇷🇺 Русский": "ru", "🇺🇦 Українська": "uk", "🇺🇸 English": "en"}
     with st.sidebar:
         # ── Брендинг в боковой панели ─────────────────────────────────────────
         st.markdown(
@@ -6885,8 +7142,11 @@ def main():
     st.markdown(f"<div class='sec-title'>{t['section_chart']}</div>", unsafe_allow_html=True)
 
     is_syndicated = smry.get("syndicated", False)
+    # Day-Count comparison tab is meaningful only for single-loan (not deposit, not synd)
+    show_dc_tab = (not is_syndicated
+                    and not smry.get("is_deposit", False)
+                    and smry.get("scheme_key") in ("annuity", "classic", "balloon"))
 
-    # Syndicated mode adds an extra tab for tranche breakdown
     if is_syndicated:
         tab1, tab2, tab3, tab4, tab_synd = st.tabs([
             "📊 " + t["chart_title"],
@@ -6895,6 +7155,16 @@ def main():
             "⚖️ " + t["compare_schemes"],
             "🏦 " + t.get("syndicated_chart_title", "By Tranche"),
         ])
+        tab_dc = None
+    elif show_dc_tab:
+        tab1, tab2, tab3, tab4, tab_dc = st.tabs([
+            "📊 " + t["chart_title"],
+            "🥧 " + t["chart_pie_title"],
+            t.get("tab_balance", "📉 Remaining Balance"),
+            "⚖️ " + t["compare_schemes"],
+            "📅 " + t.get("daycount_compare_tab", "Day-Count Compare"),
+        ])
+        tab_synd = None
     else:
         tab1, tab2, tab3, tab4 = st.tabs([
             "📊 " + t["chart_title"],
@@ -6903,6 +7173,7 @@ def main():
             "⚖️ " + t["compare_schemes"],
         ])
         tab_synd = None
+        tab_dc   = None
 
     with tab1:
         st.plotly_chart(chart_bar(df_chart, t), use_container_width=True,
@@ -6915,49 +7186,201 @@ def main():
         st.plotly_chart(chart_balance(df_chart, t), use_container_width=True,
                         config={"displayModeBar": False})
     with tab4:
-        _, sa = run_calculation(
-            st.session_state.loan_amount, st.session_state.loan_term,
-            st.session_state.interest_rate, st.session_state.term_unit,
-            "annuity", st.session_state.one_time_val, st.session_state.one_time_type,
-            st.session_state.monthly_val, st.session_state.monthly_type,
-            st.session_state.currency, st.session_state.custom_symbol, t)
-        _, sc = run_calculation(
-            st.session_state.loan_amount, st.session_state.loan_term,
-            st.session_state.interest_rate, st.session_state.term_unit,
-            "classic", st.session_state.one_time_val, st.session_state.one_time_type,
-            st.session_state.monthly_val, st.session_state.monthly_type,
-            st.session_state.currency, st.session_state.custom_symbol, t)
-        _, sb = run_calculation(
-            st.session_state.loan_amount, st.session_state.loan_term,
-            st.session_state.interest_rate, st.session_state.term_unit,
-            "balloon", st.session_state.one_time_val, st.session_state.one_time_type,
-            st.session_state.monthly_val, st.session_state.monthly_type,
-            st.session_state.currency, st.session_state.custom_symbol, t)
-        st.plotly_chart(
-            chart_compare(sa["total_payment"], sc["total_payment"],
-                          sa["total_interest"], sc["total_interest"], t),
-            use_container_width=True, config={"displayModeBar": False})
-        sav = sa["total_payment"] - sc["total_payment"]
-        if sav > 0:
-            st.markdown(f"<div class='savings-box'>💚 {t['savings_classic']}: "
-                        f"{fmt_money(sav, sym)}</div>", unsafe_allow_html=True)
+        # Compose the same kwargs the main loan used, so the comparison
+        # reflects the actual configured loan (grace, day-count, inflation,
+        # risk metrics) rather than a stripped-down baseline.
+        ss = st.session_state
+        common_kwargs = dict(
+            grace_enabled = ss.get("grace_enabled", False),
+            grace_start   = ss.get("grace_start", 1),
+            grace_duration= ss.get("grace_duration", 0),
+            grace_type    = ss.get("grace_type", "interest_only"),
+            inflation_enabled = ss.get("inflation_enabled", False),
+            inflation_rate    = ss.get("inflation_rate", 0.0),
+            day_count_enabled = ss.get("day_count_enabled", False),
+            day_count_method  = ss.get("day_count_method", DAY_COUNT_DEFAULT),
+            start_date        = ss.get("start_date", date.today()),
+        )
 
-        # ── Balloon Break-even ────────────────────────────────────────────────
-        be_rate = sb.get("balloon_breakeven")
-        if be_rate is not None:
-            be_lbl = t.get("balloon_breakeven", "Inv. Break-even Rate")
-            be_tip = t.get("balloon_breakeven_tip", "")
-            be_desc = t.get("balloon_breakeven_desc", "Min. investment yield to justify Balloon over Annuity")
+        # Some configurations are invalid for some schemes (e.g. grace at the
+        # last period when n is small for balloon). Wrap each in try/except so
+        # one failing scheme doesn't break the whole comparison.
+        def _safe_compare_run(scheme):
+            try:
+                _, s = run_calculation(
+                    ss.loan_amount, ss.loan_term,
+                    ss.interest_rate, ss.term_unit,
+                    scheme, ss.one_time_val, ss.one_time_type,
+                    ss.monthly_val, ss.monthly_type,
+                    ss.currency, ss.custom_symbol, t,
+                    **common_kwargs)
+                return s
+            except Exception:
+                return None
+
+        sa = _safe_compare_run("annuity")
+        sc = _safe_compare_run("classic")
+        sb = _safe_compare_run("balloon")
+
+        if sa is None or sc is None or sb is None:
+            st.warning(t.get("compare_partial_fail",
+                              "One or more scheme comparisons failed; see results for valid ones."))
+
+        # Use valid results only. If a scheme failed, fall back to zeros so
+        # the chart still renders cleanly with the others.
+        ann_pay = sa["total_payment"]  if sa else 0
+        ann_int = sa["total_interest"] if sa else 0
+        cla_pay = sc["total_payment"]  if sc else 0
+        cla_int = sc["total_interest"] if sc else 0
+        bal_pay = sb["total_payment"]  if sb else None
+        bal_int = sb["total_interest"] if sb else None
+
+        st.plotly_chart(
+            chart_compare(ann_pay, cla_pay, ann_int, cla_int, t,
+                          bal_total=bal_pay, bal_int=bal_int),
+            use_container_width=True, config={"displayModeBar": False})
+
+        # ── Comparative summary message ───────────────────────────────────────
+        # Show the savings line relative to the scheme the user actually picked.
+        # If all three computed, also report how the picked scheme compares to
+        # the other two.
+        user_scheme = smry.get("scheme_key", "annuity")
+        results_map = {"annuity": (sa, ann_pay), "classic": (sc, cla_pay),
+                        "balloon": (sb, bal_pay)}
+        own = results_map.get(user_scheme)
+
+        if own and own[0] is not None:
+            own_pay = own[1]
+            # Build a list of (label, payment) for OTHER schemes that computed
+            others = [(k, v[1]) for k, v in results_map.items()
+                       if k != user_scheme and v[0] is not None and v[1] is not None]
+            cheaper_than = [(k, p) for k, p in others if own_pay < p]
+            more_than    = [(k, p) for k, p in others if own_pay > p]
+
+            scheme_name_map = {
+                "annuity": t.get("annuity_short", "Annuity"),
+                "classic": t.get("classic_short", "Classic"),
+                "balloon": t.get("balloon_short", "Balloon"),
+            }
+
+            if cheaper_than:
+                parts = ", ".join(
+                    f"{scheme_name_map[k]} ({fmt_money(p - own_pay, sym)})"
+                    for k, p in cheaper_than
+                )
+                st.markdown(
+                    f"<div class='savings-box'>💚 "
+                    f"{t.get('compare_savings_vs', 'Savings vs')} {parts}"
+                    f"</div>", unsafe_allow_html=True)
+            elif more_than:
+                parts = ", ".join(
+                    f"{scheme_name_map[k]} ({fmt_money(own_pay - p, sym)})"
+                    for k, p in more_than
+                )
+                st.markdown(
+                    f"<div style='background:var(--app-bg-tertiary);"
+                    f"border:1px solid var(--app-warning);border-radius:10px;"
+                    f"padding:11px 18px;color:var(--app-warning);font-weight:600;"
+                    f"text-align:center;margin-top:8px'>"
+                    f"⚠️ {t.get('compare_overpay_vs', 'Overpayment vs')} {parts}"
+                    f"</div>", unsafe_allow_html=True)
+            # If tied (e.g. rate=0%), no message — nothing meaningful to say
+
+        # ── Balloon Break-even (only when user picked Balloon) ────────────────
+        # Showing this for annuity/classic just confuses users — it's only
+        # relevant when one actually has the balloon's freed-up principal cash
+        # to invest.
+        if user_scheme == "balloon":
+            be_rate = sb.get("balloon_breakeven") if sb else None
+            if be_rate is not None:
+                be_lbl = t.get("balloon_breakeven", "Inv. Break-even Rate")
+                be_desc = t.get("balloon_breakeven_desc",
+                                 "Min. investment yield to justify Balloon over Annuity")
+                st.markdown(
+                    f"<div style='background:var(--app-bg-tertiary);"
+                    f"border:1px solid var(--app-accent-strong);"
+                    f"border-radius:8px;padding:10px 16px;margin-top:10px;"
+                    f"font-size:.85rem;color:var(--app-text-muted)'>"
+                    f"📐 <b style='color:var(--app-accent)'>{be_lbl}:</b> "
+                    f"<b style='color:var(--app-warning);font-size:1.05rem'>{be_rate:.2f}%</b>"
+                    f"&nbsp;&nbsp;<span style='font-size:.75rem'>{be_desc}</span>"
+                    f"</div>",
+                    unsafe_allow_html=True,
+                )
+
+    # ── Day-Count Convention comparison ──────────────────────────────────────
+    if tab_dc is not None:
+        with tab_dc:
             st.markdown(
-                f"<div style='background:#0F2444;border:1px solid #1D4ED8;"
-                f"border-radius:8px;padding:10px 16px;margin-top:10px;"
-                f"font-size:.85rem;color:#94A3B8'>"
-                f"📐 <b style='color:#4FC3F7'>{be_lbl}:</b> "
-                f"<b style='color:#FFD166;font-size:1.05rem'>{be_rate:.2f}%</b>"
-                f"&nbsp;&nbsp;<span style='font-size:.75rem'>{be_desc}</span>"
+                f"<div style='color:var(--app-text-muted);font-size:.85rem;"
+                f"margin-bottom:8px'>"
+                f"{t.get('daycount_compare_caption', 'Same loan, five interest-day conventions side by side.')}"
                 f"</div>",
                 unsafe_allow_html=True,
             )
+            # Need a start_date for the day-count math. If user didn't enable
+            # day-count in sidebar, fall back to st.session_state.start_date
+            # (always present in state defaults). The comparison is still
+            # meaningful — it shows what the user would pay under each rule.
+            sd = smry.get("start_date") or st.session_state.get("start_date") or date.today()
+            scheme_key = smry.get("scheme_key", "annuity")
+            mo_val = smry.get("commission_per_period", 0) or 0
+
+            fig_dc, results = chart_daycount_compare(
+                principal = smry["principal"],
+                n         = smry["n_periods"],
+                rate_pa   = smry["rate_pa"],
+                unit      = smry.get("unit", "months"),
+                scheme    = scheme_key,
+                start_dt  = sd,
+                mo_comm   = mo_val,
+                t         = t,
+            )
+
+            if fig_dc is not None:
+                st.plotly_chart(fig_dc, use_container_width=True,
+                                 config={"displayModeBar": False})
+
+                # Numeric difference summary (min vs max). Helps the user
+                # quantify "how much does the choice of convention cost me".
+                valid_vals = [v for v in results.values() if v is not None]
+                if len(valid_vals) >= 2:
+                    spread = max(valid_vals) - min(valid_vals)
+                    best   = min(results, key=lambda k: results[k]
+                                  if results[k] is not None else float('inf'))
+                    worst  = max(results, key=lambda k: results[k]
+                                  if results[k] is not None else float('-inf'))
+                    st.markdown(
+                        f"<div style='background:var(--app-bg-tertiary);"
+                        f"border:1px solid var(--app-border);"
+                        f"border-radius:8px;padding:10px 16px;margin-top:10px;"
+                        f"font-size:.85rem;color:var(--app-text-muted)'>"
+                        f"📌 <b style='color:var(--app-success)'>"
+                        f"{t.get('daycount_best', 'Cheapest')}:</b> "
+                        f"<b style='color:var(--app-text)'>{best}</b> "
+                        f"({fmt_money(results[best], sym)}) "
+                        f"&nbsp;·&nbsp; "
+                        f"<b style='color:var(--app-danger)'>"
+                        f"{t.get('daycount_worst', 'Most expensive')}:</b> "
+                        f"<b style='color:var(--app-text)'>{worst}</b> "
+                        f"({fmt_money(results[worst], sym)}) "
+                        f"&nbsp;·&nbsp; "
+                        f"<b style='color:var(--app-accent)'>"
+                        f"{t.get('daycount_spread', 'Spread')}:</b> "
+                        f"<b style='color:var(--app-text)'>{fmt_money(spread, sym)}</b>"
+                        f"</div>",
+                        unsafe_allow_html=True,
+                    )
+                # Per-method table
+                rows = [{"Method": m,
+                          t.get("total_interest", "Total Interest"):
+                              (fmt_money(v, sym) if v is not None else "—")}
+                         for m, v in results.items()]
+                st.dataframe(pd.DataFrame(rows), use_container_width=True,
+                              hide_index=True)
+            else:
+                st.warning(t.get("daycount_no_data",
+                                  "Could not compute day-count comparison."))
 
     # ── Syndicated tranche breakdown ──────────────────────────────────────────
     if tab_synd is not None:
@@ -7553,13 +7976,28 @@ def _render_refinance_panel(t, smry, sym):
 #  РАСШИРЕННАЯ ИНВЕСТ-БЕЗУБЫТОЧНОСТЬ
 # ─────────────────────────────────────────────────────────────────────────────
 def _render_breakeven_panel(t, smry):
-    """Рендерит блок Investment Break-even Analysis (универсальная + Balloon)."""
+    """Renders the Investment Break-even Analysis panel.
+
+    Shown metrics depend on the chosen scheme:
+      • All schemes: Universal break-even (vs total interest).
+      • Annuity:     also "Annuity vs Classic" pairwise (when does investing
+                     the early-period savings make annuity competitive).
+      • Classic:     just the universal — classic is the cheapest baseline.
+      • Balloon:     adds "Vs Annuity" (existing legacy), "Vs Classic" (new),
+                     and "Absolute".
+    """
     universal_be = smry.get("universal_breakeven")
     balloon_be   = smry.get("balloon_breakeven")
     balloon_abs  = smry.get("balloon_breakeven_abs")
-    is_balloon   = smry.get("scheme_key") == "balloon"
+    be_vs_cla    = smry.get("breakeven_vs_classic")
+    be_vs_ann    = smry.get("breakeven_vs_annuity")
+    scheme       = smry.get("scheme_key")
+    is_balloon   = scheme == "balloon"
+    is_annuity   = scheme == "annuity"
 
-    if universal_be is None and balloon_be is None and balloon_abs is None:
+    # Nothing meaningful to show
+    if (universal_be is None and balloon_be is None and balloon_abs is None
+            and be_vs_cla is None and be_vs_ann is None):
         return
 
     st.markdown(
@@ -7573,28 +8011,83 @@ def _render_breakeven_panel(t, smry):
             return "N/A"
         return fmt_pct(v)
 
-    cols = st.columns(3 if is_balloon else 1)
-
-    if universal_be is not None:
-        cols[0].metric(
-            label=t.get("invest_breakeven_universal", "Universal Break-even Rate"),
-            value=_fmt_be(universal_be),
-            help=t.get("help_universal_be", t.get("invest_breakeven_universal_tip", "")),
-        )
-
+    # Layout: 2 columns for annuity (Universal + vs Classic),
+    #         3 columns for balloon (Universal + Vs Annuity + Vs Classic + Abs → 4-col)
+    #         1 column for classic.
     if is_balloon:
-        cols[1].metric(
+        ncols = 4 if be_vs_cla is not None else 3
+        cols = st.columns(ncols)
+        ci = 0
+        if universal_be is not None:
+            cols[ci].metric(
+                label=t.get("invest_breakeven_universal", "Universal Break-even Rate"),
+                value=_fmt_be(universal_be),
+                help=t.get("invest_breakeven_universal_tip", ""),
+            )
+            ci += 1
+        cols[ci].metric(
             label=t.get("invest_breakeven_vs_ann", "Vs. Annuity Break-even"),
             value=_fmt_be(balloon_be),
-            help=t.get("help_balloon_be_va", t.get("invest_breakeven_vs_ann_tip", "")),
+            help=t.get("invest_breakeven_vs_ann_tip", ""),
         )
-        cols[2].metric(
-            label=t.get("invest_breakeven_abs", "Absolute Break-even"),
-            value=_fmt_be(balloon_abs),
-            help=t.get("help_balloon_be_abs", t.get("invest_breakeven_abs_tip", "")),
-        )
-        # Educational caption — what these numbers mean
+        ci += 1
+        if be_vs_cla is not None and ci < ncols:
+            cols[ci].metric(
+                label=t.get("invest_breakeven_vs_cla_balloon",
+                             "Vs. Classic Break-even"),
+                value=_fmt_be(be_vs_cla),
+                help=t.get("invest_breakeven_vs_cla_balloon_tip",
+                            "Min. investment yield at which Balloon (with all its deferred principal) "
+                            "matches Classic by maturity."),
+            )
+            ci += 1
+        if ci < ncols:
+            cols[ci].metric(
+                label=t.get("invest_breakeven_abs", "Absolute Break-even"),
+                value=_fmt_be(balloon_abs),
+                help=t.get("invest_breakeven_abs_tip", ""),
+            )
         st.caption(t.get("balloon_be_caption", ""))
+
+    elif is_annuity:
+        # Show Universal + Annuity-vs-Classic (if computed)
+        if be_vs_cla is not None:
+            c1, c2 = st.columns(2)
+            if universal_be is not None:
+                c1.metric(
+                    label=t.get("invest_breakeven_universal", "Universal Break-even Rate"),
+                    value=_fmt_be(universal_be),
+                    help=t.get("invest_breakeven_universal_tip", ""),
+                )
+            c2.metric(
+                label=t.get("invest_breakeven_vs_cla_annuity",
+                             "Annuity Vs. Classic Break-even"),
+                value=_fmt_be(be_vs_cla),
+                help=t.get("invest_breakeven_vs_cla_annuity_tip",
+                            "Min. annual yield at which investing the early-period "
+                            "savings of Annuity-over-Classic compensates for the "
+                            "later-period overpayment by maturity."),
+            )
+            st.caption(t.get("annuity_be_caption",
+                              "If you can earn ≥ this rate on the early-period cash "
+                              "you save with Annuity, you finish at least as well off "
+                              "as you would have with Classic."))
+        elif universal_be is not None:
+            cols = st.columns(1)
+            cols[0].metric(
+                label=t.get("invest_breakeven_universal", "Universal Break-even Rate"),
+                value=_fmt_be(universal_be),
+                help=t.get("invest_breakeven_universal_tip", ""),
+            )
+    else:
+        # Classic — just universal
+        if universal_be is not None:
+            cols = st.columns(1)
+            cols[0].metric(
+                label=t.get("invest_breakeven_universal", "Universal Break-even Rate"),
+                value=_fmt_be(universal_be),
+                help=t.get("invest_breakeven_universal_tip", ""),
+            )
 
 
 # ─────────────────────────────────────────────────────────────────────────────
