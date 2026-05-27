@@ -22,6 +22,7 @@
 """
 import io
 import math
+import re
 from datetime import datetime, date, timedelta
 
 import streamlit as st
@@ -1648,30 +1649,35 @@ def period_dates_for_schedule(start_date: date, n: int, unit: str) -> list[date]
     Used by day-count-aware schedule generators to compute exact N (days)
     per period via year_fraction(d_prev, d_curr, method).
 
+    Each end-of-period date is computed by adding a multiple of the unit to
+    `start_date` directly. Accumulating via `d = d + delta` causes month-end
+    drift: a loan opened on Jan 31 would land on Feb 29 (correct), then on
+    Mar 29 (instead of Mar 31), then on Apr 29 (instead of Apr 30), and so
+    on — each step compounds the loss. Computing from the original start_date
+    preserves the original day-of-month wherever calendar permits.
+
     Raises:
       ValueError — if `unit` is not one of the supported period units.
-        Previously silently fell back to "months" which could mask typos in
-        upstream code (e.g. `"month"` vs `"months"`).
     """
     from dateutil.relativedelta import relativedelta
-    delta_map = {
-        "weeks":     relativedelta(weeks=1),
-        "months":    relativedelta(months=1),
-        "quarters":  relativedelta(months=3),
-        "halfyears": relativedelta(months=6),
-        "years":     relativedelta(years=1),
-    }
-    if unit not in delta_map:
+    if unit not in {"weeks", "months", "quarters", "halfyears", "years"}:
         raise ValueError(
             f"Unknown period unit: {unit!r}. "
-            f"Supported: {sorted(delta_map.keys())}"
+            f"Supported: ['halfyears', 'months', 'quarters', 'weeks', 'years']"
         )
-    delta = delta_map[unit]
+
+    def _delta_for(i: int) -> relativedelta:
+        # Build i-units delta directly from start, not by accumulation.
+        if unit == "weeks":     return relativedelta(weeks=i)
+        if unit == "months":    return relativedelta(months=i)
+        if unit == "quarters":  return relativedelta(months=3 * i)
+        if unit == "halfyears": return relativedelta(months=6 * i)
+        if unit == "years":     return relativedelta(years=i)
+        raise ValueError(f"Unsupported unit: {unit}")
+
     dates = [start_date]
-    d = start_date
-    for _ in range(n):
-        d = d + delta
-        dates.append(d)
+    for i in range(1, n + 1):
+        dates.append(start_date + _delta_for(i))
     return dates
 
 
@@ -1721,6 +1727,11 @@ def calc_annuity(principal, n, rate_pa, unit, monthly_comm,
         raise ValueError(
             f"calc_annuity: rate_pa and principal must be numeric, got "
             f"rate_pa={rate_pa!r}, principal={principal!r}")
+    import math as _math
+    if _math.isnan(rate_pa) or _math.isinf(rate_pa):
+        raise ValueError(f"calc_annuity: 'rate_pa' must be finite, got {rate_pa}.")
+    if _math.isnan(principal) or _math.isinf(principal):
+        raise ValueError(f"calc_annuity: 'principal' must be finite, got {principal}.")
     if principal < 0:
         # Negative principal would yield negative payments — outside the
         # supported domain.
@@ -1800,6 +1811,11 @@ def calc_classic(principal, n, rate_pa, unit, monthly_comm,
     except (TypeError, ValueError):
         raise ValueError(
             f"calc_classic: rate_pa and principal must be numeric")
+    import math as _math
+    if _math.isnan(rate_pa) or _math.isinf(rate_pa):
+        raise ValueError(f"calc_classic: 'rate_pa' must be finite, got {rate_pa}.")
+    if _math.isnan(principal) or _math.isinf(principal):
+        raise ValueError(f"calc_classic: 'principal' must be finite, got {principal}.")
     if principal < 0:
         raise ValueError(f"calc_classic: 'principal' must be ≥ 0, got {principal}")
 
@@ -1809,32 +1825,41 @@ def calc_classic(principal, n, rate_pa, unit, monthly_comm,
     if day_count and start_date is not None:
         dates = period_dates_for_schedule(start_date, n, unit)
         r_annual = rate_pa / 100.0
-        pp = principal / n
+        pp_base = principal / n
         rows, bal = [], principal
         for i in range(1, n + 1):
             yf = year_fraction(dates[i - 1], dates[i], day_count)
             interest = bal * r_annual * yf
-            bal -= pp
+            # In the final period, set principal exactly to the remaining
+            # balance so payment = principal + interest + commission stays
+            # internally consistent. Otherwise float division (principal/n)
+            # can leave a non-zero residual that conflicts with balance_close.
+            is_last = (i == n)
+            pp_i = bal if is_last else pp_base
+            bal -= pp_i
             rows.append({
-                "period": i, "balance_open": bal + pp,
-                "payment": pp + interest + monthly_comm,
-                "principal": pp, "interest": interest,
+                "period": i, "balance_open": bal + pp_i,
+                "payment": pp_i + interest + monthly_comm,
+                "principal": pp_i, "interest": interest,
                 "commission": monthly_comm,
-                "balance_close": max(bal, 0),
+                "balance_close": max(bal, 0) if not is_last else 0.0,
             })
         return rows
 
     # ── Legacy path ───────────────────────────────────────────────────────────
     r = rate_pa / 100 / ppy
-    pp = principal / n
+    pp_base = principal / n
     rows, bal = [], principal
     for i in range(1, n+1):
         interest = bal * r
-        bal -= pp
-        rows.append({"period": i, "balance_open": bal+pp,
-                     "payment": pp+interest+monthly_comm,
-                     "principal": pp, "interest": interest,
-                     "commission": monthly_comm, "balance_close": max(bal, 0)})
+        is_last = (i == n)
+        pp_i = bal if is_last else pp_base
+        bal -= pp_i
+        rows.append({"period": i, "balance_open": bal + pp_i,
+                     "payment": pp_i + interest + monthly_comm,
+                     "principal": pp_i, "interest": interest,
+                     "commission": monthly_comm,
+                     "balance_close": max(bal, 0) if not is_last else 0.0})
     return rows
 
 def calc_balloon(principal, n, rate_pa, unit, monthly_comm,
@@ -1855,6 +1880,11 @@ def calc_balloon(principal, n, rate_pa, unit, monthly_comm,
     except (TypeError, ValueError):
         raise ValueError(
             f"calc_balloon: rate_pa and principal must be numeric")
+    import math as _math
+    if _math.isnan(rate_pa) or _math.isinf(rate_pa):
+        raise ValueError(f"calc_balloon: 'rate_pa' must be finite, got {rate_pa}.")
+    if _math.isnan(principal) or _math.isinf(principal):
+        raise ValueError(f"calc_balloon: 'principal' must be finite, got {principal}.")
     if principal < 0:
         raise ValueError(f"calc_balloon: 'principal' must be ≥ 0, got {principal}")
 
@@ -1922,6 +1952,11 @@ def calc_deposit(principal, n, rate_pa, unit, mode):
         principal = float(principal)
     except (TypeError, ValueError):
         raise ValueError(f"calc_deposit: rate_pa and principal must be numeric")
+    import math as _math
+    if _math.isnan(rate_pa) or _math.isinf(rate_pa):
+        raise ValueError(f"calc_deposit: 'rate_pa' must be finite, got {rate_pa}.")
+    if _math.isnan(principal) or _math.isinf(principal):
+        raise ValueError(f"calc_deposit: 'principal' must be finite, got {principal}.")
     if principal < 0:
         raise ValueError(f"calc_deposit: 'principal' must be ≥ 0, got {principal}")
     if mode not in ("capitalize", "payout"):
@@ -2206,13 +2241,21 @@ def calc_pairwise_breakeven(chosen_payments: list,
 
     def fv(r_per: float) -> float:
         # Future value at maturity of investing each diff[i] from period i
-        # forward until period n.
+        # forward until period n. For very long terms (e.g. 30-year mortgage,
+        # n=360) combined with high test rates, the compound factor can
+        # overflow float — treat that as +∞ (the FV is enormous, certainly
+        # the wrong sign vs a negative target).
         if 1.0 + r_per <= 0:
             return float('inf')           # invalid domain
-        total = 0.0
-        for i, d in enumerate(diff, start=1):
-            total += d * (1.0 + r_per) ** (n - i)
-        return total
+        try:
+            total = 0.0
+            for i, d in enumerate(diff, start=1):
+                total += d * (1.0 + r_per) ** (n - i)
+            return total
+        except OverflowError:
+            # If diff has at least one positive entry, FV → +∞; otherwise →
+            # −∞. Use the sign of the largest-magnitude diff as a proxy.
+            return float('inf') if max(diff) > 0 else float('-inf')
 
     # If FV(0) ≤ 0 ⇒ even with zero return, accumulated savings don't reach
     # the deficit. We need a HIGHER return; root must lie in (0, +∞).
@@ -2224,15 +2267,14 @@ def calc_pairwise_breakeven(chosen_payments: list,
         # investment return, you end up ahead.
         return 0.0
 
-    # Now bisect on r ∈ [0, 100/ppy] (i.e. up to 10000% pa)
-    # fv is monotonically increasing in r when sum_diff < 0 (we need higher r
-    # to grow the surplus to cover the late deficit). Verify by checking the
-    # bracket has a sign change.
-    lo, hi = 0.0, 100.0
+    # Bisect on r ∈ [0, 10] per period. Upper bound 10 ≈ 12000 % pa
+    # (monthly compounding) is well above any realistic investment yield;
+    # going higher risks float overflow on long-term loans.
+    lo, hi = 0.0, 10.0
     f_lo = fv0
     f_hi = fv(hi)
     if f_lo * f_hi > 0:
-        # No sign change — root outside [0, 10000% pa]. Unrealistic.
+        # No sign change — root outside [0, ~12000 %]. Unrealistic.
         return None
 
     for _ in range(200):
@@ -2617,19 +2659,24 @@ def apply_grace_period(sched: list, grace_start: int, grace_duration: int,
                 if is_last:
                     balance = 0.0
         elif was_classic:
-            principal_part = balance / remaining_periods
+            pp_base = balance / remaining_periods
             for i in range(grace_end + 1, n + 1):
                 r_i = r_for_period(i)
                 interest = balance * r_i
-                balance -= principal_part
+                # Match calc_classic's behavior: in the final period, set the
+                # principal exactly to the remaining balance so the row
+                # internally amortizes to zero.
+                is_last = (i == n)
+                pp_i = balance if is_last else pp_base
+                balance -= pp_i
                 new_sched.append({
                     "period":        i,
-                    "balance_open":  round(balance + principal_part, 2),
-                    "payment":       round(principal_part + interest + mo_comm, 2),
-                    "principal":     round(principal_part, 2),
+                    "balance_open":  round(balance + pp_i, 2),
+                    "payment":       round(pp_i + interest + mo_comm, 2),
+                    "principal":     round(pp_i, 2),
                     "interest":      round(interest, 2),
                     "commission":    round(mo_comm, 2),
-                    "balance_close": round(max(balance, 0), 2),
+                    "balance_close": round(max(balance, 0) if not is_last else 0.0, 2),
                 })
         else:
             # Annuity post-grace
@@ -2951,14 +2998,16 @@ def export_flat_csv(df, summary, t, sym, is_deposit: bool = False) -> bytes:
                     out_row.append(f"{float(val):.2f}")
                 else:
                     try:
-                        # Чистим возможные узкие пробелы и валютные символы
+                        # Strip everything except digits, decimal points,
+                        # and signs. The previous approach iterated through a
+                        # hard-coded set of currency glyphs ("$₴€₽£¥CFr") and
+                        # would corrupt custom symbols containing those
+                        # letters (e.g. "Krone 500" → "Kone500", "CHF 1000"
+                        # → "H1000"), causing float() to fail.
                         cleaned = (str(val)
                                    .replace("\u202f", "")
-                                   .replace(" ", "")
                                    .replace(",", "."))
-                        for c in "$₴€₽£¥CFr":
-                            cleaned = cleaned.replace(c, "")
-                        cleaned = cleaned.strip()
+                        cleaned = re.sub(r"[^\d.\-]", "", cleaned).strip()
                         out_row.append(f"{float(cleaned):.2f}" if cleaned else "")
                     except (ValueError, TypeError):
                         out_row.append("")
@@ -3385,7 +3434,6 @@ def run_calculation(principal, n, rate_pa, unit, scheme,
     if scheme in ("annuity", "classic", "balloon"):
         try:
             if scheme != "classic":
-                alt_classic = (calc_annuity, calc_balloon)  # placeholder
                 # Reuse legacy (no day-count) calc to keep apples-to-apples
                 # with the chosen schedule. If user enabled day-count, both
                 # schedules should use the same convention.
@@ -4234,11 +4282,20 @@ def export_excel(df, summary, t, sym):
                                                                            pct_fmt, "#065F46", True),
         ]
     else:
+        # Effective APR: when IRR fails the value is None — passing it through
+        # arithmetic would crash. Show "N/A" as a text-format cell instead of
+        # masking the failure with 0.00%.
+        eff_val = summary.get("effective_rate")
+        if eff_val is None:
+            eff_apr_entry = ("Effective Annual Rate", "N/A", "@", "#B45309", True)
+        else:
+            eff_apr_entry = ("Effective Annual Rate", eff_val / 100, pct_fmt, "#B45309", True)
+
         metrics_data = [
             ("Total Amount Payable",    summary.get("total_payment", 0),    num_fmt, "#B45309", False),
             ("Total Interest Paid",     summary.get("total_interest", 0),   num_fmt, "#7F1D1D", True),
             ("Total Commissions",       summary.get("total_commission", 0), num_fmt, "#92400E", False),
-            ("Effective Annual Rate",   summary.get("effective_rate", 0)/100,pct_fmt,"#B45309", True),
+            eff_apr_entry,
             ("1st Period Payment",      summary.get("first_payment", 0),    num_fmt, "#1D4ED8", False),
         ]
 
@@ -4653,7 +4710,7 @@ def export_excel(df, summary, t, sym):
             ("Total Interest Earned",  earned,                num_fmt, True),
             ("Profit (Gross Return)",  final_b - princ_r,    num_fmt, True),
             ("Effective Annual Rate",  eff_r/100,             pct_fmt, True),
-            ("Total Return %",         earned/max(princ_r,1), pct_fmt, True),
+            ("Total Return %",         (earned / princ_r) if princ_r > 0 else 0, pct_fmt, True),
         ]
         for i_r, (lbl, val, fmt, hl) in enumerate(dep_rows):
             write_kv_row(ws3, r, lbl, val, fmt, i_r%2==0, hl)
@@ -4784,11 +4841,13 @@ def export_docx(df, summary, t, sym):
             (t.get("dep_rate_label",   "Annual Rate"),       fmt_pct(summary.get("effective_rate",0))),
         ]
     else:
+        eff_rate_val = summary.get("effective_rate")
+        eff_rate_str = fmt_pct(eff_rate_val) if eff_rate_val is not None else "N/A"
         kv_pairs = [
             (t["total_payment"],    fmt_money(summary["total_payment"],    sym)),
             (t["total_interest"],   fmt_money(summary["total_interest"],   sym)),
             (t["total_commission"], fmt_money(summary["total_commission"], sym)),
-            (t["effective_rate"],   fmt_pct(summary["effective_rate"])),
+            (t["effective_rate"],   eff_rate_str),
             (t["monthly_payment"],  fmt_money(summary["first_payment"],    sym)),
         ]
         # Investment break-even
@@ -5484,6 +5543,16 @@ def calc_syndicated_master_schedule(
     total_comm      = total_comm_per + total_ot_comm
     total_payment   = total_principal + total_interest + total_comm
 
+    # First *non-zero* master payment — meaningful when tranches are staggered.
+    # If all tranches have offset > 0, period 1 has no payment; downstream
+    # risk metrics (DSCR, DTI on first payment) need the real first burden,
+    # not a vacuous zero.
+    first_pay_value = 0.0
+    for row in master:
+        if row["payment"] > 0:
+            first_pay_value = row["payment"]
+            break
+
     totals = {
         "n_periods":         max_n,
         "total_principal":   round(total_principal, 2),
@@ -5492,7 +5561,7 @@ def calc_syndicated_master_schedule(
         "total_payment":     round(total_payment, 2),
         "total_one_time_comm": round(total_ot_comm, 2),
         "n_tranches_active": len(per_tranche),
-        "first_payment":     master[0]["payment"] if master else 0.0,
+        "first_payment":     first_pay_value,
         "tranche_errors":    tranche_errors,
     }
 
@@ -5504,11 +5573,17 @@ def calc_syndicated_blended_apr(per_tranche: list[dict],
     """
     Blended APR across all tranches via IRR on the consolidated cash-flow.
 
-    Cash flow convention (lender perspective, NPV=0 form):
-        CF_0 = -(Σ amounts − Σ ot_commissions)   ─ net loan disbursement (negative)
-        CF_t = +(master_payment_t)               ─ payment inflows from borrower
+    Each tranche may have a `start_offset` (in months) — the period at which
+    its disbursement occurs and its schedule starts. The combined cash flow
+    therefore places each tranche's negative disbursement (amount minus its
+    own one-time commission) at its offset, and its scheduled payments at
+    offset + i for i = 1..n_tranche.
 
-    NPV(r) = Σ_{t=0..n} CF_t / (1+r)^t = 0
+    Cash flow convention (lender perspective, NPV = 0 form):
+        CF_offset_k  = -(amount_k - ot_comm_k)       — net disbursement at offset
+        CF_{offset_k + i} += payment_k_i             — periodic inflow
+
+    NPV(r) = Σ_t CF_t / (1+r)^t = 0
 
     Robust solver:
       1. Newton's method (fast on well-shaped problems).
@@ -5526,15 +5601,27 @@ def calc_syndicated_blended_apr(per_tranche: list[dict],
     if total_principal <= 0:
         return None
 
-    # Build combined cash flow stream
-    max_n = max(tr["n"] for tr in per_tranche)
-    cfs = [-(total_principal - total_ot_comm)]
-    for p in range(1, max_n + 1):
-        period_pay = 0.0
-        for tr in per_tranche:
-            if p <= len(tr["schedule"]):
-                period_pay += tr["schedule"][p - 1]["payment"]
-        cfs.append(period_pay)
+    # Build staggered cash-flow stream
+    max_period = 0
+    for tr in per_tranche:
+        offset = int(tr.get("start_offset", 0))
+        max_period = max(max_period, offset + int(tr["n"]))
+
+    cfs = [0.0] * (max_period + 1)
+    for tr in per_tranche:
+        offset    = int(tr.get("start_offset", 0))
+        amount    = float(tr["amount"])
+        ot_k      = float(tr.get("ot_comm", 0.0))
+        # Disbursement (negative outflow from lender) at this tranche's offset.
+        # The one-time commission is netted out — it's a fee the borrower
+        # effectively pays back at t=offset, so the actual disbursement amount
+        # is (amount - ot_comm). This is consistent with the prior aggregate
+        # convention but now placed correctly on the timeline.
+        cfs[offset] += -(amount - ot_k)
+        for i, row in enumerate(tr["schedule"], start=1):
+            t = offset + i
+            if t < len(cfs):
+                cfs[t] += float(row["payment"])
 
     def npv(r: float) -> float:
         return sum(cfs[t] / (1.0 + r) ** t for t in range(len(cfs)))
@@ -5698,9 +5785,6 @@ def load_tpl(name):
 def del_tpl(name):
     st.session_state.templates.pop(name, None)
 
-# ─────────────────────────────────────────────────────────────────────────────
-#  CSS
-# ─────────────────────────────────────────────────────────────────────────────
 # ─────────────────────────────────────────────────────────────────────────────
 #  ТЕМЫ — пресеты и кастомизация
 # ─────────────────────────────────────────────────────────────────────────────
@@ -7263,6 +7347,9 @@ def main():
                 "balloon": t.get("balloon_short", "Balloon"),
             }
 
+            # Show BOTH banners when the chosen scheme is cheaper than some
+            # alternatives AND more expensive than others (mixed picture).
+            # This avoids hiding half of the relevant comparison.
             if cheaper_than:
                 parts = ", ".join(
                     f"{scheme_name_map[k]} ({fmt_money(p - own_pay, sym)})"
@@ -7272,7 +7359,7 @@ def main():
                     f"<div class='savings-box'>💚 "
                     f"{t.get('compare_savings_vs', 'Savings vs')} {parts}"
                     f"</div>", unsafe_allow_html=True)
-            elif more_than:
+            if more_than:
                 parts = ", ".join(
                     f"{scheme_name_map[k]} ({fmt_money(own_pay - p, sym)})"
                     for k, p in more_than
@@ -7284,7 +7371,6 @@ def main():
                     f"text-align:center;margin-top:8px'>"
                     f"⚠️ {t.get('compare_overpay_vs', 'Overpayment vs')} {parts}"
                     f"</div>", unsafe_allow_html=True)
-            # If tied (e.g. rate=0%), no message — nothing meaningful to say
 
         # ── Balloon Break-even (only when user picked Balloon) ────────────────
         # Showing this for annuity/classic just confuses users — it's only
