@@ -364,6 +364,8 @@ TRANSLATIONS = {
         "refi_new_term":         "Срок нового кредита (мес.)",
         "refi_new_fees":         "Комиссии за выдачу",
         "refi_calculate":        "Рассчитать рефинансирование",
+        "refi_discount_rate":    "Ставка дисконтирования NPV (% годовых)",
+        "refi_discount_rate_help": "Годовая ставка для дисконтирования будущих денежных потоков при расчёте NPV. Можно использовать доходность вашей альтернативной инвестиции.",
         "refi_current_payment":  "Текущий платёж",
         "refi_new_payment":      "Новый платёж",
         "refi_monthly_savings":  "Месячная экономия",
@@ -781,6 +783,8 @@ TRANSLATIONS = {
         "refi_new_term":         "Термін нового кредиту (міс.)",
         "refi_new_fees":         "Комісії за видачу",
         "refi_calculate":        "Розрахувати рефінансування",
+        "refi_discount_rate":    "Ставка дисконтування NPV (% річних)",
+        "refi_discount_rate_help": "Річна ставка для дисконтування майбутніх грошових потоків при розрахунку NPV. Можна використати дохідність вашої альтернативної інвестиції.",
         "refi_current_payment":  "Поточний платіж",
         "refi_new_payment":      "Новий платіж",
         "refi_monthly_savings":  "Місячна економія",
@@ -1205,6 +1209,8 @@ TRANSLATIONS = {
         "refi_new_term":         "New Loan Term (months)",
         "refi_new_fees":         "Origination Fees",
         "refi_calculate":        "Calculate Refinancing",
+        "refi_discount_rate":    "NPV Discount Rate (% annual)",
+        "refi_discount_rate_help": "Annual rate used to discount future cash flows when computing NPV. Use your alternative-investment yield.",
         "refi_current_payment":  "Current Payment",
         "refi_new_payment":      "New Payment",
         "refi_monthly_savings":  "Monthly Savings",
@@ -1480,25 +1486,27 @@ def generate_dates(n: int, unit: str, start: date | None = None) -> list:
     start — дата начала кредита/вклада (первый платёж = start + 1 период).
     Если start не передан — берётся сегодняшняя дата.
 
+    Each date is computed by adding a multiple of the unit to `start`
+    directly. Accumulating via `d += delta` would cause month-end drift
+    (e.g. Jan 31 + 1 month = Feb 29 → + 1 month = Mar 29 instead of Mar 31).
+
     Raises ValueError для неизвестного unit (раньше тихо использовал months).
     """
     from dateutil.relativedelta import relativedelta
-    delta_map = {"weeks":     relativedelta(weeks=1),
-                  "months":    relativedelta(months=1),
-                  "quarters":  relativedelta(months=3),
-                  "halfyears": relativedelta(months=6),
-                  "years":     relativedelta(years=1)}
-    if unit not in delta_map:
+    if unit not in {"weeks", "months", "quarters", "halfyears", "years"}:
         raise ValueError(
             f"generate_dates: unknown unit {unit!r}. "
-            f"Supported: {list(delta_map.keys())}.")
-    delta = delta_map[unit]
-    d = start if start is not None else date.today()
-    result = []
-    for _ in range(n):
-        d += delta
-        result.append(d.strftime("%d.%m.%Y"))
-    return result
+            f"Supported: ['halfyears', 'months', 'quarters', 'weeks', 'years'].")
+    def _delta_for(i: int) -> relativedelta:
+        if unit == "weeks":     return relativedelta(weeks=i)
+        if unit == "months":    return relativedelta(months=i)
+        if unit == "quarters":  return relativedelta(months=3 * i)
+        if unit == "halfyears": return relativedelta(months=6 * i)
+        if unit == "years":     return relativedelta(years=i)
+        raise ValueError(f"Unsupported unit: {unit}")
+
+    base = start if start is not None else date.today()
+    return [(base + _delta_for(i)).strftime("%d.%m.%Y") for i in range(1, n + 1)]
 
 def get_sym(ss) -> str:
     if ss.currency == "custom":
@@ -3109,15 +3117,27 @@ def _run_syndicated(tranches: list[dict], t: dict, sym: str,
     )
 
     if not master or totals["n_tranches_active"] == 0:
-        # Fallback: empty case — return zero schedule
+        # No tranche produced a valid schedule. Returning zeros here would be
+        # indistinguishable from a real 0% loan — instead surface this as a
+        # partial result with None metrics and the original tranche errors so
+        # the UI can render the failure banner.
+        tranche_errs = totals.get("tranche_errors", [])
+        err_msg = ("No valid tranches: " + "; ".join(e[1] for e in tranche_errs)
+                    if tranche_errs else
+                    "Syndicated calculation produced no schedule (all tranches failed).")
         empty_df = pd.DataFrame()
         return empty_df, {
             "is_deposit": False, "scheme_key": "syndicated",
-            "rate_pa": 0, "start_date": start_date or date.today(),
+            "rate_pa": None, "start_date": start_date or date.today(),
             "total_payment": 0, "total_interest": 0, "total_commission": 0,
-            "effective_rate": 0, "first_payment": 0, "overpay_pct": 0,
+            "effective_rate": None, "effective_rate_error": True,
+            "first_payment": None, "overpay_pct": 0,
             "one_time_comm": 0, "principal": 0, "sym": sym,
             "syndicated": True, "tranches": [], "master_schedule": [],
+            "tranche_errors": tranche_errs,
+            "grace_error": synd_grace_error,
+            "partial_result": True,
+            "synd_empty_error": err_msg,
         }
 
     n = totals["n_periods"]
@@ -3198,8 +3218,10 @@ def _run_syndicated(tranches: list[dict], t: dict, sym: str,
         except Exception:
             real_cost_val = None
 
-    # Risk metrics
-    first_pmt = master[0]["payment"] if master else 0.0
+    # Risk metrics. Use totals["first_payment"] which already skips the
+    # offset gap when tranches are staggered; master[0]["payment"] could be 0
+    # if no tranche starts in period 1.
+    first_pmt = totals.get("first_payment", 0.0) or 0.0
     ltv_val  = (calc_ltv(totals["total_principal"], ltv_collateral)
                 if ltv_enabled and ltv_collateral > 0 else None)
     dscr_val = (calc_dscr(dscr_noi, first_pmt)
@@ -4454,6 +4476,25 @@ def export_excel(df, summary, t, sym):
             else:
                 cell.fill = fill(row_bg)
                 cell.font = Font(name="Calibri", size=9, color="1E293B")
+
+            # Date column (ci == 2): parse the "dd.mm.yyyy" string into a
+            # real date object and apply a date number format. Excel then
+            # treats the cell as a date (sortable, supports date-arithmetic
+            # in formulas) rather than as opaque text.
+            if ci == 2 and isinstance(val, str) and val:
+                parsed_dt = None
+                for _fmt in ("%d.%m.%Y", "%Y-%m-%d", "%m/%d/%Y", "%d/%m/%Y"):
+                    try:
+                        parsed_dt = datetime.strptime(val, _fmt).date()
+                        break
+                    except (ValueError, TypeError):
+                        continue
+                if parsed_dt is not None:
+                    cell.value         = parsed_dt
+                    cell.number_format = "dd.mm.yyyy"
+                    cell.alignment     = align("center")
+                    cell.border        = border(BORDER_C, "thin")
+                    continue   # already wrote, skip generic branch
 
             # Числовое значение или текст
             if isinstance(val, (int, float)) and not is_total:
@@ -6622,13 +6663,17 @@ def main():
                     blended = calc_syndicated_blended_apr(
                         _per_tr, _totals.get("total_one_time_comm", 0))
 
-                    # Sync results into session_state. If the IRR fails
-                    # (blended is None), interest_rate is left at its prior
-                    # value to avoid feeding a misleading zero into the rest
-                    # of the UI; the rendered string reports "N/A" instead.
+                    # Sync loan amount (used by synd run_calculation). The
+                    # blended APR is rendered locally below; it must NOT be
+                    # written into st.session_state.interest_rate, because
+                    # that field belongs to the single-loan input. Leaking it
+                    # there would (a) shove a stale value into the next
+                    # non-syndicated calc, and (b) potentially mislead the
+                    # user about what rate they typed.
                     st.session_state.loan_amount = _totals["total_principal"]
-                    if blended is not None:
-                        st.session_state.interest_rate = blended
+                    # Store the blended APR in a separate, synd-scoped key so
+                    # downstream renderers can pick it up without colliding.
+                    st.session_state["_synd_blended_apr"] = blended
 
                     # Save tranches for later access in run_calculation/render
                     st.session_state["_syndicated_tranches"] = tranches_input
@@ -7977,6 +8022,20 @@ def _render_refinance_panel(t, smry, sym):
                 step=100.0, format="%.2f", key="refi_new_fees",
                 help=t.get("refi_help_fees", ""))
 
+        # ── NPV discount rate ────────────────────────────────────────────────
+        # Annual rate at which future savings/costs are discounted. With 0%
+        # the NPV comparison reduces to a nominal sum; in practice the
+        # opportunity-cost-of-capital is non-zero, so the input is exposed
+        # explicitly rather than buried inside calc_refinance_analysis.
+        refi_discount_rate = st.number_input(
+            t.get("refi_discount_rate", "NPV Discount Rate (% annual)"),
+            min_value=0.0, max_value=50.0,
+            value=float(st.session_state.get("refi_discount_rate", 5.0)),
+            step=0.1, format="%.2f", key="refi_discount_rate",
+            help=t.get("refi_discount_rate_help",
+                        "Annual rate used to discount future cash flows when "
+                        "computing NPV. Use your alternative-investment yield."))
+
         # ── Расчёт ────────────────────────────────────────────────────────────
         if st.button(t.get("refi_calculate", "Calculate Refinancing"),
                       key="btn_refi_calc"):
@@ -7995,6 +8054,7 @@ def _render_refinance_panel(t, smry, sym):
                     new_rate_pa=new_rate,
                     new_term_months=int(new_term),
                     new_fees=new_fees,
+                    discount_rate_pa=refi_discount_rate,
                 )
             except Exception as e:
                 st.error(f"Calculation error: {e}")
