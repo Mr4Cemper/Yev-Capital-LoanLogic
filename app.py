@@ -144,6 +144,7 @@ TRANSLATIONS = {
         "pct_of_amount": "% от суммы кредита",
         "fixed_amount": "Фиксированная сумма",
         "calc_btn": "🚀 Рассчитать",
+        "calc_error": "⚠️ Не удалось выполнить расчёт с заданными параметрами. Проверьте корректность ввода (срок, ставка, сумма).",
         "section_results": "📊 Результаты расчёта",
         "total_payment": "Общая сумма выплат",
         "total_interest": "Переплата по процентам",
@@ -591,6 +592,7 @@ TRANSLATIONS = {
         "pct_of_amount": "% від суми кредиту",
         "fixed_amount": "Фіксована сума",
         "calc_btn": "🚀 Розрахувати",
+        "calc_error": "⚠️ Не вдалося виконати розрахунок із заданими параметрами. Перевірте коректність введення (термін, ставка, сума).",
         "section_results": "📊 Результати розрахунку",
         "total_payment": "Загальна сума виплат",
         "total_interest": "Переплата за відсотками",
@@ -1001,6 +1003,7 @@ TRANSLATIONS = {
         "pct_of_amount": "% of loan amount",
         "fixed_amount": "Fixed amount",
         "calc_btn": "🚀 Calculate",
+        "calc_error": "⚠️ Calculation could not be completed with the given inputs. Please check the term, rate, and amount.",
         "section_results": "📊 Calculation Results",
         "total_payment": "Total Payments",
         "total_interest": "Interest Overpayment",
@@ -1550,6 +1553,8 @@ def fmt_money_plain(v):
     return f"{v:,.2f}".replace(",", "\u202f")
 
 def fmt_pct(v):
+    if v is None:
+        return "N/A"
     return f"{v:.2f}%"
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -2237,19 +2242,19 @@ def calc_pairwise_breakeven(chosen_payments: list,
 
     Interpretation
     ──────────────
-      • Schemes with identical totals → r = NaN (no time-value answer).
-      • A vs B where A is uniformly cheaper at every period → FV > 0 for
-        any r ≥ 0; no break-even — A is unconditionally better. Returns None.
-      • Otherwise: a unique positive rate exists when the cash-flow stream
-        has at least one sign change.
+      • Schemes with identical totals → no meaningful rate (returns None).
+      • A vs B where A is cheaper in present-value terms already at r = 0
+        (FV(0) ≥ 0) → returns 0.0: no positive investment return is required
+        for A to be at least as good as B.
+      • Otherwise: a unique positive break-even rate exists when the
+        cash-flow difference stream has at least one sign change.
 
     Returns
     ───────
       • Annualised break-even rate in % (positive float).
-      • 0.0 if the totals already match at r=0 (the alt-cheaper-overall case
-        means FV(0) = Σ diff > 0 already; you don't need any return).
+      • 0.0 if FV(0) ≥ 0 — the chosen scheme already wins at zero return.
       • None for degenerate inputs (mismatched lengths, empty streams, or
-        no realistic root in [-0.99, 100.0]).
+        no realistic root in the search bracket).
     """
     if not chosen_payments or not alt_payments:
         return None
@@ -2385,7 +2390,11 @@ def calc_universal_breakeven(payments: list, total_interest: float,
 
     def fv_profit(r_pct: float) -> float:
         r = r_pct / 100.0 / ppy
-        fv = sum(payments[i] * (1.0 + r) ** (n - i) for i in range(n))
+        # payments[i] is the (i+1)-th payment, made at the END of period
+        # (i+1). Reinvested until the horizon (end of period n), it compounds
+        # for (n - (i+1)) = (n - 1 - i) periods. The last payment sits AT the
+        # horizon and is not reinvested (exponent 0).
+        fv = sum(payments[i] * (1.0 + r) ** (n - 1 - i) for i in range(n))
         return fv - sum_pmt
 
     if fv_profit(0.0) >= target:
@@ -2538,7 +2547,8 @@ def discount_payments_to_pv(payments: list, annual_inflation_pct: float,
 def apply_grace_period(sched: list, grace_start: int, grace_duration: int,
                        grace_type: str, rate_pa: float, unit: str,
                        day_count: str | None = None,
-                       start_date: date | None = None) -> list:
+                       start_date: date | None = None,
+                       scheme_hint: str | None = None) -> list:
     """
     Динамически перестраивает график платежей с учётом кредитных каникул.
 
@@ -2550,6 +2560,9 @@ def apply_grace_period(sched: list, grace_start: int, grace_duration: int,
                         графике считаются через year_fraction (важно для
                         ACT/ACT и пересечения 29 февраля).
       start_date     — нужен только если day_count задан.
+      scheme_hint    — "annuity" | "classic" | "balloon" если известно от
+                        caller. Если задан, используется напрямую вместо
+                        хрупкого вывода типа графика по его форме.
 
     Логика:
       • interest_only  → платим только проценты, тело не уменьшается
@@ -2660,11 +2673,14 @@ def apply_grace_period(sched: list, grace_start: int, grace_duration: int,
     # 3) Платежи ПОСЛЕ каникул — пересчитываем на оставшийся срок и новый balance
     remaining_periods = n - grace_end
     if remaining_periods > 0 and balance > 0:
-        # Определяем тип графика по поведению исходного.
-        # NB: для очень короткого графика (len == 1) `all([])` возвращает True,
-        # что ошибочно классифицирует annuity/classic из 1 платежа как balloon.
-        # Защищаемся явной проверкой len > 1.
-        if len(sched) > 1:
+        # Определяем тип графика. Если caller передал scheme_hint — используем
+        # его напрямую (надёжно). Иначе выводим по форме графика, что может
+        # давать сбои на вырожденных случаях (например, аннуитет при ставке 0%
+        # неотличим от классики, так как оба дают постоянное тело).
+        if scheme_hint in ("annuity", "classic", "balloon"):
+            was_balloon = (scheme_hint == "balloon")
+            was_classic = (scheme_hint == "classic")
+        elif len(sched) > 1:
             was_balloon = all(sched[i]["principal"] == 0
                                for i in range(len(sched) - 1))
             was_classic = (
@@ -3405,7 +3421,8 @@ def run_calculation(principal, n, rate_pa, unit, scheme,
             sched = apply_grace_period(sched, grace_start, grace_duration,
                                        grace_type, rate_pa, unit,
                                        day_count=dc_method,
-                                       start_date=dc_start)
+                                       start_date=dc_start,
+                                       scheme_hint=scheme)
         except Exception as e:
             grace_error = str(e)
             # Log it but continue with original schedule; UI will surface it.
@@ -3425,18 +3442,27 @@ def run_calculation(principal, n, rate_pa, unit, scheme,
         })
     df = pd.DataFrame(rows)
 
+    # Precise (unrounded) aggregates — used for internal math (APR, ratios).
     tot_interest = sum(r["interest"]   for r in sched)
     tot_comm     = sum(r["commission"] for r in sched) + ot_comm
     tot_payment  = principal + tot_interest + tot_comm
+
+    # Display aggregates — sum of the per-row ROUNDED values so the visible
+    # TOTAL row reconciles exactly with a hand-sum of the displayed column
+    # (accounting/audit requirement: round(Σx) ≠ Σround(x), so we must use
+    # the latter for what the user sees).
+    disp_interest = round(sum(round(r["interest"],   2) for r in sched), 2)
+    disp_comm     = round(sum(round(r["commission"], 2) for r in sched) + round(ot_comm, 2), 2)
+    disp_payment  = round(sum(round(r["payment"],    2) for r in sched), 2)
 
     total_row = {
         t["period"]:        t["total_row"],
         t["date"]:          "",
         t["balance_open"]:  "",
-        t["payment_total"]: round(tot_payment,  2),
+        t["payment_total"]: disp_payment,
         t["principal"]:     round(principal,    2),
-        t["interest"]:      round(tot_interest, 2),
-        t["commission"]:    round(tot_comm,     2),
+        t["interest"]:      disp_interest,
+        t["commission"]:    disp_comm,
         t["balance_close"]: "",
     }
     df_with_total = pd.concat([df, pd.DataFrame([total_row])], ignore_index=True)
@@ -3545,9 +3571,13 @@ def run_calculation(principal, n, rate_pa, unit, scheme,
         "n_periods":             n,
         "commission_per_period": mo_comm,
         "start_date":            start_date or date.today(),
-        "total_payment":         tot_payment,
-        "total_interest":        tot_interest,
-        "total_commission":      tot_comm,
+        "total_payment":         disp_payment,
+        "total_interest":        disp_interest,
+        "total_commission":      disp_comm,
+        # Precise (unrounded) aggregates retained for any downstream math that
+        # needs full precision rather than the cent-reconciled display values.
+        "total_payment_exact":   tot_payment,
+        "total_interest_exact":  tot_interest,
         "effective_rate":        eff,
         "effective_rate_error":  eff_error,
         "grace_error":           grace_error,
@@ -4148,6 +4178,11 @@ def export_excel(df, summary, t, sym):
     buf = io.BytesIO()
     wb  = Workbook()
 
+    if df is None or getattr(df, "empty", True) or len(df.columns) == 0:
+        raise ValueError(
+            "export_excel: no schedule data to export (calculation may have "
+            "failed or produced an empty result).")
+
     is_dep = summary.get("is_deposit", False)
 
     # ── Палитра цветов (Bloomberg / dark fintech) ─────────────────────────────
@@ -4345,13 +4380,19 @@ def export_excel(df, summary, t, sym):
     mh.alignment = align("left")
 
     if is_dep:
+        dep_eff = summary.get("effective_rate")
+        dep_princ = summary.get("principal", 0) or 0
+        dep_earned = summary.get("total_earned", 0) or 0
+        eff_entry = (("Effective Annual Rate", "N/A", "@", "#B45309", False)
+                      if dep_eff is None
+                      else ("Effective Annual Rate", dep_eff / 100, pct_fmt, "#B45309", False))
+        profit_pct = (dep_earned / dep_princ) if dep_princ > 0 else 0
         metrics_data = [
             ("Initial Deposit",        summary.get("principal", 0),      num_fmt, "#1D4ED8", False),
             ("Final Balance",           summary.get("final_balance", 0),   num_fmt, "#065F46", True),
             ("Total Interest Earned",   summary.get("total_earned", 0),    num_fmt, "#065F46", True),
-            ("Effective Annual Rate",   summary.get("effective_rate",0)/100,pct_fmt,"#B45309", False),
-            ("Profit %",               summary.get("total_earned",0)/max(summary.get("principal",1),1),
-                                                                           pct_fmt, "#065F46", True),
+            eff_entry,
+            ("Profit %",               profit_pct, pct_fmt, "#065F46", True),
         ]
     else:
         # Effective APR: when IRR fails the value is None — passing it through
@@ -4743,15 +4784,17 @@ def export_excel(df, summary, t, sym):
         total_p  = summary.get("total_payment", 0)
         total_i  = summary.get("total_interest", 0)
         total_c  = summary.get("total_commission", 0)
-        eff_r    = summary.get("effective_rate", 0)
-        overpay  = summary.get("overpay_pct", 0)
+        eff_r    = summary.get("effective_rate")
+        overpay  = summary.get("overpay_pct", 0) or 0
 
+        eff_apr_row = (("Effective APR", "N/A", "@", True) if eff_r is None
+                        else ("Effective APR", eff_r / 100, pct_fmt, True))
         cost_rows = [
             ("Principal (Loan Body)",   princ_r,  num_fmt, False),
             ("Total Interest Paid",     total_i,  num_fmt, True),
             ("Total Commissions",       total_c,  num_fmt, False),
             ("Total Cost of Credit",    total_p,  num_fmt, True),
-            ("Effective APR",           eff_r/100,pct_fmt, True),
+            eff_apr_row,
             ("Overpayment vs Principal",overpay/100,pct_fmt,True),
         ]
         for i_r, (lbl, val, fmt, hl) in enumerate(cost_rows):
@@ -4793,14 +4836,16 @@ def export_excel(df, summary, t, sym):
         princ_r = summary.get("principal", 0)
         final_b = summary.get("final_balance", 0)
         earned  = summary.get("total_earned", 0)
-        eff_r   = summary.get("effective_rate", 0)
+        eff_r   = summary.get("effective_rate")
 
+        dep_eff_row = (("Effective Annual Rate", "N/A", "@", True) if eff_r is None
+                        else ("Effective Annual Rate", eff_r / 100, pct_fmt, True))
         dep_rows = [
             ("Initial Deposit",       princ_r,               num_fmt, False),
             ("Final Balance",          final_b,               num_fmt, True),
             ("Total Interest Earned",  earned,                num_fmt, True),
             ("Profit (Gross Return)",  final_b - princ_r,    num_fmt, True),
-            ("Effective Annual Rate",  eff_r/100,             pct_fmt, True),
+            dep_eff_row,
             ("Total Return %",         (earned / princ_r) if princ_r > 0 else 0, pct_fmt, True),
         ]
         for i_r, (lbl, val, fmt, hl) in enumerate(dep_rows):
@@ -4867,6 +4912,10 @@ def export_docx(df, summary, t, sym):
       • Итоговая строка: тёмно-синий Bold
     """
     is_dep  = summary.get("is_deposit", False)
+    if df is None or getattr(df, "empty", True) or len(df.columns) == 0:
+        raise ValueError(
+            "export_docx: no schedule data to export (calculation may have "
+            "failed or produced an empty result).")
     n_rows  = len(df)
     tbl_fs  = Pt(9) if n_rows > 50 else Pt(10)
 
@@ -5062,6 +5111,12 @@ def export_pdf(df, summary, t, sym):
       • Отрицательные значения — красный
       • Итоговая строка — тёмно-синий Bold
     """
+    # Guard against an empty schedule (e.g. a partial/failed syndicated result):
+    # building a table with no columns/rows raises IndexError downstream.
+    if df is None or getattr(df, "empty", True) or len(df.columns) == 0:
+        raise ValueError(
+            "export_pdf: no schedule data to export (calculation may have "
+            "failed or produced an empty result).")
     # ── Если шрифт не был загружен — предупредить в консоль (не краш) ─────────
     if PDF_FONT_WARN:
         import warnings
@@ -5223,7 +5278,8 @@ def export_pdf(df, summary, t, sym):
             [cell(t["total_commission"], bold=True),
              cell(fmt_money(summary["total_commission"], sym))],
             [cell(t["effective_rate"],   bold=True),
-             cell(fmt_pct(summary["effective_rate"]))],
+             cell(fmt_pct(summary["effective_rate"])
+                  if summary.get("effective_rate") is not None else "N/A")],
             [cell(t["monthly_payment"],  bold=True),
              cell(fmt_money(summary["first_payment"],    sym))],
         ]
@@ -7109,32 +7165,42 @@ def main():
                 if not synd_tranches:
                     synd_tranches = None  # fallback
 
-            df_d, smry = run_calculation(
-                st.session_state.loan_amount, st.session_state.loan_term,
-                st.session_state.interest_rate, st.session_state.term_unit,
-                st.session_state.scheme,
-                st.session_state.one_time_val, st.session_state.one_time_type,
-                st.session_state.monthly_val, st.session_state.monthly_type,
-                st.session_state.currency, st.session_state.custom_symbol, t,
-                deposit_mode=st.session_state.deposit_mode,
-                start_date=st.session_state.start_date,
-                grace_enabled=st.session_state.grace_enabled,
-                grace_start=st.session_state.grace_start,
-                grace_duration=st.session_state.grace_duration,
-                grace_type=st.session_state.grace_type,
-                inflation_enabled=st.session_state.inflation_enabled,
-                inflation_rate=st.session_state.inflation_rate,
-                ltv_enabled=st.session_state.ltv_enabled,
-                ltv_collateral=st.session_state.ltv_collateral,
-                dscr_enabled=st.session_state.dscr_enabled,
-                dscr_noi=st.session_state.dscr_noi,
-                dti_enabled=st.session_state.dti_enabled,
-                dti_income=st.session_state.dti_income,
-                dti_other_debts=st.session_state.dti_other_debts,
-                syndicated_tranches=synd_tranches,
-                day_count_enabled=st.session_state.day_count_enabled,
-                day_count_method=st.session_state.day_count_method,
-            )
+            try:
+                df_d, smry = run_calculation(
+                    st.session_state.loan_amount, st.session_state.loan_term,
+                    st.session_state.interest_rate, st.session_state.term_unit,
+                    st.session_state.scheme,
+                    st.session_state.one_time_val, st.session_state.one_time_type,
+                    st.session_state.monthly_val, st.session_state.monthly_type,
+                    st.session_state.currency, st.session_state.custom_symbol, t,
+                    deposit_mode=st.session_state.deposit_mode,
+                    start_date=st.session_state.start_date,
+                    grace_enabled=st.session_state.grace_enabled,
+                    grace_start=st.session_state.grace_start,
+                    grace_duration=st.session_state.grace_duration,
+                    grace_type=st.session_state.grace_type,
+                    inflation_enabled=st.session_state.inflation_enabled,
+                    inflation_rate=st.session_state.inflation_rate,
+                    ltv_enabled=st.session_state.ltv_enabled,
+                    ltv_collateral=st.session_state.ltv_collateral,
+                    dscr_enabled=st.session_state.dscr_enabled,
+                    dscr_noi=st.session_state.dscr_noi,
+                    dti_enabled=st.session_state.dti_enabled,
+                    dti_income=st.session_state.dti_income,
+                    dti_other_debts=st.session_state.dti_other_debts,
+                    syndicated_tranches=synd_tranches,
+                    day_count_enabled=st.session_state.day_count_enabled,
+                    day_count_method=st.session_state.day_count_method,
+                )
+            except (ValueError, ZeroDivisionError, OverflowError) as calc_err:
+                # Surface bad inputs (e.g. degenerate term, invalid rate) as a
+                # friendly message instead of crashing the whole app with a
+                # red Streamlit traceback.
+                st.error(t.get("calc_error", "⚠️ Calculation could not be "
+                                "completed with the given inputs.")
+                          + f"\n\n`{calc_err}`")
+                st.stop()
+
             st.session_state.schedule_df = df_d
             st.session_state.summary     = smry
             st.session_state.calc_done   = True
@@ -8592,6 +8658,17 @@ def _render_audit_trail(t: dict) -> None:
 def _render_schedule(t, df_d, smry, sym, is_deposit=False):
     """Рендер таблицы графика платежей с кнопками скачивания."""
     st.markdown(f"<div class='sec-title'>{t['section_schedule']}</div>", unsafe_allow_html=True)
+
+    # If the calculation produced no schedule (e.g. a syndicated run where all
+    # tranches failed), there is nothing to tabulate or export. Surface the
+    # error and skip the table/export buttons rather than crashing the export
+    # functions on an empty DataFrame.
+    if df_d is None or getattr(df_d, "empty", True) or len(df_d.columns) == 0:
+        err = smry.get("synd_empty_error") or t.get(
+            "calc_error",
+            "⚠️ No schedule to display — the calculation produced no result.")
+        st.warning(err)
+        return
 
     # Пояснения колонок
     with st.expander(t["col_explain"], expanded=False):
