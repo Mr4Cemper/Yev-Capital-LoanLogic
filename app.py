@@ -23,6 +23,8 @@
 import io
 import math
 import re
+import html
+import hashlib
 from datetime import datetime, date, timedelta
 
 import streamlit as st
@@ -173,6 +175,7 @@ TRANSLATIONS = {
         "template_loaded": "✅ Шаблон загружен!",
         "template_deleted": "🗑️ Удалён!",
         "template_name_empty": "Введите название шаблона",
+        "template_overwrite_warn": "⚠️ Шаблон «{name}» уже существует. Нажмите «Сохранить» ещё раз, чтобы перезаписать.",
         "currency": "Валюта",
         "uah": "₴ Гривня (UAH)", "usd": "$ Доллар (USD)", "eur": "€ Евро (EUR)",
         "rub": "₽ Рубль (RUB)", "gbp": "£ Фунт стерлингов (GBP)",
@@ -436,6 +439,7 @@ TRANSLATIONS = {
         "refi_not_worth":        "✗ Рефинансирование невыгодно — новый платёж выше текущего.",
         "refi_long_payback":     "⚠️ Окупаемость превышает срок нового кредита.",
         "refi_longer_term_trap": "⚠️ Ловушка длинного срока: ежемесячный платёж ниже, но общая стоимость нового долга (с учётом дисконтирования) ВЫШЕ — экономия в моменте превращается в переплату на дистанции.",
+        "refi_shorter_term_win": "✓ Ежемесячный платёж выше, но приведённая (NPV) общая стоимость ниже — рефинансирование экономически выгодно (обычно при переходе на более короткий срок с меньшей ставкой).",
         "refi_help_balance":     "Сколько ещё осталось выплатить банку по текущему кредиту.",
         "refi_help_penalty":     "Большинство банков взимают штраф за досрочное погашение (обычно 1-3% от остатка).",
         "refi_help_fees":        "Комиссии за оформление нового кредита (оценка имущества, страховка, юр. услуги).",
@@ -618,6 +622,7 @@ TRANSLATIONS = {
         "template_loaded": "✅ Шаблон завантажено!",
         "template_deleted": "🗑️ Видалено!",
         "template_name_empty": "Введіть назву шаблону",
+        "template_overwrite_warn": "⚠️ Шаблон «{name}» вже існує. Натисніть «Зберегти» ще раз, щоб перезаписати.",
         "currency": "Валюта",
         "uah": "₴ Гривня (UAH)", "usd": "$ Долар (USD)", "eur": "€ Євро (EUR)",
         "rub": "₽ Рубль (RUB)", "gbp": "£ Фунт стерлінгів (GBP)",
@@ -852,6 +857,7 @@ TRANSLATIONS = {
         "refi_not_worth":        "✗ Рефінансування невигідне — новий платіж вищий за поточний.",
         "refi_long_payback":     "⚠️ Окупність перевищує термін нового кредиту.",
         "refi_longer_term_trap": "⚠️ Пастка довгого терміну: щомісячний платіж нижчий, але загальна вартість нового боргу (з урахуванням дисконтування) ВИЩА — економія в моменті перетворюється на переплату на дистанції.",
+        "refi_shorter_term_win": "✓ Щомісячний платіж вищий, але приведена (NPV) загальна вартість нижча — рефінансування економічно вигідне (зазвичай при переході на коротший термін з меншою ставкою).",
         "refi_help_balance":     "Скільки ще залишилося виплатити банку за поточним кредитом.",
         "refi_help_penalty":     "Більшість банків стягують штраф за дострокове погашення (зазвичай 1-3% від залишку).",
         "refi_help_fees":        "Комісії за оформлення нового кредиту (оцінка майна, страхування, юр. послуги).",
@@ -1028,6 +1034,7 @@ TRANSLATIONS = {
         "template_loaded": "✅ Template loaded!",
         "template_deleted": "🗑️ Deleted!",
         "template_name_empty": "Enter a template name",
+        "template_overwrite_warn": "⚠️ Template \"{name}\" already exists. Press Save again to overwrite.",
         "currency": "Currency",
         "uah": "₴ Hryvnia (UAH)",
         "usd": "$ US Dollar (USD)",
@@ -1278,6 +1285,7 @@ TRANSLATIONS = {
         "refi_not_worth":        "✗ Refinancing not worthwhile — new payment is higher than current.",
         "refi_long_payback":     "⚠️ Payback period exceeds the new loan's term.",
         "refi_longer_term_trap": "⚠️ Longer-term trap: monthly payment drops, but the total cost of debt of the new loan (with discounting) is HIGHER — immediate savings become a long-run overpayment.",
+        "refi_shorter_term_win": "✓ Higher monthly payment, but lower total cost in present-value (NPV) terms — economically worthwhile (typically refinancing into a shorter term at a lower rate).",
         "refi_help_balance":     "How much you still owe on your current loan.",
         "refi_help_penalty":     "Most banks charge an early-payoff penalty (typically 1-3% of balance).",
         "refi_help_fees":        "Origination costs for the new loan (appraisal, insurance, legal fees).",
@@ -1433,13 +1441,25 @@ CURRENCY_SYMBOLS = {
 #  ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
 # ─────────────────────────────────────────────────────────────────────────────
 def periods_per_year(unit: str) -> float:
-    return {"weeks": 52, "months": 12, "quarters": 4, "halfyears": 2, "years": 1}.get(unit, 12)
+    ppy = {"weeks": 52, "months": 12, "quarters": 4, "halfyears": 2, "years": 1}
+    if unit not in ppy:
+        # Consistent with term_to_periods_in_base / period_dates_for_schedule:
+        # an unknown unit is a programming error (e.g. "month" vs "months")
+        # and must surface, not silently default to 12.
+        raise ValueError(
+            f"periods_per_year: unknown unit {unit!r}. "
+            f"Supported: {list(ppy.keys())}.")
+    return ppy[unit]
 
 def term_to_months(term: float, unit: str) -> float:
     """Float-precise conversion of (term, unit) → months. Used for display."""
-    return {"weeks": term * 7.0 / 30.4375, "months": float(term),
-            "quarters": term * 3.0, "halfyears": term * 6.0,
-            "years": term * 12.0}.get(unit, float(term))
+    factors = {"weeks": 7.0 / 30.4375, "months": 1.0,
+               "quarters": 3.0, "halfyears": 6.0, "years": 12.0}
+    if unit not in factors:
+        raise ValueError(
+            f"term_to_months: unknown unit {unit!r}. "
+            f"Supported: {list(factors.keys())}.")
+    return float(term) * factors[unit]
 
 
 def term_to_periods_in_base(term: int, unit: str, base_unit: str = "months") -> int:
@@ -1789,7 +1809,14 @@ def calc_annuity(principal, n, rate_pa, unit, monthly_comm,
 
     # ── Legacy path ───────────────────────────────────────────────────────────
     r = rate_pa / 100 / ppy
-    pmt = (principal * r * (1+r)**n / ((1+r)**n - 1)) if r > 0 else principal/n
+    # The annuity formula is valid for any r > -1 (it has a removable
+    # singularity only at r == 0). Using `r > 0` here would wrongly route
+    # negative rates (e.g. EU-style negative-interest products) into the
+    # flat principal/n branch, producing a non-constant payment stream.
+    if abs(r) < 1e-12:
+        pmt = principal / n
+    else:
+        pmt = principal * r * (1 + r) ** n / ((1 + r) ** n - 1)
     rows, bal = [], principal
     for i in range(1, n+1):
         interest = bal * r
@@ -2716,11 +2743,12 @@ def apply_grace_period(sched: list, grace_start: int, grace_duration: int,
                     })
             else:
                 r = r_legacy
-                if r > 0:
+                # Valid for any r > -1; only r == 0 needs the flat fallback.
+                if abs(r) < 1e-12:
+                    pmt = balance / remaining_periods
+                else:
                     pmt = balance * r * (1 + r) ** remaining_periods / (
                         (1 + r) ** remaining_periods - 1)
-                else:
-                    pmt = balance / remaining_periods
                 for i in range(grace_end + 1, n + 1):
                     interest = balance * r
                     principal_part = pmt - interest
@@ -2884,15 +2912,25 @@ def calc_refinance_analysis(
     npv_new     = total_costs + pv_stream(new_pmt, new_term_months, d)
     npv_savings = npv_current - npv_new
 
-    # ── Verdict overrides for the "longer new term" trap ──────────────────────
-    # The cash-flow break-even can say "worth" if monthly pmt drops, even when
-    # the total cost of the new debt over its longer life exceeds the old debt.
-    # Total Cost of Debt is the authoritative test: require BOTH a monthly
-    # saving AND a positive NPV before declaring "worth".
+    # ── Verdict reconciliation between the two metrics ─────────────────────────
+    # The monthly-cash-flow test and the NPV test can disagree. Reconcile so
+    # that neither metric silently wins:
+    #
+    #   • verdict == "worth" but NPV < 0 → "longer_term_trap": the monthly
+    #     payment drops, but the total/present cost of the new (often longer)
+    #     debt is actually higher. The cash-flow improvement is a trap.
+    #
+    #   • verdict == "not_worth" (monthly payment is HIGHER) but NPV > 0 →
+    #     "shorter_term_win": the borrower pays more each month, yet the
+    #     present value of total cost is lower — typically refinancing into a
+    #     shorter term at a lower rate. Surfacing this as not_worth would
+    #     wrongly discourage an economically beneficial move.
     if verdict == "worth" and npv_savings < 0:
-        # Cash-flow improves, but total cost is HIGHER → flag as trap
         verdict  = "longer_term_trap"
         worth_it = False
+    elif verdict == "not_worth" and npv_savings > 0:
+        verdict  = "shorter_term_win"
+        worth_it = True
 
     return {
         "current_payment":   round(cur_pmt, 2),
@@ -3614,7 +3652,12 @@ def _run_deposit(principal, n, rate_pa, unit, mode, sym, t, start_date=None,
     # Реальная доходность (CAGR)
     ppy = periods_per_year(unit)
     if mode == "capitalize":
-        cagr = (final_balance / principal) ** (ppy / n) - 1 if n > 0 else 0
+        # Guard against principal == 0 (calc_deposit allows principal >= 0):
+        # CAGR is undefined with no initial capital, so report 0%.
+        if principal > 0 and n > 0:
+            cagr = (final_balance / principal) ** (ppy / n) - 1
+        else:
+            cagr = 0.0
         eff_rate = cagr * 100
     else:
         eff_rate = rate_pa  # простой процент = номинальная ставка
@@ -3636,16 +3679,23 @@ def _run_deposit(principal, n, rate_pa, unit, mode, sym, t, start_date=None,
                     real_cost_val = final_balance / (1.0 + r_per) ** n
                 else:
                     real_cost_val = final_balance
+                # Nominal receipt in capitalize mode is the single final_balance.
+                nominal_receipts = final_balance
             else:
-                # Payout: interest stream + principal at last period
+                # Payout: interest stream + principal returned at last period.
                 interest_cashflows = [r["payout"] for r in sched]
                 cashflows_with_principal = list(interest_cashflows)
                 cashflows_with_principal[-1] += principal
                 real_cost_val = calc_real_cost(
                     cashflows_with_principal, inflation_rate, unit)
+                # Nominal receipts in payout mode = every interest payment PLUS
+                # the principal returned at maturity. Comparing real_cost_val
+                # against final_balance (= principal only) would mismatch the
+                # bases; the correct nominal total is principal + Σ interest.
+                nominal_receipts = sum(cashflows_with_principal)
             # Sign convention: positive = nominal exceeds real (purchasing
             # power lost to inflation); negative = deflation gain.
-            inflation_savings = final_balance - real_cost_val
+            inflation_savings = nominal_receipts - real_cost_val
         except Exception:
             real_cost_val = None
 
@@ -5356,12 +5406,18 @@ def periods_from_dates(start: date, end: date, unit: str) -> int:
         "halfyears": relativedelta(months=6),
         "years":     relativedelta(years=1),
     }
-    delta = delta_map.get(unit, relativedelta(months=1))
+    if unit not in delta_map:
+        raise ValueError(
+            f"periods_from_dates: unknown unit {unit!r}. "
+            f"Supported: {list(delta_map.keys())}.")
+    delta = delta_map[unit]
     count, d = 0, start
     while d + delta <= end:
         d += delta
         count += 1
-    # Минимум 1 — гарантия валидного плана при положительном диапазоне.
+    # A positive interval shorter than one full period is rounded up to 1, so
+    # a valid (non-empty) schedule is always produced. This is deliberate UX
+    # rounding rather than a strict count of completed periods.
     return max(count, 1)
 
 
@@ -8113,6 +8169,10 @@ def _render_refinance_panel(t, smry, sym):
             elif result["verdict"] == "longer_term_trap":
                 st.warning(t.get("refi_longer_term_trap",
                                   "⚠️ Longer-term trap: monthly drops but total cost rises."))
+            elif result["verdict"] == "shorter_term_win":
+                st.success(t.get("refi_shorter_term_win",
+                                  "✓ Higher monthly payment, but lower total cost in "
+                                  "present-value terms — economically worthwhile."))
             else:
                 st.error(t.get("refi_not_worth",
                                 "✗ Refinancing not worthwhile — new payment is higher."))
@@ -8626,9 +8686,20 @@ def _render_templates(t):
                                   label_visibility="collapsed", key="tpl_inp")
     with cs:
         if st.button(t["save_template"], use_container_width=True, key="btn_save"):
-            if tpl_name.strip():
-                save_tpl(tpl_name.strip())
-                st.success(t["template_saved"])
+            clean = tpl_name.strip()
+            if clean:
+                # Warn (don't silently clobber) if a template with this name
+                # already exists. The user confirms the overwrite by pressing
+                # Save a second time; the pending name is tracked in state.
+                exists = clean in st.session_state.templates
+                pending = st.session_state.get("_tpl_overwrite_pending")
+                if exists and pending != clean:
+                    st.session_state["_tpl_overwrite_pending"] = clean
+                    st.warning(t["template_overwrite_warn"].format(name=clean))
+                else:
+                    save_tpl(clean)
+                    st.session_state.pop("_tpl_overwrite_pending", None)
+                    st.success(t["template_saved"])
             else:
                 st.warning(t["template_name_empty"])
 
@@ -8637,19 +8708,40 @@ def _render_templates(t):
         st.markdown(f"**{t['load_template']}**")
         for name, tpl in list(st.session_state.templates.items()):
             c1, c2, c3 = st.columns([4, 2, 1])
+            # Escape the user-supplied name before embedding into HTML to
+            # prevent markup injection / interface breakage.
+            safe_name = html.escape(str(name))
+            safe_saved = html.escape(str(tpl.get("saved_at", "")))
             c1.markdown(
-                f"<span class='tpl-badge'>💾 {name}</span> "
-                f"<span style='color:#64748B;font-size:.7rem'>{tpl.get('saved_at','')}</span>",
+                f"<span class='tpl-badge'>💾 {safe_name}</span> "
+                f"<span style='color:#64748B;font-size:.7rem'>{safe_saved}</span>",
                 unsafe_allow_html=True)
-            if c2.button(t["load_template"], key=f"load_{name}", use_container_width=True):
+            # Stable, collision-free widget key from a hash of the name —
+            # avoids DuplicateWidgetID and oversized keys from long/unicode names.
+            name_key = hashlib.md5(str(name).encode("utf-8")).hexdigest()[:12]
+            if c2.button(t["load_template"], key=f"load_{name_key}",
+                          use_container_width=True):
                 load_tpl(name)
-                st.success(t["template_loaded"])
+                # Surface confirmation on the *next* run (after st.rerun), since
+                # rerun would otherwise wipe the success message immediately.
+                st.session_state["_tpl_flash"] = ("loaded", name)
                 st.rerun()
-            if c3.button(t["delete_template"], key=f"del_{name}", use_container_width=True):
+            if c3.button(t["delete_template"], key=f"del_{name_key}",
+                          use_container_width=True):
                 del_tpl(name)
+                st.session_state["_tpl_flash"] = ("deleted", name)
                 st.rerun()
     else:
         st.info(t["no_templates"])
+
+    # Flash message from a prior load/delete that triggered st.rerun.
+    flash = st.session_state.pop("_tpl_flash", None)
+    if flash:
+        kind, fname = flash
+        if kind == "loaded":
+            st.success(t["template_loaded"])
+        elif kind == "deleted":
+            st.info(t.get("template_deleted", t["no_templates"]))
 
 
 # ─────────────────────────────────────────────────────────────────────────────
