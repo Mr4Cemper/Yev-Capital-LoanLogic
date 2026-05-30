@@ -551,6 +551,10 @@ TRANSLATIONS = {
         "syndicated_blended_rate":"Смешанная APR (effective)",
         "syndicated_master_help": "Master Schedule = Σ платежей по всем траншам в каждый период. Если у траншей разные сроки — короткие просто отсутствуют в поздних периодах.",
         "syndicated_zero_error":  "⚠️ Введите сумму хотя бы одного транша.",
+        "syndicated_zero_amount_warn": "⚠️ Транш(и) {letters} включены, но имеют нулевую сумму — они не учтены. Укажите сумму или отключите их.",
+        "end_date_fallback": "↳ Оставлен прежний срок: {n} {unit}.",
+        "email_empty_attachment": "⚠️ Файл отчёта пуст (экспорт мог завершиться ошибкой). Письмо не отправлено.",
+        "refi_annuity_note": "ℹ️ Анализ моделирует и текущий, и новый кредит как **аннуитетные** (с равными платежами). Если текущий кредит использует другую схему (классическую или буллит), считайте сравнение приблизительным.",
         "syndicated_invalid":     "⚠️ Все траншевые суммы должны быть положительными.",
         "syndicated_chart_title": "Структура платежей по траншам",
         "syndicated_chart_caption":"Каждый цвет — отдельный транш. Высота столбца = совокупный платёж периода.",
@@ -566,6 +570,7 @@ TRANSLATIONS = {
         "audit_field_term":       "Срок",
         "audit_changed_to":       "{field} изменена с {old} на {new}",
         "audit_impact_interest":  "Изменение переплаты: {delta}",
+        "audit_impact_first_payment": "Изменение первого платежа: {delta}",
         "audit_impact_payment":   "Изменение платежа: {delta}",
     },
     "uk": {
@@ -963,6 +968,10 @@ TRANSLATIONS = {
         "syndicated_blended_rate":"Змішана APR (effective)",
         "syndicated_master_help": "Master Schedule = Σ платежів за всіма траншами в кожен період. Якщо у траншів різні терміни — короткі просто відсутні в пізніх періодах.",
         "syndicated_zero_error":  "⚠️ Введіть суму хоча б одного траншу.",
+        "syndicated_zero_amount_warn": "⚠️ Транш(і) {letters} увімкнені, але мають нульову суму — вони не враховані. Вкажіть суму або вимкніть їх.",
+        "end_date_fallback": "↳ Залишено попередній строк: {n} {unit}.",
+        "email_empty_attachment": "⚠️ Файл звіту порожній (експорт міг завершитися помилкою). Лист не надіслано.",
+        "refi_annuity_note": "ℹ️ Аналіз моделює і поточний, і новий кредит як **ануїтетні** (з рівними платежами). Якщо поточний кредит використовує іншу схему (класичну або буліт), вважайте порівняння приблизним.",
         "syndicated_invalid":     "⚠️ Усі траншеві суми повинні бути додатними.",
         "syndicated_chart_title": "Структура платежів за траншами",
         "syndicated_chart_caption":"Кожен колір — окремий транш. Висота стовпця = сукупний платіж періоду.",
@@ -977,6 +986,7 @@ TRANSLATIONS = {
         "audit_field_term":       "Термін",
         "audit_changed_to":       "{field} змінено з {old} на {new}",
         "audit_impact_interest":  "Зміна переплати: {delta}",
+        "audit_impact_first_payment": "Зміна першого платежу: {delta}",
         "audit_impact_payment":   "Зміна платежу: {delta}",
     },
     "en": {
@@ -1392,6 +1402,10 @@ TRANSLATIONS = {
         "syndicated_blended_rate":"Blended APR (effective)",
         "syndicated_master_help": "Master Schedule = Σ of payments across all tranches per period. Tranches with shorter terms simply contribute zero in later periods.",
         "syndicated_zero_error":  "⚠️ Enter the amount of at least one tranche.",
+        "syndicated_zero_amount_warn": "⚠️ Tranche(s) {letters} are enabled but have a zero amount — they are not included. Set an amount or disable them.",
+        "end_date_fallback": "↳ Keeping the previous term: {n} {unit}.",
+        "email_empty_attachment": "⚠️ The report file is empty (export may have failed). Nothing was sent.",
+        "refi_annuity_note": "ℹ️ This analysis models both the current and the new loan as **annuity** (equal-payment) loans. If your current loan uses a different scheme (classic or balloon), treat the comparison as approximate.",
         "syndicated_invalid":     "⚠️ All tranche amounts must be positive.",
         "syndicated_chart_title": "Payment Structure by Tranche",
         "syndicated_chart_caption":"Each color = one tranche. Bar height = consolidated period payment.",
@@ -1406,6 +1420,7 @@ TRANSLATIONS = {
         "audit_field_term":       "Term",
         "audit_changed_to":       "{field} changed from {old} to {new}",
         "audit_impact_interest":  "Total Interest impact: {delta}",
+        "audit_impact_first_payment": "First payment impact: {delta}",
         "audit_impact_payment":   "Payment impact: {delta}",
     },
 }
@@ -1533,8 +1548,30 @@ def generate_dates(n: int, unit: str, start: date | None = None) -> list:
 
 def get_sym(ss) -> str:
     if ss.currency == "custom":
-        return ss.get("custom_symbol", "?") or "?"
+        raw = ss.get("custom_symbol", "?") or "?"
+        return _sanitize_currency_symbol(raw)
     return CURRENCY_SYMBOLS.get(ss.currency, "$")
+
+
+def _sanitize_currency_symbol(raw: str) -> str:
+    """
+    Sanitize a user-supplied currency symbol.
+
+    The symbol is embedded into HTML (st.markdown with unsafe_allow_html) and
+    into PDF/Word/Excel output. A raw value could otherwise carry markup or a
+    script payload (e.g. "<script>...</script>"), so we strip HTML-dangerous
+    characters and cap the length — a currency symbol is at most a few glyphs
+    (e.g. "$", "Fr", "грн", "kr").
+    """
+    s = str(raw)
+    # Remove characters that could break out of an HTML text context or an
+    # attribute/markup boundary.
+    s = re.sub(r'[<>&"\'`{}\\/]', "", s)
+    # Collapse any CR/LF/tabs that could disrupt layout or injected contexts.
+    s = re.sub(r"[\r\n\t]+", "", s).strip()
+    # Cap length — real currency symbols/codes are short.
+    s = s[:10]
+    return s or "?"
 
 def fmt_money(v, sym="₴"):
     """
@@ -3072,14 +3109,14 @@ def export_flat_csv(df, summary, t, sym, is_deposit: bool = False) -> bytes:
         total_key = t.get("dep_total_row", "TOTAL")
     else:
         cols_map = {
-            "period":         t["period"],
-            "date":           t["date"],
-            "balance_open":   t["balance_open"],
-            "payment_amount": t["payment_total"],
-            "principal_amount": t["principal"],
-            "interest_amount":  t["interest"],
-            "commission_amount":t["commission"],
-            "balance_close":  t["balance_close"],
+            "period":         t.get("period",        "Period"),
+            "date":           t.get("date",          "Date"),
+            "balance_open":   t.get("balance_open",  "Balance (Open)"),
+            "payment_amount": t.get("payment_total", "Payment"),
+            "principal_amount": t.get("principal",   "Principal"),
+            "interest_amount":  t.get("interest",    "Interest"),
+            "commission_amount":t.get("commission",  "Commission"),
+            "balance_close":  t.get("balance_close", "Balance (Close)"),
         }
         total_key = t.get("total_row", "TOTAL")
 
@@ -3088,7 +3125,7 @@ def export_flat_csv(df, summary, t, sym, is_deposit: bool = False) -> bytes:
     # что ломалось при смене языка. Теперь определяем итоговую строку по
     # структурному признаку: значение в колонке period не приводится к int
     # (для реальных строк это 1..N, для TOTAL — текст любой локализации).
-    period_col = t["period"]
+    period_col = t.get("period", "Period")
 
     def _is_data_row(val) -> bool:
         """True для обычных строк (period — целое число); False для TOTAL."""
@@ -3448,7 +3485,8 @@ def run_calculation(principal, n, rate_pa, unit, scheme,
                            N/B — год-фракция периода.
       day_count_method  — один из DAY_COUNT_METHODS.
     """
-    sym = custom_sym if cur_key == "custom" else CURRENCY_SYMBOLS.get(cur_key, "$")
+    sym = (_sanitize_currency_symbol(custom_sym) if cur_key == "custom"
+            else CURRENCY_SYMBOLS.get(cur_key, "$"))
 
     # ── СИНДИЦИРОВАННЫЙ КРЕДИТ — multi-tranche master schedule ────────────────
     if syndicated_tranches:
@@ -5549,13 +5587,15 @@ def export_pdf(df, summary, t, sym):
 # ─────────────────────────────────────────────────────────────────────────────
 def periods_from_dates(start: date, end: date, unit: str) -> int:
     """
-    Считает количество полных периодов (unit) между start и end.
+    Считает количество ПОЛНЫХ периодов (unit) между start и end.
     Используется при альтернативном вводе срока через дату окончания.
 
     Raises:
-      ValueError — если end <= start (нулевой или отрицательный диапазон).
-        Это явно сигнализирует пользователю о некорректном вводе вместо
-        тихого «1 период», который мог бы создать фантомный платёж.
+      ValueError — если end <= start (нулевой или отрицательный диапазон),
+        либо если интервал положителен, но короче одного полного периода
+        (например, дата окончания всего на несколько дней позже старта при
+        месячном unit). В обоих случаях явная ошибка лучше «фантомного»
+        периода, который тихо округлил бы вверх до 1 и исказил срок.
     """
     from dateutil.relativedelta import relativedelta
     if end <= start:
@@ -5579,19 +5619,27 @@ def periods_from_dates(start: date, end: date, unit: str) -> int:
     while d + delta <= end:
         d += delta
         count += 1
-    # A positive interval shorter than one full period is rounded up to 1, so
-    # a valid (non-empty) schedule is always produced. This is deliberate UX
-    # rounding rather than a strict count of completed periods.
-    return max(count, 1)
+    if count < 1:
+        raise ValueError(
+            f"The interval from {start} to {end} is shorter than one '{unit}' "
+            f"period, so no full period fits. Choose an end date at least one "
+            f"{unit[:-1] if unit.endswith('s') else unit} later."
+        )
+    return count
 
 
 def init_state():
+    # Default end-date two years out, computed safely so a Feb-29 launch does
+    # not raise (date(year+2, 2, 29) is invalid in a non-leap year). Using
+    # relativedelta clamps Feb 29 → Feb 28 automatically.
+    from dateutil.relativedelta import relativedelta
+    _default_end = date.today() + relativedelta(years=2)
     defs = {
         "lang": "en", "templates": {},
         "loan_amount": 100_000.0,
         "loan_term": 24, "term_unit": "months",
         "term_input_mode": "manual",
-        "end_date": date(date.today().year + 2, date.today().month, date.today().day),
+        "end_date": _default_end,
         "interest_rate": 6.5, "scheme": "annuity",
         "one_time_val": 0.0, "one_time_type": "pct",
         "monthly_val": 0.0, "monthly_type": "pct",
@@ -5658,11 +5706,13 @@ def init_state():
 # ─────────────────────────────────────────────────────────────────────────────
 def _term_to_months_local(term: int, unit: str) -> int:
     """
-    Deprecated alias preserved for syndicated master-schedule code.
-    Always converts (term, unit) to integer months using ceil so we
-    never lose a fractional period when normalizing.
+    Converts (term, unit) to integer months using ceil so we never lose a
+    fractional period when normalizing. Does NOT clamp to a minimum: a zero
+    or negative term is a genuine input error and must be caught by the
+    caller (the syndicated loop raises a per-tranche error), not silently
+    turned into a 1-month tranche.
     """
-    return max(1, term_to_periods_in_base(term, unit, base_unit="months"))
+    return term_to_periods_in_base(term, unit, base_unit="months")
 
 
 def calc_syndicated_master_schedule(
@@ -5710,6 +5760,16 @@ def calc_syndicated_master_schedule(
         ot_val   = float(tr.get("ot_val", 0))
         mo_val   = float(tr.get("mo_val", 0))
         start_offset = max(0, int(tr.get("start_offset_months", 0)))
+
+        # Explicitly reject a degenerate term as a surfaced per-tranche error
+        # rather than letting it slip through as a silent 1-month tranche.
+        if n_months < 1:
+            tranche_errors.append((
+                tranche_id,
+                f"Tranche {chr(65 + tranche_id)}: term ({n_orig} {unit}) "
+                f"is too short — must be at least one month.",
+            ))
+            continue
 
         # Compute the tranche's own start_date for day-count calculations
         tranche_start = start_date
@@ -6004,19 +6064,32 @@ def record_audit_entry(t: dict, sym: str,
     if not changes:
         return
 
-    # Считаем impact на total_interest (если данные доступны)
+    # Считаем impact на total_interest и first_payment (если данные доступны)
     impact_str = None
     if impact_old and impact_new:
+        impact_parts = []
         old_int = impact_old.get("total_interest")
         new_int = impact_new.get("total_interest")
-        if old_int is not None and new_int is not None:
+        if old_int is not None and new_int is not None and abs(new_int - old_int) > 1e-6:
             delta = new_int - old_int
-            sign  = "+" if delta >= 0 else ""
+            sign  = "+" if delta >= 0 else "-"
             delta_fmt = f"{sym} {abs(delta):,.2f}".replace(",", "\u202f")
-            impact_str = t.get("audit_impact_interest",
-                                "Total Interest impact: {delta}").format(
-                delta=f"{sign}{'-' if delta < 0 else ''}{delta_fmt}"
-            )
+            impact_parts.append(
+                t.get("audit_impact_interest", "Total Interest impact: {delta}")
+                 .format(delta=f"{sign}{delta_fmt}"))
+
+        old_fp = impact_old.get("first_payment")
+        new_fp = impact_new.get("first_payment")
+        if old_fp is not None and new_fp is not None and abs(new_fp - old_fp) > 1e-6:
+            d_fp = new_fp - old_fp
+            sign_fp = "+" if d_fp >= 0 else "-"
+            fp_fmt = f"{sym} {abs(d_fp):,.2f}".replace(",", "\u202f")
+            impact_parts.append(
+                t.get("audit_impact_first_payment", "First payment impact: {delta}")
+                 .format(delta=f"{sign_fp}{fp_fmt}"))
+
+        if impact_parts:
+            impact_str = "  •  ".join(impact_parts)
 
     new_entry = {
         "timestamp": timestamp,
@@ -6031,12 +6104,41 @@ def record_audit_entry(t: dict, sym: str,
 
 
 def save_tpl(name):
+    # Core loan/deposit parameters.
     fields = ["loan_amount","loan_term","term_unit","interest_rate","scheme",
               "one_time_val","one_time_type","monthly_val","monthly_type",
               "currency","custom_symbol","deposit_mode","is_deposit","start_date",
-              "term_input_mode","end_date"]
-    st.session_state.templates[name] = {k: st.session_state[k] for k in fields}
-    st.session_state.templates[name]["saved_at"] = datetime.now().strftime("%d.%m.%Y %H:%M")
+              "term_input_mode","end_date",
+              # Advanced settings — previously omitted, which silently dropped
+              # them on load. A template should capture the FULL configuration.
+              # Grace period
+              "grace_enabled","grace_start","grace_duration","grace_type",
+              # Inflation
+              "inflation_enabled","inflation_rate",
+              # Risk metrics
+              "ltv_enabled","ltv_collateral",
+              "dscr_enabled","dscr_noi",
+              "dti_enabled","dti_income","dti_other_debts",
+              # Day-count convention
+              "day_count_enabled","day_count_method",
+              # Investment-comparison inputs (affect the alternative-return
+              # analysis shown alongside the schedule).
+              "invest_sp500","invest_custom","invest_custom_rate",
+              # Syndicated mode (toggle + all three tranche configs)
+              "syndicated_enabled",
+              "synd_a_enabled","synd_a_amount","synd_a_rate","synd_a_term",
+              "synd_a_unit","synd_a_scheme","synd_a_ot","synd_a_mo","synd_a_offset",
+              "synd_b_enabled","synd_b_amount","synd_b_rate","synd_b_term",
+              "synd_b_unit","synd_b_scheme","synd_b_ot","synd_b_mo","synd_b_offset",
+              "synd_c_enabled","synd_c_amount","synd_c_rate","synd_c_term",
+              "synd_c_unit","synd_c_scheme","synd_c_ot","synd_c_mo","synd_c_offset"]
+    # Note: app-wide UI chrome (lang, theme, theme_preset) is intentionally
+    # NOT part of a loan template — loading a saved loan should not silently
+    # switch the interface language or color theme.
+    # Only persist keys that actually exist in state (robust to future renames).
+    snapshot = {k: st.session_state[k] for k in fields if k in st.session_state}
+    snapshot["saved_at"] = datetime.now().strftime("%d.%m.%Y %H:%M")
+    st.session_state.templates[name] = snapshot
 
 def load_tpl(name):
     for k, v in st.session_state.templates[name].items():
@@ -6849,9 +6951,11 @@ def main():
 
             # Build tranches list (only enabled with positive amount)
             tranches_input = []
-            for key_prefix in ["synd_a", "synd_b", "synd_c"]:
-                if (st.session_state[f"{key_prefix}_enabled"] and
-                    st.session_state[f"{key_prefix}_amount"] > 0):
+            zero_amount_tranches = []
+            for letter, key_prefix in [("A", "synd_a"), ("B", "synd_b"), ("C", "synd_c")]:
+                if not st.session_state[f"{key_prefix}_enabled"]:
+                    continue
+                if st.session_state[f"{key_prefix}_amount"] > 0:
                     tranches_input.append({
                         "amount":   st.session_state[f"{key_prefix}_amount"],
                         "rate_pa":  st.session_state[f"{key_prefix}_rate"],
@@ -6863,6 +6967,17 @@ def main():
                         "start_offset_months":
                                     int(st.session_state.get(f"{key_prefix}_offset", 0)),
                     })
+                else:
+                    # Enabled but amount is zero — flag it rather than silently
+                    # dropping, so the user knows the tranche isn't counted.
+                    zero_amount_tranches.append(letter)
+
+            if zero_amount_tranches:
+                st.warning(
+                    t.get("syndicated_zero_amount_warn",
+                           "Tranche(s) {letters} are enabled but have a zero "
+                           "amount — they are not included. Set an amount or "
+                           "disable them.").format(letters=", ".join(zero_amount_tranches)))
 
             if not tranches_input:
                 st.error(t.get("syndicated_zero_error",
@@ -7001,9 +7116,17 @@ def main():
                     f"→ {computed_n} {st.session_state.term_unit}"
                 )
             except ValueError as e:
-                # Пользователь как-то ухитрился ввести end<=start
+                # The interval is too short to contain even one full period
+                # (end<=start is already excluded by min_value above). Rather
+                # than silently computing on a possibly-mismatched old term,
+                # tell the user explicitly which term remains in effect so the
+                # schedule below and the UI stay in sync conceptually.
                 st.error(str(e))
-                computed_n = st.session_state.loan_term  # сохраняем старое значение
+                computed_n = st.session_state.loan_term
+                st.caption(
+                    t.get("end_date_fallback",
+                           "↳ Keeping the previous term: {n} {unit}.").format(
+                        n=computed_n, unit=st.session_state.term_unit))
 
         mo = term_to_months(st.session_state.loan_term, st.session_state.term_unit)
         cap = t.get("term_caption", "mo. / yrs")
@@ -7996,14 +8119,34 @@ def send_report_email(recipient: str, subject: str, body: str,
     server, port = cfg["server"], cfg["port"]
     login, password, sender = cfg["login"], cfg["password"], cfg["sender"]
 
+    # Header-injection defense: strip CR/LF (and surrounding whitespace) from
+    # any value placed into an email header. Without this, a newline in the
+    # subject could inject additional headers (e.g. "Subject: x\nBcc: ...").
+    def _sanitize_header(value: str) -> str:
+        return re.sub(r"[\r\n]+", " ", str(value)).strip()
+
+    safe_recipient = _sanitize_header(recipient)
+    safe_subject   = _sanitize_header(subject) if subject else ""
+    # Re-validate the recipient AFTER sanitizing, in case stripping changed it.
+    if not is_valid_email(safe_recipient):
+        return False, "invalid_email"
+
     # Сборка письма
     msg            = MIMEMultipart()
     msg["From"]    = sender
-    msg["To"]      = recipient.strip()
-    msg["Subject"] = subject
+    msg["To"]      = safe_recipient
+    msg["Subject"] = safe_subject
 
     if body:
+        # Body goes into the message payload (not a header), so newlines are
+        # fine here — only headers are injection-sensitive.
         msg.attach(MIMEText(body, "plain", "utf-8"))
+
+    # If an attachment was intended (a filename/MIME was supplied) but the
+    # bytes are empty or missing, the export upstream likely failed. Sending an
+    # attachment-less "report" email would mislead the recipient, so refuse.
+    if attachment_name and not attachment_bytes:
+        return False, "empty_attachment"
 
     if attachment_bytes:
         part = MIMEApplication(attachment_bytes, _subtype=attachment_mime.split("/")[-1])
@@ -8162,6 +8305,10 @@ def _render_email_panel(t, df_d, smry, sym, is_deposit: bool = False):
                     elif msg == "no_secrets":
                         st.warning(t.get("email_disabled_warning",
                                           "SMTP not configured"))
+                    elif msg == "empty_attachment":
+                        st.error(t.get("email_empty_attachment",
+                                        "The report file is empty (export may "
+                                        "have failed). Nothing was sent."))
                     else:
                         st.error(t.get("email_error",
                                         "Send failed: {error}").format(error=msg))
@@ -8180,6 +8327,11 @@ def _render_refinance_panel(t, smry, sym):
     Все поля вводятся пользователем независимо от текущего расчёта."""
     with st.expander(t.get("refi_section", "🔄 Refinancing Analysis"), expanded=False):
         st.caption(t.get("refi_caption", ""))
+        st.info(t.get("refi_annuity_note",
+                       "ℹ️ This analysis models both the current and the new "
+                       "loan as **annuity** (equal-payment) loans. If your "
+                       "current loan uses a different scheme (classic or "
+                       "balloon), treat the comparison as approximate."))
 
         # ── Текущий кредит ───────────────────────────────────────────────────
         st.markdown(f"**{t.get('refi_current_block', 'Current Loan')}**")
@@ -8187,14 +8339,14 @@ def _render_refinance_panel(t, smry, sym):
         with col_a:
             cur_balance = st.number_input(
                 t.get("refi_current_balance", "Outstanding Balance"),
-                min_value=100.0, max_value=1e14,
+                min_value=0.01, max_value=1e14,
                 value=float(st.session_state.get("refi_cur_balance",
                                                   smry.get("principal", 100_000.0))),
                 step=1000.0, format="%.2f", key="refi_cur_balance",
                 help=t.get("refi_help_balance", ""))
             cur_rate = st.number_input(
                 t.get("refi_current_rate", "Current Rate (% annual)"),
-                min_value=0.1, max_value=100.0,
+                min_value=0.0, max_value=100.0,
                 value=float(st.session_state.get("refi_cur_rate",
                                                   smry.get("rate_pa", 12.0))),
                 step=0.1, format="%.2f", key="refi_cur_rate")
@@ -8234,7 +8386,7 @@ def _render_refinance_panel(t, smry, sym):
         with col_c:
             new_rate = st.number_input(
                 t.get("refi_new_rate", "New Rate (% annual)"),
-                min_value=0.1, max_value=100.0,
+                min_value=0.0, max_value=100.0,
                 value=float(st.session_state.get("refi_new_rate",
                                                   max(cur_rate - 2.0, 0.5))),
                 step=0.1, format="%.2f", key="refi_new_rate")
