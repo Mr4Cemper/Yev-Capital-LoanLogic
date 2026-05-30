@@ -1714,6 +1714,75 @@ def period_dates_for_schedule(start_date: date, n: int, unit: str) -> list[date]
     return dates
 
 
+def _validate_schedule(sched: list, principal: float, scheme: str,
+                        tol: float = 0.05, check_principal_sum: bool = True) -> None:
+    """
+    Defensive post-condition check on a generated amortization schedule.
+
+    Verifies the structural invariants that ANY correct loan schedule must
+    satisfy, and raises ValueError if any is violated. This is a safety net:
+    if a future change to a calc function introduces a regression, the error
+    surfaces immediately instead of silently producing a wrong schedule.
+
+    Invariants checked:
+      1. Non-empty.
+      2. No NaN / infinity in any numeric field.
+      3. Each row: payment ≈ principal_part + interest + commission.
+      4. Balance is monotonically non-increasing for fully-amortizing schemes
+         (annuity/classic) — i.e. no silent negative amortization.
+      5. Final balance closes to ~0 (within tolerance scaled to principal).
+      6. Sum of principal portions ≈ original principal (skippable: a
+         full_holiday grace capitalizes interest into principal, so the
+         repaid principal legitimately exceeds the original).
+
+    Tolerance is absolute in currency units, scaled up for very large
+    principals so float noise on a 100-trillion loan doesn't false-trip.
+    """
+    if not sched:
+        raise ValueError("_validate_schedule: empty schedule produced.")
+
+    # Scale tolerance for large principals (float epsilon grows with magnitude)
+    scaled_tol = max(tol, abs(principal) * 1e-7)
+
+    sum_principal = 0.0
+    prev_balance = None
+    for idx, row in enumerate(sched):
+        for key in ("payment", "principal", "interest", "commission", "balance_close"):
+            v = row.get(key, 0.0)
+            if v is None or (isinstance(v, float) and (math.isnan(v) or math.isinf(v))):
+                raise ValueError(
+                    f"_validate_schedule: non-finite {key}={v!r} at period {idx+1}.")
+
+        decomp = row["principal"] + row["interest"] + row["commission"]
+        if abs(row["payment"] - decomp) > scaled_tol:
+            raise ValueError(
+                f"_validate_schedule: payment decomposition broken at period "
+                f"{idx+1}: payment={row['payment']:.4f} != "
+                f"P+I+C={decomp:.4f}.")
+
+        sum_principal += row["principal"]
+
+        # Monotone balance only for fully-amortizing schemes. Balloon holds
+        # the balance flat then drops it, which is fine; deposits aren't loans.
+        if scheme in ("annuity", "classic") and prev_balance is not None:
+            if row["balance_close"] > prev_balance + scaled_tol:
+                raise ValueError(
+                    f"_validate_schedule: balance increased at period {idx+1} "
+                    f"({prev_balance:.4f} → {row['balance_close']:.4f}) — "
+                    f"unexpected negative amortization for {scheme}.")
+        prev_balance = row["balance_close"]
+
+    if abs(sched[-1]["balance_close"]) > scaled_tol:
+        raise ValueError(
+            f"_validate_schedule: final balance {sched[-1]['balance_close']:.4f} "
+            f"does not close to zero (tol={scaled_tol:.4f}).")
+
+    if check_principal_sum and abs(sum_principal - principal) > max(scaled_tol, scaled_tol * len(sched)):
+        raise ValueError(
+            f"_validate_schedule: principal portions sum to {sum_principal:.4f}, "
+            f"expected {principal:.4f}.")
+
+
 def calc_annuity(principal, n, rate_pa, unit, monthly_comm,
                   day_count: str | None = None,
                   start_date: date | None = None):
@@ -1791,6 +1860,10 @@ def calc_annuity(principal, n, rate_pa, unit, monthly_comm,
         prod_after = [1.0] * (n + 1)   # prod_after[j] = Π_{i=j..n-1}(1+r_i)
         for i in range(n - 1, -1, -1):
             prod_after[i] = prod_after[i + 1] * (1.0 + period_rates[i])
+            if math.isinf(prod_after[i]) or math.isnan(prod_after[i]):
+                raise ValueError(
+                    f"calc_annuity: rate {rate_pa}% over {n} periods overflows "
+                    f"the day-count annuity formula. Reduce rate or term.")
         denom = sum(prod_after[j + 1] for j in range(n))
         if denom <= 0:
             pmt = principal / n
@@ -1821,7 +1894,16 @@ def calc_annuity(principal, n, rate_pa, unit, monthly_comm,
     if abs(r) < 1e-12:
         pmt = principal / n
     else:
-        pmt = principal * r * (1 + r) ** n / ((1 + r) ** n - 1)
+        try:
+            growth = (1 + r) ** n
+            if math.isinf(growth) or math.isnan(growth):
+                raise OverflowError
+            pmt = principal * r * growth / (growth - 1)
+        except OverflowError:
+            raise ValueError(
+                f"calc_annuity: rate {rate_pa}% over {n} periods overflows the "
+                f"annuity formula. Reduce the rate or term to a realistic range."
+            )
     rows, bal = [], principal
     for i in range(1, n+1):
         interest = bal * r
@@ -3427,17 +3509,40 @@ def run_calculation(principal, n, rate_pa, unit, scheme,
             grace_error = str(e)
             # Log it but continue with original schedule; UI will surface it.
 
+    # Defensive invariant check before we present anything. If grace failed
+    # above, grace_error is already set and we validate the (unchanged) base
+    # schedule; a genuine structural problem still raises here. When grace
+    # WAS applied successfully, the balance path is legitimately non-monotone
+    # (full_holiday capitalizes interest), so we relax that specific check.
+    grace_applied = (grace_enabled and grace_error is None
+                      and scheme in ("annuity", "classic", "balloon"))
+    try:
+        _validate_schedule(sched, principal,
+                            scheme="balloon" if grace_applied else scheme,
+                            check_principal_sum=not grace_applied)
+    except ValueError as _ve:
+        raise ValueError(f"Schedule integrity check failed: {_ve}") from _ve
+
     dates = generate_dates(n, unit, start=start_date)
     rows  = []
     for i, row in enumerate(sched):
+        # Round each component to cents, then DERIVE the displayed payment as
+        # their sum. This guarantees every visible row satisfies
+        # payment == principal + interest + commission exactly (no 1-cent
+        # artifact from rounding the pre-summed payment independently — the
+        # classic amortization-schedule rounding inconsistency).
+        r_princ = round(row["principal"],  2)
+        r_int   = round(row["interest"],   2)
+        r_comm  = round(row["commission"], 2)
+        r_pay   = round(r_princ + r_int + r_comm, 2)
         rows.append({
             t["period"]:        row["period"],
             t["date"]:          dates[i],
             t["balance_open"]:  round(row["balance_open"],  2),
-            t["payment_total"]: round(row["payment"],       2),
-            t["principal"]:     round(row["principal"],     2),
-            t["interest"]:      round(row["interest"],      2),
-            t["commission"]:    round(row["commission"],    2),
+            t["payment_total"]: r_pay,
+            t["principal"]:     r_princ,
+            t["interest"]:      r_int,
+            t["commission"]:    r_comm,
             t["balance_close"]: round(row["balance_close"], 2),
         })
     df = pd.DataFrame(rows)
@@ -3448,19 +3553,22 @@ def run_calculation(principal, n, rate_pa, unit, scheme,
     tot_payment  = principal + tot_interest + tot_comm
 
     # Display aggregates — sum of the per-row ROUNDED values so the visible
-    # TOTAL row reconciles exactly with a hand-sum of the displayed column
+    # TOTAL row reconciles exactly with a hand-sum of the displayed columns
     # (accounting/audit requirement: round(Σx) ≠ Σround(x), so we must use
-    # the latter for what the user sees).
-    disp_interest = round(sum(round(r["interest"],   2) for r in sched), 2)
-    disp_comm     = round(sum(round(r["commission"], 2) for r in sched) + round(ot_comm, 2), 2)
-    disp_payment  = round(sum(round(r["payment"],    2) for r in sched), 2)
+    # the latter for what the user sees). The principal and one-time
+    # commission are added in so the TOTAL itself satisfies
+    # payment_total == principal + interest + commission.
+    disp_principal = round(sum(round(r["principal"], 2) for r in sched), 2)
+    disp_interest  = round(sum(round(r["interest"],  2) for r in sched), 2)
+    disp_comm      = round(sum(round(r["commission"],2) for r in sched) + round(ot_comm, 2), 2)
+    disp_payment   = round(disp_principal + disp_interest + disp_comm, 2)
 
     total_row = {
         t["period"]:        t["total_row"],
         t["date"]:          "",
         t["balance_open"]:  "",
         t["payment_total"]: disp_payment,
-        t["principal"]:     round(principal,    2),
+        t["principal"]:     disp_principal,
         t["interest"]:      disp_interest,
         t["commission"]:    disp_comm,
         t["balance_close"]: "",
