@@ -202,7 +202,7 @@ TRANSLATIONS = {
         "deposit": "Вклад",
         # Инвестиции
         "invest_section": "📈 Сравнение с инвестициями",
-        "invest_sp500": "📊 Сравнить с S&P 500 (12% годовых)",
+        "invest_sp500": "📊 Сравнить с S&P 500 (13.7% годовых)",
         "invest_custom": "💹 Сравнить с кастомным % инвестирования",
         "invest_custom_rate": "Годовая доходность (%)",
         "invest_chart_title": "Кредит vs Инвестиции",
@@ -249,7 +249,7 @@ TRANSLATIONS = {
         "dep_your_deposit":    "Ваш вклад",
         "dep_alternative":     "Альтернативные инвестиции",
         "dep_invest_exp":      "Сравнение: если бы ту же сумму вложить под другой процент",
-        "dep_sp500_exp":       "Сравнение вашего вклада с доходностью S&P 500 (12% годовых)",
+        "dep_sp500_exp":       "Сравнение вашего вклада с доходностью S&P 500 (13.7% годовых)",
         "dep_tooltip_interest":"💡 **Начислено %** — сумма процентов за период (при капитализации добавляется к балансу, при выплате — зачисляется на счёт).",
         "dep_tooltip_balance": "💡 **Баланс** — сумма на вкладе с учётом накопленных процентов (при капитализации растёт каждый период).",
         "dep_tooltip_payout":  "💡 **Выплата** — сумма процентов, фактически полученных на руки в этот период.",
@@ -303,7 +303,7 @@ TRANSLATIONS = {
         "invest_breakeven_vs_cla_annuity":     "Vs. Классика (Аннуитет)",
         "invest_breakeven_vs_cla_annuity_tip": "Минимальная годовая доходность, при которой инвестирование сэкономленных средств (аннуитет в ранние периоды дешевле классики) компенсирует переплату в поздние периоды.",
         "annuity_be_caption":            "Если вы можете заработать ≥ этой ставки на сэкономленных в ранние периоды деньгах — аннуитет к концу срока выйдет на тот же или лучший результат, чем классика.",
-        "sp500_disclaimer": "Примечание: доходность S&P 500 в 12% основана на среднегодовом показателе за последние 10 лет. Прошлые результаты не гарантируют будущих. Значение используется как статистический ориентир и может корректироваться согласно текущим рыночным ожиданиям.",
+        "sp500_disclaimer": "Примечание: доходность S&P 500 в 13.7% основана на среднегодовом показателе за последние 10 лет. Прошлые результаты не гарантируют будущих. Значение используется как статистический ориентир и может корректироваться согласно текущим рыночным ожиданиям.",
         # ── Инфляция ──────────────────────────────────────────────────────────
         "inflation_expander":      "Учёт инфляции",
         "inflation_toggle":        "Включить учёт инфляции",
@@ -331,6 +331,28 @@ TRANSLATIONS = {
         "dscr_status_safe":        "Безопасно",
         "dscr_status_warning":     "Предупреждение",
         "dscr_status_risk":        "Высокий риск",
+        "credit_health_title":     "Кредитное здоровье",
+        "credit_rank_a":           "Ранг A — Отлично",
+        "credit_rank_b":           "Ранг B — Хорошо",
+        "credit_rank_c":           "Ранг C — Удовлетворительно",
+        "credit_rank_d":           "Ранг D — Высокий риск",
+        "credit_rank_na":          "Н/Д",
+        "credit_health_caption":   "Балл объединяет указанные вами метрики ({metrics}). Чем выше — тем здоровее.",
+        "glossary_title":          "📚 Словарь терминов / Glossary",
+        "gloss_annuity_term":      "Аннуитет",
+        "gloss_annuity_def":       "Схема погашения с равными платежами каждый период. В начале большую часть платежа составляют проценты, к концу — тело кредита.",
+        "gloss_bullet_term":       "Буллит (Bullet)",
+        "gloss_bullet_def":        "Кредит, где в течение срока платятся только проценты, а всё тело долга возвращается одним платежом в конце.",
+        "gloss_classic_term":      "Классическая (дифференцированная)",
+        "gloss_classic_def":       "Тело кредита гасится равными долями, а проценты начисляются на остаток. Платёж уменьшается со временем.",
+        "gloss_dscr_term":         "DSCR",
+        "gloss_dscr_def":          "Debt Service Coverage Ratio = чистый доход / обслуживание долга. Показывает, во сколько раз доход покрывает выплаты. ≥1.25 — безопасно.",
+        "gloss_ltv_term":          "LTV",
+        "gloss_ltv_def":           "Loan-to-Value = кредит / стоимость залога × 100%. Чем ниже, тем меньше риск для кредитора. ≤80% обычно считается хорошим.",
+        "gloss_dti_term":          "DTI",
+        "gloss_dti_def":           "Debt-to-Income = (платёж + другие долги) / доход × 100%. Доля дохода, уходящая на долги. ≤36% обычно приемлемо.",
+        "gloss_npv_term":          "NPV",
+        "gloss_npv_def":           "Net Present Value (чистая приведённая стоимость) — сумма будущих денежных потоков, дисконтированных к сегодняшнему дню. Учитывает временную стоимость денег.",
         "dscr_note":               "DSCR = NOI / Платёж. Безопасно: >1.25 | Внимание: 1.0–1.25 | Риск: <1.0",
         # ── LTV ───────────────────────────────────────────────────────────────
         "ltv_expander":            "Залог и LTV",
@@ -654,7 +676,7 @@ TRANSLATIONS = {
         "consumer": "💳 Споживчий",
         "deposit": "Вклад",
         "invest_section": "📈 Порівняння з інвестиціями",
-        "invest_sp500": "📊 Порівняти з S&P 500 (12% річних)",
+        "invest_sp500": "📊 Порівняти з S&P 500 (13.7% річних)",
         "invest_custom": "💹 Порівняти з кастомним % інвестування",
         "invest_custom_rate": "Річна прибутковість (%)",
         "invest_chart_title": "Кредит vs Інвестиції",
@@ -696,7 +718,7 @@ TRANSLATIONS = {
         "dep_your_deposit":    "Ваш вклад",
         "dep_alternative":     "Альтернативні інвестиції",
         "dep_invest_exp":      "Порівняння: якби ту саму суму вкласти під інший відсоток",
-        "dep_sp500_exp":       "Порівняння вашого вкладу з дохідністю S&P 500 (12% річних)",
+        "dep_sp500_exp":       "Порівняння вашого вкладу з дохідністю S&P 500 (13.7% річних)",
         "dep_tooltip_interest":"💡 **Нараховано %** — сума відсотків за період.",
         "dep_tooltip_balance": "💡 **Баланс** — сума на вкладі з урахуванням нарахованих відсотків.",
         "dep_tooltip_payout":  "💡 **Виплата** — сума відсотків, отриманих на руки в цей період.",
@@ -737,7 +759,7 @@ TRANSLATIONS = {
         "invest_breakeven_vs_cla_annuity":     "Vs. Класика (Ануїтет)",
         "invest_breakeven_vs_cla_annuity_tip": "Мінімальна річна дохідність, при якій інвестування зекономлених коштів (ануїтет у ранні періоди дешевший за класику) компенсує переплату в пізні періоди.",
         "annuity_be_caption":            "Якщо ви можете заробляти ≥ цієї ставки на зекономлених у ранні періоди грошах — ануїтет до кінця терміну буде не гіршим, ніж класика.",
-        "sp500_disclaimer": "Примітка: дохідність S&P 500 у 12% ґрунтується на середньорічному показнику за останні 10 років. Минулі результати не гарантують майбутніх.",
+        "sp500_disclaimer": "Примітка: дохідність S&P 500 у 13.7% ґрунтується на середньорічному показнику за останні 10 років. Минулі результати не гарантують майбутніх.",
         "inflation_expander":      "Облік інфляції",
         "inflation_toggle":        "Увімкнути облік інфляції",
         "inflation_rate":          "Очікувана інфляція (% річних)",
@@ -762,6 +784,28 @@ TRANSLATIONS = {
         "dscr_status_safe":        "Безпечно",
         "dscr_status_warning":     "Попередження",
         "dscr_status_risk":        "Високий ризик",
+        "credit_health_title":     "Кредитне здоров'я",
+        "credit_rank_a":           "Ранг A — Відмінно",
+        "credit_rank_b":           "Ранг B — Добре",
+        "credit_rank_c":           "Ранг C — Задовільно",
+        "credit_rank_d":           "Ранг D — Високий ризик",
+        "credit_rank_na":          "Н/Д",
+        "credit_health_caption":   "Бал поєднує вказані вами метрики ({metrics}). Що вище — тим здоровіше.",
+        "glossary_title":          "📚 Словник термінів / Glossary",
+        "gloss_annuity_term":      "Ануїтет",
+        "gloss_annuity_def":       "Схема погашення з рівними платежами щоперіоду. Спочатку більшу частину платежу складають відсотки, наприкінці — тіло кредиту.",
+        "gloss_bullet_term":       "Буліт (Bullet)",
+        "gloss_bullet_def":        "Кредит, де протягом строку сплачуються лише відсотки, а все тіло боргу повертається одним платежем у кінці.",
+        "gloss_classic_term":      "Класична (диференційована)",
+        "gloss_classic_def":       "Тіло кредиту гаситься рівними частками, а відсотки нараховуються на залишок. Платіж зменшується з часом.",
+        "gloss_dscr_term":         "DSCR",
+        "gloss_dscr_def":          "Debt Service Coverage Ratio = чистий дохід / обслуговування боргу. Показує, у скільки разів дохід покриває виплати. ≥1.25 — безпечно.",
+        "gloss_ltv_term":          "LTV",
+        "gloss_ltv_def":           "Loan-to-Value = кредит / вартість застави × 100%. Чим нижче, тим менший ризик для кредитора. ≤80% зазвичай вважається добрим.",
+        "gloss_dti_term":          "DTI",
+        "gloss_dti_def":           "Debt-to-Income = (платіж + інші борги) / дохід × 100%. Частка доходу, що йде на борги. ≤36% зазвичай прийнятно.",
+        "gloss_npv_term":          "NPV",
+        "gloss_npv_def":           "Net Present Value (чиста приведена вартість) — сума майбутніх грошових потоків, дисконтованих до сьогодні. Враховує часову вартість грошей.",
         "dscr_note":               "DSCR = NOI / Платіж. Безпечно: >1.25 | Увага: 1.0–1.25 | Ризик: <1.0",
         "ltv_expander":            "Застава та LTV",
         "ltv_toggle":              "Увімкнути аналіз LTV",
@@ -1080,7 +1124,7 @@ TRANSLATIONS = {
         "consumer": "💳 Consumer Loan",
         "deposit": "Deposit",
         "invest_section": "📈 Investment Comparison",
-        "invest_sp500": "📊 Compare with S&P 500 (12% p.a.)",
+        "invest_sp500": "📊 Compare with S&P 500 (13.7% p.a.)",
         "invest_custom": "💹 Compare with custom investment yield",
         "invest_custom_rate": "Annual Yield (%)",
         "invest_chart_title": "Loan vs Investment Portfolio",
@@ -1124,7 +1168,7 @@ TRANSLATIONS = {
         "dep_your_deposit":    "Your Deposit",
         "dep_alternative":     "Alternative Investment",
         "dep_invest_exp":      "What if the same amount was invested at a different rate?",
-        "dep_sp500_exp":       "Comparing your deposit vs S&P 500 (12% p.a.)",
+        "dep_sp500_exp":       "Comparing your deposit vs S&P 500 (13.7% p.a.)",
         "dep_tooltip_interest":"💡 **Interest Earned** — interest accrued this period (added to balance with capitalization, or paid out).",
         "dep_tooltip_balance": "💡 **Balance** — deposit amount including accumulated interest.",
         "dep_tooltip_payout":  "💡 **Payout** — actual cash received this period.",
@@ -1171,7 +1215,7 @@ TRANSLATIONS = {
         "invest_breakeven_vs_cla_annuity":     "Vs. Classic (Annuity)",
         "invest_breakeven_vs_cla_annuity_tip": "Min. annual yield at which investing the early-period savings of Annuity-over-Classic compensates for the later-period overpayment by maturity.",
         "annuity_be_caption":            "If you can earn ≥ this rate on the early-period cash you save with Annuity, you finish at least as well off as you would have with Classic.",
-        "sp500_disclaimer": "Note: The 12% S&P 500 return is based on the average annual performance over the past 10 years. Historical performance does not guarantee future results. This value is used as a statistical benchmark and can be adjusted based on current market expectations.",
+        "sp500_disclaimer": "Note: The 13.7% S&P 500 return is based on the average annual performance over the past 10 years. Historical performance does not guarantee future results. This value is used as a statistical benchmark and can be adjusted based on current market expectations.",
         "inflation_expander":      "Inflation Accounting",
         "inflation_toggle":        "Enable Inflation Adjustment",
         "inflation_rate":          "Expected Annual Inflation (%)",
@@ -1196,6 +1240,28 @@ TRANSLATIONS = {
         "dscr_status_safe":        "Safe",
         "dscr_status_warning":     "Warning",
         "dscr_status_risk":        "High Risk",
+        "credit_health_title":     "Credit Health",
+        "credit_rank_a":           "Rank A — Excellent",
+        "credit_rank_b":           "Rank B — Good",
+        "credit_rank_c":           "Rank C — Fair",
+        "credit_rank_d":           "Rank D — High Risk",
+        "credit_rank_na":          "N/A",
+        "credit_health_caption":   "Score combines the metrics you provided ({metrics}). Higher is healthier.",
+        "glossary_title":          "📚 Glossary / Словарь терминов",
+        "gloss_annuity_term":      "Annuity",
+        "gloss_annuity_def":       "A repayment scheme with equal payments each period. Early on most of the payment is interest; later it is mostly principal.",
+        "gloss_bullet_term":       "Bullet (Balloon)",
+        "gloss_bullet_def":        "A loan where only interest is paid during the term and the entire principal is repaid in a single lump sum at maturity.",
+        "gloss_classic_term":      "Standard (Differentiated)",
+        "gloss_classic_def":       "Principal is repaid in equal slices while interest accrues on the remaining balance, so the total payment decreases over time.",
+        "gloss_dscr_term":         "DSCR",
+        "gloss_dscr_def":          "Debt Service Coverage Ratio = net operating income / debt service. How many times income covers the payments. ≥1.25 is considered safe.",
+        "gloss_ltv_term":          "LTV",
+        "gloss_ltv_def":           "Loan-to-Value = loan / collateral value × 100%. The lower it is, the less risk for the lender. ≤80% is generally considered good.",
+        "gloss_dti_term":          "DTI",
+        "gloss_dti_def":           "Debt-to-Income = (payment + other debts) / income × 100%. The share of income going to debt. ≤36% is usually acceptable.",
+        "gloss_npv_term":          "NPV",
+        "gloss_npv_def":           "Net Present Value — the sum of future cash flows discounted back to today. It accounts for the time value of money.",
         "dscr_note":               "DSCR = NOI / Monthly Payment. Safe: >1.25 | Warning: 1.0-1.25 | Risk: <1.0",
         "ltv_expander":            "Collateral & LTV Analysis",
         "ltv_toggle":              "Enable LTV Analysis",
@@ -1614,6 +1680,11 @@ def fmt_pct(v):
 
 DAY_COUNT_METHODS = ["30/360", "30E/360", "ACT/360", "ACT/365", "ACT/ACT"]
 DAY_COUNT_DEFAULT = "30/360"
+
+# S&P 500 long-run average annual return used as the default investment
+# benchmark in the "compare with investing" panels. Defined once here so the
+# value stays consistent across the UI code and the localized strings.
+SP500_BENCHMARK_RATE = 13.7
 
 
 def _days_30_360(d1: date, d2: date, european: bool = False) -> int:
@@ -6635,6 +6706,42 @@ def get_active_theme() -> dict:
     return default
 
 
+def render_glossary(t: dict):
+    """
+    Renders a language-aware financial glossary in the sidebar. Uses
+    st.popover when available (Streamlit ≥ 1.32), otherwise falls back to
+    st.expander so it still works on older Streamlit builds.
+
+    The term list is built from TRANSLATIONS keys (gloss_*) so it follows the
+    selected language; each entry is "**Term** — definition".
+    """
+    terms = [
+        ("gloss_annuity_term",  "gloss_annuity_def"),
+        ("gloss_bullet_term",   "gloss_bullet_def"),
+        ("gloss_classic_term",  "gloss_classic_def"),
+        ("gloss_dscr_term",     "gloss_dscr_def"),
+        ("gloss_ltv_term",      "gloss_ltv_def"),
+        ("gloss_dti_term",      "gloss_dti_def"),
+        ("gloss_npv_term",      "gloss_npv_def"),
+    ]
+
+    def _body():
+        for term_key, def_key in terms:
+            term = t.get(term_key, term_key)
+            definition = t.get(def_key, "")
+            st.markdown(f"**{term}** — {definition}")
+
+    title = t.get("glossary_title", "📚 Glossary")
+    # st.popover was added in newer Streamlit; degrade gracefully if absent.
+    popover = getattr(st, "popover", None)
+    if callable(popover):
+        with popover(title, use_container_width=True):
+            _body()
+    else:
+        with st.expander(title, expanded=False):
+            _body()
+
+
 def render_theme_editor(t: dict):
     """Renders the theme editor in the sidebar."""
     import json as _json
@@ -6800,6 +6907,9 @@ def main():
         if lang_map[lang_lbl] != st.session_state.lang:
             st.session_state.lang = lang_map[lang_lbl]
             st.rerun()
+
+        # ── Financial glossary (language-aware) ───────────────────────────────
+        render_glossary(TRANSLATIONS[st.session_state.lang])
 
     t = TRANSLATIONS[st.session_state.lang]
 
@@ -8670,6 +8780,103 @@ def _render_inflation_panel(t, smry, sym):
 # ─────────────────────────────────────────────────────────────────────────────
 #  РИСК-АНАЛИТИКА  —  LTV / DSCR / DTI
 # ─────────────────────────────────────────────────────────────────────────────
+def calc_credit_health_score(ltv: float | None,
+                              dscr: float | None,
+                              dti: float | None) -> float | None:
+    """
+    Combines the available risk metrics into a single 0–100 credit-health
+    score (higher = healthier). Only the metrics that are actually provided
+    (non-None) contribute; the result is their equal-weighted average. Returns
+    None when none of the three is available, so the caller can hide the gauge.
+
+    Per-metric sub-scores (each clamped to 0–100):
+      • LTV  — lower is better. 100 at LTV ≤ 50 %, linearly down to 0 at ≥ 100 %.
+      • DSCR — higher is better. 100 at DSCR ≥ 1.50, linearly down to 0 at ≤ 0.50.
+      • DTI  — lower is better. 100 at DTI ≤ 20 %, linearly down to 0 at ≥ 60 %.
+
+    The break-points match the qualitative thresholds used elsewhere
+    (ltv_status / dscr_status / dti_status) so the gauge agrees with the tiles.
+    """
+    def _clamp(x: float) -> float:
+        return max(0.0, min(100.0, x))
+
+    sub_scores = []
+
+    if ltv is not None:
+        # 50 % → 100 pts, 100 % → 0 pts
+        sub_scores.append(_clamp((100.0 - ltv) / (100.0 - 50.0) * 100.0))
+
+    if dscr is not None:
+        # 1.50 → 100 pts, 0.50 → 0 pts
+        sub_scores.append(_clamp((dscr - 0.50) / (1.50 - 0.50) * 100.0))
+
+    if dti is not None:
+        # 20 % → 100 pts, 60 % → 0 pts
+        sub_scores.append(_clamp((60.0 - dti) / (60.0 - 20.0) * 100.0))
+
+    if not sub_scores:
+        return None
+    return sum(sub_scores) / len(sub_scores)
+
+
+def credit_health_rank(score: float | None, t: dict) -> tuple[str, str]:
+    """
+    Maps a 0–100 score to (rank_label, color_hex).
+      80–100 → A (green), 60–79 → B (lime), 40–59 → C (orange), 0–39 → D (red).
+    None → neutral 'N/A'.
+    """
+    if score is None:
+        return t.get("credit_rank_na", "N/A"), "#64748B"
+    if score >= 80:
+        return t.get("credit_rank_a", "Rank A — Excellent"), "#10B981"
+    if score >= 60:
+        return t.get("credit_rank_b", "Rank B — Good"),      "#A3E635"
+    if score >= 40:
+        return t.get("credit_rank_c", "Rank C — Fair"),      "#F59E0B"
+    return t.get("credit_rank_d", "Rank D — High Risk"),     "#DC2626"
+
+
+def chart_credit_health_gauge(score: float, t: dict):
+    """
+    Builds a Plotly gauge (speedometer) for the 0–100 credit-health score,
+    themed to match the app's other charts. Coloured bands mark the A/B/C/D
+    zones; the needle/value shows the current score.
+    """
+    rank_label, rank_color = credit_health_rank(score, t)
+    fig = go.Figure(go.Indicator(
+        mode="gauge+number",
+        value=round(score, 1),
+        number=dict(suffix=" / 100", font=dict(color=C["text"], size=26)),
+        title=dict(
+            text=f"{t.get('credit_health_title', 'Credit Health')}<br>"
+                 f"<span style='font-size:0.8em;color:{rank_color}'>{rank_label}</span>",
+            font=dict(color=C["text"], size=15),
+        ),
+        gauge=dict(
+            axis=dict(range=[0, 100], tickwidth=1, tickcolor=C["muted"],
+                       tickfont=dict(color=C["muted"], size=10)),
+            bar=dict(color=rank_color, thickness=0.28),
+            bgcolor=C["card"],
+            borderwidth=1, bordercolor=C["grid"],
+            steps=[
+                dict(range=[0, 40],   color="rgba(220,38,38,0.25)"),    # D
+                dict(range=[40, 60],  color="rgba(245,158,11,0.25)"),   # C
+                dict(range=[60, 80],  color="rgba(163,230,53,0.22)"),   # B
+                dict(range=[80, 100], color="rgba(16,185,129,0.25)"),   # A
+            ],
+            threshold=dict(
+                line=dict(color=rank_color, width=4),
+                thickness=0.78, value=score,
+            ),
+        ),
+    ))
+    fig.update_layout(
+        paper_bgcolor=C["bg"], font=dict(color=C["text"]),
+        margin=dict(l=20, r=20, t=70, b=10), height=300,
+    )
+    return fig
+
+
 def _render_risk_panel(t, smry, sym):
     """Рендерит блок риск-аналитики, если хотя бы один индикатор включён."""
     ltv  = smry.get("ltv")
@@ -8740,6 +8947,20 @@ def _render_risk_panel(t, smry, sym):
                 unsafe_allow_html=True,
             )
 
+    # ── Credit Health speedometer ────────────────────────────────────────────
+    # A single 0–100 gauge summarising the available risk metrics. Shown only
+    # when at least one of LTV/DSCR/DTI is present (same condition as the tiles).
+    score = calc_credit_health_score(ltv, dscr, dti)
+    if score is not None:
+        st.plotly_chart(chart_credit_health_gauge(score, t),
+                         use_container_width=True)
+        contributing = ", ".join(
+            lbl for lbl, val in (("LTV", ltv), ("DSCR", dscr), ("DTI", dti))
+            if val is not None)
+        st.caption(t.get("credit_health_caption",
+                          "Score combines the metrics you provided ({metrics}). "
+                          "Higher is healthier.").format(metrics=contributing))
+
 
 def _render_invest_loan(t, smry, df_chart, sym):
     """
@@ -8765,8 +8986,8 @@ def _render_invest_loan(t, smry, df_chart, sym):
         return
 
     if sp_on:
-        yield_pct   = 12.0
-        yield_label = f"S&P 500 — 12% {t['invest_rate_label']}"
+        yield_pct   = SP500_BENCHMARK_RATE
+        yield_label = f"S&P 500 — {SP500_BENCHMARK_RATE:g}% {t['invest_rate_label']}"
         st.caption(t.get("sp500_disclaimer", ""))
     else:
         yield_pct = st.slider(
@@ -8818,8 +9039,8 @@ def _render_invest_deposit(t, smry, df_chart, sym):
         return
 
     if sp_on:
-        alt_yield   = 12.0
-        yield_label = f"S&P 500 — 12% {t['invest_rate_label']}"
+        alt_yield   = SP500_BENCHMARK_RATE
+        yield_label = f"S&P 500 — {SP500_BENCHMARK_RATE:g}% {t['invest_rate_label']}"
         st.caption(t.get("sp500_disclaimer", ""))
     else:
         alt_yield = st.slider(
