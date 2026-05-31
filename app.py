@@ -331,6 +331,11 @@ TRANSLATIONS = {
         "dscr_status_safe":        "Безопасно",
         "dscr_status_warning":     "Предупреждение",
         "dscr_status_risk":        "Высокий риск",
+        "ltv_status_safe":         "Безопасный",
+        "ltv_status_standard":     "Стандартный",
+        "ltv_status_high":         "Высокий",
+        "ltv_status_critical":     "Критический",
+        "ltv_status_na":           "Н/Д",
         "credit_health_title":     "Кредитное здоровье",
         "credit_rank_a":           "Ранг A — Отлично",
         "credit_rank_b":           "Ранг B — Хорошо",
@@ -339,6 +344,7 @@ TRANSLATIONS = {
         "credit_rank_na":          "Н/Д",
         "credit_health_caption":   "Балл объединяет указанные вами метрики ({metrics}). Чем выше — тем здоровее.",
         "glossary_title":          "📚 Словарь терминов / Glossary",
+        "help_negative_rate":      "Отрицательные ставки допускаются (редкие продукты с субнулевой ставкой). Расчёт корректно их обрабатывает.",
         "gloss_annuity_term":      "Аннуитет",
         "gloss_annuity_def":       "Схема погашения с равными платежами каждый период. В начале большую часть платежа составляют проценты, к концу — тело кредита.",
         "gloss_bullet_term":       "Буллит (Bullet)",
@@ -593,6 +599,19 @@ TRANSLATIONS = {
         "audit_changed_to":       "{field} изменена с {old} на {new}",
         "audit_impact_interest":  "Изменение переплаты: {delta}",
         "audit_impact_first_payment": "Изменение первого платежа: {delta}",
+        "audit_field_grace":       "Льготный период",
+        "audit_field_inflation":   "Учёт инфляции",
+        "audit_field_day_count":   "База начисления",
+        "audit_field_syndicated":  "Синдиц. режим",
+        "audit_toggle_on":         "Вкл",
+        "audit_toggle_off":        "Выкл",
+        "audit_field_scheme":      "Схема",
+        "audit_field_currency":    "Валюта",
+        "audit_field_term_mode":   "Режим срока",
+        "audit_field_dc_method":   "Метод базы",
+        "audit_field_start_date":  "Дата начала",
+        "audit_field_one_time":    "Разовая комиссия",
+        "audit_field_monthly":     "Периодич. комиссия",
         "audit_impact_payment":   "Изменение платежа: {delta}",
     },
     "uk": {
@@ -784,6 +803,11 @@ TRANSLATIONS = {
         "dscr_status_safe":        "Безпечно",
         "dscr_status_warning":     "Попередження",
         "dscr_status_risk":        "Високий ризик",
+        "ltv_status_safe":         "Безпечний",
+        "ltv_status_standard":     "Стандартний",
+        "ltv_status_high":         "Високий",
+        "ltv_status_critical":     "Критичний",
+        "ltv_status_na":           "Н/Д",
         "credit_health_title":     "Кредитне здоров'я",
         "credit_rank_a":           "Ранг A — Відмінно",
         "credit_rank_b":           "Ранг B — Добре",
@@ -792,6 +816,7 @@ TRANSLATIONS = {
         "credit_rank_na":          "Н/Д",
         "credit_health_caption":   "Бал поєднує вказані вами метрики ({metrics}). Що вище — тим здоровіше.",
         "glossary_title":          "📚 Словник термінів / Glossary",
+        "help_negative_rate":      "Від'ємні ставки дозволені (рідкісні продукти із субнульовою ставкою). Розрахунок коректно їх обробляє.",
         "gloss_annuity_term":      "Ануїтет",
         "gloss_annuity_def":       "Схема погашення з рівними платежами щоперіоду. Спочатку більшу частину платежу складають відсотки, наприкінці — тіло кредиту.",
         "gloss_bullet_term":       "Буліт (Bullet)",
@@ -1031,6 +1056,19 @@ TRANSLATIONS = {
         "audit_changed_to":       "{field} змінено з {old} на {new}",
         "audit_impact_interest":  "Зміна переплати: {delta}",
         "audit_impact_first_payment": "Зміна першого платежу: {delta}",
+        "audit_field_grace":       "Пільговий період",
+        "audit_field_inflation":   "Облік інфляції",
+        "audit_field_day_count":   "База нарахування",
+        "audit_field_syndicated":  "Синдиц. режим",
+        "audit_toggle_on":         "Увімк",
+        "audit_toggle_off":        "Вимк",
+        "audit_field_scheme":      "Схема",
+        "audit_field_currency":    "Валюта",
+        "audit_field_term_mode":   "Режим строку",
+        "audit_field_dc_method":   "Метод бази",
+        "audit_field_start_date":  "Дата початку",
+        "audit_field_one_time":    "Разова комісія",
+        "audit_field_monthly":     "Періодич. комісія",
         "audit_impact_payment":   "Зміна платежу: {delta}",
     },
     "en": {
@@ -1240,6 +1278,11 @@ TRANSLATIONS = {
         "dscr_status_safe":        "Safe",
         "dscr_status_warning":     "Warning",
         "dscr_status_risk":        "High Risk",
+        "ltv_status_safe":         "Safe",
+        "ltv_status_standard":     "Standard",
+        "ltv_status_high":         "High",
+        "ltv_status_critical":     "Critical",
+        "ltv_status_na":           "N/A",
         "credit_health_title":     "Credit Health",
         "credit_rank_a":           "Rank A — Excellent",
         "credit_rank_b":           "Rank B — Good",
@@ -1248,6 +1291,7 @@ TRANSLATIONS = {
         "credit_rank_na":          "N/A",
         "credit_health_caption":   "Score combines the metrics you provided ({metrics}). Higher is healthier.",
         "glossary_title":          "📚 Glossary / Словарь терминов",
+        "help_negative_rate":      "Negative rates are allowed (rare sub-zero products). The calculation handles them correctly.",
         "gloss_annuity_term":      "Annuity",
         "gloss_annuity_def":       "A repayment scheme with equal payments each period. Early on most of the payment is interest; later it is mostly principal.",
         "gloss_bullet_term":       "Bullet (Balloon)",
@@ -1487,6 +1531,19 @@ TRANSLATIONS = {
         "audit_changed_to":       "{field} changed from {old} to {new}",
         "audit_impact_interest":  "Total Interest impact: {delta}",
         "audit_impact_first_payment": "First payment impact: {delta}",
+        "audit_field_grace":       "Grace period",
+        "audit_field_inflation":   "Inflation adj.",
+        "audit_field_day_count":   "Day-count",
+        "audit_field_syndicated":  "Syndicated mode",
+        "audit_toggle_on":         "On",
+        "audit_toggle_off":        "Off",
+        "audit_field_scheme":      "Scheme",
+        "audit_field_currency":    "Currency",
+        "audit_field_term_mode":   "Term input mode",
+        "audit_field_dc_method":   "Day-count method",
+        "audit_field_start_date":  "Start date",
+        "audit_field_one_time":    "One-time fee",
+        "audit_field_monthly":     "Periodic fee",
         "audit_impact_payment":   "Payment impact: {delta}",
     },
 }
@@ -2487,14 +2544,17 @@ def calc_pairwise_breakeven(chosen_payments: list,
             # −∞. Use the sign of the largest-magnitude diff as a proxy.
             return float('inf') if max(diff) > 0 else float('-inf')
 
-    # If FV(0) ≤ 0 ⇒ even with zero return, accumulated savings don't reach
+    # If FV(0) < 0 ⇒ even with zero return, accumulated savings don't reach
     # the deficit. We need a HIGHER return; root must lie in (0, +∞).
-    # If FV(0) > 0 ⇒ already in surplus at r=0; alt scheme is unconditionally
-    # worse than chosen.
+    # If FV(0) ≥ 0 ⇒ already at-or-above break-even at r=0; the chosen scheme
+    # is unconditionally at least as good. Using ">= 0" here (not "> 0")
+    # matches the documented contract and guarantees an EXACT 0.0 at the
+    # boundary, instead of letting the bisection below return a spurious tiny
+    # positive rate when FV(0) is exactly zero.
     fv0 = fv(0.0)
-    if fv0 > 0:
-        # Chosen scheme is unconditionally better than alt — even with no
-        # investment return, you end up ahead.
+    if fv0 >= 0:
+        # Chosen scheme is unconditionally at least as good as the alternative
+        # — even with no investment return, you end up no worse off.
         return 0.0
 
     # Bisect on r ∈ [0, 10] per period. Upper bound 10 ≈ 12000 % pa
@@ -3070,15 +3130,18 @@ def calc_refinance_analysis(
     if penalty < 0 or new_fees < 0:
         invalid_result["total_costs"] = penalty + new_fees
         return invalid_result
-    # Loan rates are outside the supported domain when negative.
-    if current_rate_pa < 0 or new_rate_pa < 0:
+    # Loan rates: a modest negative band is allowed (sub-zero-interest
+    # products are exotic but real, and the annuity formula handles r < 0
+    # exactly as in calc_annuity). Only reject values far outside any
+    # realistic range, consistent with the main loan-rate input.
+    if current_rate_pa < -20.0 or new_rate_pa < -20.0:
         return invalid_result
 
     def annuity_pmt(P, r_pa, n):
         if n <= 0 or P <= 0:
             return 0.0
         r = r_pa / 100.0 / 12.0
-        if r == 0:
+        if abs(r) < 1e-12:
             return P / n
         return P * r * (1 + r) ** n / ((1 + r) ** n - 1)
 
@@ -3313,18 +3376,23 @@ def dti_status(dti_pct: float | None, t: dict) -> tuple[str, str]:
         return t.get("dti_critical", "Critical"), "#DC2626"
 
 
-def ltv_status(ltv_pct: float | None) -> tuple[str, str]:
-    """Возвращает (label, color_hex) для значения LTV. None → 'N/A'."""
+def ltv_status(ltv_pct: float | None, t: dict | None = None) -> tuple[str, str]:
+    """Возвращает (label, color_hex) для значения LTV. None → 'N/A'.
+
+    `t` (optional translation dict) localizes the labels to match DSCR/DTI.
+    When omitted, falls back to English so existing callers keep working.
+    """
+    tr = t or {}
     if ltv_pct is None:
-        return "N/A", "#64748B"
+        return tr.get("ltv_status_na", "N/A"), "#64748B"
     if ltv_pct <= 60.0:
-        return "Safe", "#10B981"
+        return tr.get("ltv_status_safe", "Safe"), "#10B981"
     elif ltv_pct <= 80.0:
-        return "Standard", "#34D399"
+        return tr.get("ltv_status_standard", "Standard"), "#34D399"
     elif ltv_pct <= 95.0:
-        return "High", "#F59E0B"
+        return tr.get("ltv_status_high", "High"), "#F59E0B"
     else:
-        return "Critical", "#DC2626"
+        return tr.get("ltv_status_critical", "Critical"), "#DC2626"
 
 
 def _run_syndicated(tranches: list[dict], t: dict, sym: str,
@@ -5699,13 +5767,16 @@ def periods_from_dates(start: date, end: date, unit: str) -> int:
     return count
 
 
-def init_state():
+def _state_defaults() -> dict:
+    """Returns the canonical default values for all session-state fields.
+    Single source of truth shared by init_state() (first-run seeding) and
+    load_tpl() (resetting template fields a snapshot omits)."""
+    from dateutil.relativedelta import relativedelta
     # Default end-date two years out, computed safely so a Feb-29 launch does
     # not raise (date(year+2, 2, 29) is invalid in a non-leap year). Using
     # relativedelta clamps Feb 29 → Feb 28 automatically.
-    from dateutil.relativedelta import relativedelta
     _default_end = date.today() + relativedelta(years=2)
-    defs = {
+    return {
         "lang": "en", "templates": {},
         "loan_amount": 100_000.0,
         "loan_term": 24, "term_unit": "months",
@@ -5768,7 +5839,10 @@ def init_state():
         "theme":               None,                 # dict — filled by get_active_theme
         "theme_preset":        THEME_DEFAULT_KEY,
     }
-    for k, v in defs.items():
+
+
+def init_state():
+    for k, v in _state_defaults().items():
         if k not in st.session_state:
             st.session_state[k] = v
 
@@ -6116,6 +6190,14 @@ def record_audit_entry(t: dict, sym: str,
         "rate":   t.get("audit_field_rate",   "Interest rate"),
         "term":   t.get("audit_field_term",   "Term"),
     }
+    toggle_labels = {
+        "grace":      t.get("audit_field_grace",      "Grace period"),
+        "inflation":  t.get("audit_field_inflation",  "Inflation adj."),
+        "day_count":  t.get("audit_field_day_count",  "Day-count"),
+        "syndicated": t.get("audit_field_syndicated", "Syndicated mode"),
+    }
+    on_lbl  = t.get("audit_toggle_on",  "On")
+    off_lbl = t.get("audit_toggle_off", "Off")
 
     changes = []
     for field in ("amount", "rate", "term"):
@@ -6130,6 +6212,47 @@ def record_audit_entry(t: dict, sym: str,
                 "field_lbl": field_labels[field],
                 "old_str":   _format_audit_value(field, old_v, sym),
                 "new_str":   _format_audit_value(field, new_v, sym),
+            })
+
+    # Detect feature-toggle flips (On↔Off) so the audit trail also records
+    # when the user enables/disables grace, inflation, day-count or syndicated.
+    for field, lbl in toggle_labels.items():
+        old_v = snapshot_old.get(field)
+        new_v = snapshot_new.get(field)
+        if old_v is None or new_v is None:
+            continue
+        if bool(old_v) != bool(new_v):
+            changes.append({
+                "field":     field,
+                "field_lbl": lbl,
+                "old_str":   on_lbl if old_v else off_lbl,
+                "new_str":   on_lbl if new_v else off_lbl,
+            })
+
+    # Detect changes to other result-affecting string/value settings (scheme,
+    # currency, term-input mode, day-count method, start date, commissions).
+    # Their snapshot values are already display-ready strings, so we show them
+    # verbatim. Missing keys (older snapshots) are skipped, never false-flagged.
+    string_labels = {
+        "scheme":           t.get("audit_field_scheme",     "Scheme"),
+        "currency":         t.get("audit_field_currency",   "Currency"),
+        "term_input_mode":  t.get("audit_field_term_mode",  "Term input mode"),
+        "day_count_method": t.get("audit_field_dc_method",  "Day-count method"),
+        "start_date":       t.get("audit_field_start_date", "Start date"),
+        "one_time":         t.get("audit_field_one_time",   "One-time fee"),
+        "monthly":          t.get("audit_field_monthly",    "Periodic fee"),
+    }
+    for field, lbl in string_labels.items():
+        old_v = snapshot_old.get(field)
+        new_v = snapshot_new.get(field)
+        if old_v is None or new_v is None:
+            continue
+        if str(old_v) != str(new_v):
+            changes.append({
+                "field":     field,
+                "field_lbl": lbl,
+                "old_str":   str(old_v),
+                "new_str":   str(new_v),
             })
 
     if not changes:
@@ -6174,45 +6297,58 @@ def record_audit_entry(t: dict, sym: str,
         st.session_state.audit_log = log[-AUDIT_LOG_MAX:]
 
 
+# Canonical set of session-state fields captured by a template. Defined once
+# so save_tpl and load_tpl agree, and so load_tpl can reset any field that a
+# (possibly older / partial) template omits back to its default — preventing
+# stale values from a previous configuration surviving a template load.
+TEMPLATE_FIELDS = [
+    "loan_amount", "loan_term", "term_unit", "interest_rate", "scheme",
+    "one_time_val", "one_time_type", "monthly_val", "monthly_type",
+    "currency", "custom_symbol", "deposit_mode", "is_deposit", "start_date",
+    "term_input_mode", "end_date",
+    # Grace period
+    "grace_enabled", "grace_start", "grace_duration", "grace_type",
+    # Inflation
+    "inflation_enabled", "inflation_rate",
+    # Risk metrics
+    "ltv_enabled", "ltv_collateral",
+    "dscr_enabled", "dscr_noi",
+    "dti_enabled", "dti_income", "dti_other_debts",
+    # Day-count convention
+    "day_count_enabled", "day_count_method",
+    # Investment-comparison inputs
+    "invest_sp500", "invest_custom", "invest_custom_rate",
+    # Syndicated mode (toggle + all three tranche configs)
+    "syndicated_enabled",
+    "synd_a_enabled", "synd_a_amount", "synd_a_rate", "synd_a_term",
+    "synd_a_unit", "synd_a_scheme", "synd_a_ot", "synd_a_mo", "synd_a_offset",
+    "synd_b_enabled", "synd_b_amount", "synd_b_rate", "synd_b_term",
+    "synd_b_unit", "synd_b_scheme", "synd_b_ot", "synd_b_mo", "synd_b_offset",
+    "synd_c_enabled", "synd_c_amount", "synd_c_rate", "synd_c_term",
+    "synd_c_unit", "synd_c_scheme", "synd_c_ot", "synd_c_mo", "synd_c_offset",
+]
+
+
 def save_tpl(name):
-    # Core loan/deposit parameters.
-    fields = ["loan_amount","loan_term","term_unit","interest_rate","scheme",
-              "one_time_val","one_time_type","monthly_val","monthly_type",
-              "currency","custom_symbol","deposit_mode","is_deposit","start_date",
-              "term_input_mode","end_date",
-              # Advanced settings — previously omitted, which silently dropped
-              # them on load. A template should capture the FULL configuration.
-              # Grace period
-              "grace_enabled","grace_start","grace_duration","grace_type",
-              # Inflation
-              "inflation_enabled","inflation_rate",
-              # Risk metrics
-              "ltv_enabled","ltv_collateral",
-              "dscr_enabled","dscr_noi",
-              "dti_enabled","dti_income","dti_other_debts",
-              # Day-count convention
-              "day_count_enabled","day_count_method",
-              # Investment-comparison inputs (affect the alternative-return
-              # analysis shown alongside the schedule).
-              "invest_sp500","invest_custom","invest_custom_rate",
-              # Syndicated mode (toggle + all three tranche configs)
-              "syndicated_enabled",
-              "synd_a_enabled","synd_a_amount","synd_a_rate","synd_a_term",
-              "synd_a_unit","synd_a_scheme","synd_a_ot","synd_a_mo","synd_a_offset",
-              "synd_b_enabled","synd_b_amount","synd_b_rate","synd_b_term",
-              "synd_b_unit","synd_b_scheme","synd_b_ot","synd_b_mo","synd_b_offset",
-              "synd_c_enabled","synd_c_amount","synd_c_rate","synd_c_term",
-              "synd_c_unit","synd_c_scheme","synd_c_ot","synd_c_mo","synd_c_offset"]
     # Note: app-wide UI chrome (lang, theme, theme_preset) is intentionally
     # NOT part of a loan template — loading a saved loan should not silently
     # switch the interface language or color theme.
     # Only persist keys that actually exist in state (robust to future renames).
-    snapshot = {k: st.session_state[k] for k in fields if k in st.session_state}
+    snapshot = {k: st.session_state[k] for k in TEMPLATE_FIELDS if k in st.session_state}
     snapshot["saved_at"] = datetime.now().strftime("%d.%m.%Y %H:%M")
     st.session_state.templates[name] = snapshot
 
 def load_tpl(name):
-    for k, v in st.session_state.templates[name].items():
+    snap = st.session_state.templates[name]
+    # Reset every known template field that the snapshot does NOT contain back
+    # to its init_state default first, so a partial/older template can't leave
+    # stale values from the current configuration "behind" it after loading.
+    defaults = _state_defaults()
+    for k in TEMPLATE_FIELDS:
+        if k not in snap and k in defaults:
+            st.session_state[k] = defaults[k]
+    # Then apply the template's own values.
+    for k, v in snap.items():
         if k != "saved_at":
             st.session_state[k] = v
 
@@ -7247,11 +7383,17 @@ def main():
 
         st.divider()
 
-        # Ставка (скрыта в синдицированном режиме — там берётся WACC)
+        # Ставка (скрыта в синдицированном режиме — там берётся WACC).
+        # min_value allows a small negative band: negative-interest products
+        # are exotic but real (some EU mortgages went sub-zero), and the
+        # calculation core handles r < 0 correctly (constant annuity payment,
+        # APR, schedules all verified). The previous 0.0 floor was an
+        # interface-only restriction inconsistent with the math.
         if not st.session_state.syndicated_enabled:
             st.session_state.interest_rate = st.number_input(
-                t["interest_rate"], min_value=0.0, max_value=999.9,
-                value=float(st.session_state.interest_rate), step=0.5, format="%.2f")
+                t["interest_rate"], min_value=-20.0, max_value=999.9,
+                value=float(st.session_state.interest_rate), step=0.5, format="%.2f",
+                help=t.get("help_negative_rate", ""))
 
         # Дата начала кредита / вклада
         st.session_state.start_date = st.date_input(
@@ -7408,7 +7550,7 @@ def main():
             if st.session_state.inflation_enabled:
                 st.session_state.inflation_rate = st.number_input(
                     t.get("inflation_rate", "Expected Annual Inflation (%)"),
-                    min_value=0.1, max_value=200.0,
+                    min_value=-50.0, max_value=200.0,
                     value=float(st.session_state.inflation_rate),
                     step=0.5, format="%.1f", key="ni_inflation",
                     help=t.get("help_inflation_rate", ""))
@@ -7481,6 +7623,23 @@ def main():
                 "amount": float(st.session_state.loan_amount),
                 "rate":   float(st.session_state.interest_rate),
                 "term":   int(st.session_state.loan_term),
+                # Feature toggles — so the audit trail also reflects when the
+                # user switches major modes, not just the three numeric inputs.
+                "grace":      bool(st.session_state.grace_enabled),
+                "inflation":  bool(st.session_state.inflation_enabled),
+                "day_count":  bool(st.session_state.day_count_enabled),
+                "syndicated": bool(st.session_state.syndicated_enabled),
+                # Other configuration that genuinely changes the result, so a
+                # recalculation after editing any of these is recorded too.
+                "scheme":          str(st.session_state.scheme),
+                "currency":        str(st.session_state.currency),
+                "term_input_mode": str(st.session_state.term_input_mode),
+                "day_count_method": str(st.session_state.day_count_method),
+                "start_date":      str(st.session_state.start_date),
+                "one_time":        f"{float(st.session_state.one_time_val):.4f}"
+                                    f"/{st.session_state.one_time_type}",
+                "monthly":         f"{float(st.session_state.monthly_val):.4f}"
+                                    f"/{st.session_state.monthly_type}",
             }
             old_snapshot = st.session_state.get("last_calc_snapshot")
             old_summary  = st.session_state.get("summary", {}) or None
@@ -8454,9 +8613,13 @@ def _render_refinance_panel(t, smry, sym):
                                                   smry.get("principal", 100_000.0))),
                 step=1000.0, format="%.2f", key="refi_cur_balance",
                 help=t.get("refi_help_balance", ""))
+            st.caption(t.get("refi_balance_hint",
+                              "↳ Enter the amount you still owe today, not the "
+                              "original loan amount. (Pre-filled with the "
+                              "original principal as a starting point.)"))
             cur_rate = st.number_input(
                 t.get("refi_current_rate", "Current Rate (% annual)"),
-                min_value=0.0, max_value=100.0,
+                min_value=-20.0, max_value=100.0,
                 value=float(st.session_state.get("refi_cur_rate",
                                                   smry.get("rate_pa", 12.0))),
                 step=0.1, format="%.2f", key="refi_cur_rate")
@@ -8496,7 +8659,7 @@ def _render_refinance_panel(t, smry, sym):
         with col_c:
             new_rate = st.number_input(
                 t.get("refi_new_rate", "New Rate (% annual)"),
-                min_value=0.0, max_value=100.0,
+                min_value=-20.0, max_value=100.0,
                 value=float(st.session_state.get("refi_new_rate",
                                                   max(cur_rate - 2.0, 0.5))),
                 step=0.1, format="%.2f", key="refi_new_rate")
@@ -8789,30 +8952,63 @@ def calc_credit_health_score(ltv: float | None,
     (non-None) contribute; the result is their equal-weighted average. Returns
     None when none of the three is available, so the caller can hide the gauge.
 
-    Per-metric sub-scores (each clamped to 0–100):
-      • LTV  — lower is better. 100 at LTV ≤ 50 %, linearly down to 0 at ≥ 100 %.
-      • DSCR — higher is better. 100 at DSCR ≥ 1.50, linearly down to 0 at ≤ 0.50.
-      • DTI  — lower is better. 100 at DTI ≤ 20 %, linearly down to 0 at ≥ 60 %.
+    Each metric maps through a PIECEWISE-LINEAR curve whose break-points are
+    aligned with the qualitative status tiers (ltv_status / dscr_status /
+    dti_status) and with the A/B/C/D rank cut-offs (A≥80, B≥60, C≥40, D<40).
+    This guarantees the gauge and the risk tiles tell the SAME story — e.g. an
+    LTV that the tile calls "Standard" lands in the B band, not in C.
 
-    The break-points match the qualitative thresholds used elsewhere
-    (ltv_status / dscr_status / dti_status) so the gauge agrees with the tiles.
+    Tier-boundary → score anchors (then linearly interpolated between them):
+      • LTV  (lower better): 60→90 (Safe/Standard line, top of A),
+                              80→70 (Standard/High line, mid B),
+                              95→45 (High/Critical line, mid C),
+                              ≥110→0. ≤60 saturates toward 100.
+      • DSCR (higher better): 1.25→90 (Safe line, A),
+                              1.00→65 (Warning line, B),
+                              0.75→45 (deep warning, C),
+                              ≤0.50→0. ≥1.50 saturates toward 100.
+      • DTI  (lower better): 28→90 (Excellent line, A),
+                              36→70 (Good line, B),
+                              43→50 (Acceptable line, C),
+                              ≥60→0. ≤20 saturates toward 100.
     """
-    def _clamp(x: float) -> float:
-        return max(0.0, min(100.0, x))
+    def _interp(x, points):
+        """Piecewise-linear interpolation. `points` is a list of (x, score)
+        sorted by x ascending; clamps outside the range."""
+        if x <= points[0][0]:
+            return points[0][1]
+        if x >= points[-1][0]:
+            return points[-1][1]
+        for (x0, y0), (x1, y1) in zip(points, points[1:]):
+            if x0 <= x <= x1:
+                if x1 == x0:
+                    return y1
+                frac = (x - x0) / (x1 - x0)
+                return y0 + frac * (y1 - y0)
+        return points[-1][1]
 
     sub_scores = []
 
     if ltv is not None:
-        # 50 % → 100 pts, 100 % → 0 pts
-        sub_scores.append(_clamp((100.0 - ltv) / (100.0 - 50.0) * 100.0))
+        # Lower LTV is better → descending score. Anchored to ltv_status tiers.
+        sub_scores.append(_interp(ltv, [
+            (40.0, 100.0), (60.0, 90.0), (80.0, 70.0),
+            (95.0, 45.0), (110.0, 0.0),
+        ]))
 
     if dscr is not None:
-        # 1.50 → 100 pts, 0.50 → 0 pts
-        sub_scores.append(_clamp((dscr - 0.50) / (1.50 - 0.50) * 100.0))
+        # Higher DSCR is better → ascending score. Anchored to dscr_status tiers.
+        sub_scores.append(_interp(dscr, [
+            (0.50, 0.0), (0.75, 45.0), (1.00, 65.0),
+            (1.25, 90.0), (1.50, 100.0),
+        ]))
 
     if dti is not None:
-        # 20 % → 100 pts, 60 % → 0 pts
-        sub_scores.append(_clamp((60.0 - dti) / (60.0 - 20.0) * 100.0))
+        # Lower DTI is better → descending score. Anchored to dti_status tiers.
+        sub_scores.append(_interp(dti, [
+            (20.0, 100.0), (28.0, 90.0), (36.0, 70.0),
+            (43.0, 50.0), (60.0, 0.0),
+        ]))
 
     if not sub_scores:
         return None
@@ -8901,7 +9097,7 @@ def _render_risk_panel(t, smry, sym):
 
     for i, m in enumerate(metrics):
         if m == "ltv":
-            label, color = ltv_status(ltv)
+            label, color = ltv_status(ltv, t)
             display_val = fmt_pct(ltv) if ltv is not None else "N/A"
             cols[i].metric(
                 label=t.get("ltv_label", "Loan-to-Value (LTV)"),
