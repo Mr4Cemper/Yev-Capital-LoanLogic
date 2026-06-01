@@ -1715,6 +1715,13 @@ def fmt_money_plain(v):
 def fmt_pct(v):
     if v is None:
         return "N/A"
+    # Guard against inf/nan slipping through (e.g. a pathological ratio): show
+    # "N/A" rather than the literal "inf%"/"nan%", which would look broken.
+    try:
+        if not math.isfinite(v):
+            return "N/A"
+    except (TypeError, ValueError):
+        return "N/A"
     return f"{v:.2f}%"
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -9038,10 +9045,14 @@ def chart_credit_health_gauge(score: float, t: dict):
     themed to match the app's other charts. Coloured bands mark the A/B/C/D
     zones; the needle/value shows the current score.
     """
-    rank_label, rank_color = credit_health_rank(score, t)
+    # Rank on the SAME value that is displayed (rounded to 1 dp). Otherwise a
+    # raw score of e.g. 79.96 would print "80.0" (looks like Rank A) while the
+    # bar/title were coloured for Rank B — a confusing boundary mismatch.
+    shown = round(score, 1)
+    rank_label, rank_color = credit_health_rank(shown, t)
     fig = go.Figure(go.Indicator(
         mode="gauge+number",
-        value=round(score, 1),
+        value=shown,
         number=dict(suffix=" / 100", font=dict(color=C["text"], size=26)),
         title=dict(
             text=f"{t.get('credit_health_title', 'Credit Health')}<br>"
@@ -9062,7 +9073,7 @@ def chart_credit_health_gauge(score: float, t: dict):
             ],
             threshold=dict(
                 line=dict(color=rank_color, width=4),
-                thickness=0.78, value=score,
+                thickness=0.78, value=shown,
             ),
         ),
     ))
