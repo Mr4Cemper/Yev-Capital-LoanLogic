@@ -258,7 +258,7 @@ TRANSLATIONS = {
         # Инвест — для депозита
         "dep_invest_section":  "📊 Сравнение с альтернативой",
         "dep_invest_caption":  "Что если вместо этого вклада инвестировать под другой % ?",
-        "dep_invest_yours":    "Ваш депозит (итог)",
+        "dep_invest_yours":    "Ваш депозит (всего получено)",
         "dep_invest_alt":      "Альтернатива (итог)",
         "dep_invest_diff":     "Разница",
         # Дата начала
@@ -761,7 +761,7 @@ TRANSLATIONS = {
         "download_csv": "⬇️ CSV",
         "dep_invest_section":  "📊 Порівняння з альтернативою",
         "dep_invest_caption":  "Що якби замість цього вкладу інвестувати під інший % ?",
-        "dep_invest_yours":    "Ваш депозит (підсумок)",
+        "dep_invest_yours":    "Ваш депозит (всього отримано)",
         "dep_invest_alt":      "Альтернатива (підсумок)",
         "dep_invest_diff":     "Різниця",
         "start_date_label":    "📅 Дата початку",
@@ -1246,7 +1246,7 @@ TRANSLATIONS = {
         "dep_tooltip_payout":  "💡 **Payout** — actual cash received this period.",
         "dep_invest_section":  "📊 Compare with Alternative",
         "dep_invest_caption":  "What if you invested this money at a different rate instead?",
-        "dep_invest_yours":    "Your Deposit (final)",
+        "dep_invest_yours":    "Your Deposit (total received)",
         "dep_invest_alt":      "Alternative (final)",
         "dep_invest_diff":     "Difference",
         # Start date
@@ -1754,6 +1754,11 @@ def fmt_money(v, sym="₴"):
     """
     if not isinstance(v, (int, float)):
         return str(v)
+    # Guard against inf/nan (consistent with fmt_pct): show "N/A" rather than
+    # the literal "inf"/"nan", which would look broken. Not reachable through
+    # normal flows, but cheap defensive parity across the formatters.
+    if not math.isfinite(v):
+        return "N/A"
     # Normalize negative zero so a tiny negative (e.g. -0.004) does not render
     # as "-0.00", which reads as a glitch.
     if round(v, 2) == 0.0:
@@ -1765,6 +1770,8 @@ def fmt_money_plain(v):
     """Число с пробелом-разделителем тысяч, без символа валюты."""
     if not isinstance(v, (int, float)):
         return str(v)
+    if not math.isfinite(v):
+        return "N/A"
     if round(v, 2) == 0.0:
         v = 0.0
     return f"{v:,.2f}".replace(",", "\u202f")
@@ -2340,19 +2347,34 @@ def calc_deposit(principal, n, rate_pa, unit, mode):
         })
     return rows
 
-def calc_effective_rate(principal, schedule, one_time_comm, ppy):
+def calc_effective_rate(principal, schedule, one_time_comm, ppy,
+                        period_year_fractions=None):
     """
     Effective annual rate (APR) as the IRR of the cash-flow stream.
 
     CF_0 = +(principal − one_time_comm)  ─ borrower receives net proceeds
     CF_t = -(periodic payment) for t ≥ 1 ─ borrower's outflows
 
-    NPV(r) = Σ_{t=0..n} CF_t / (1+r)^t = 0
+    NPV(r) = Σ_{t=0..n} CF_t / (1+r)^τ_t = 0
+
+    Two discounting modes:
+      • Uniform periods (period_year_fractions=None, the default): each payment
+        sits at an integer period τ_t = t, the per-period rate is solved, then
+        annualised via (1+r)^ppy − 1. Correct when every period is the same
+        length (no day-count).
+      • Date-exact (period_year_fractions given): a list of n per-period
+        year-fractions (the SAME fractions used to accrue interest in day-count
+        mode, i.e. year_fraction(d_{i-1}, d_i, method)). Each payment is
+        discounted at its CUMULATIVE time-in-years τ_t = Σ_{k≤t} fraction_k, and
+        the solved rate is ALREADY annual (no ppy step). This keeps the
+        effective rate consistent with day-count interest accrual instead of
+        assuming uniform months — otherwise the two disagree by a few basis
+        points (e.g. an ACT/365 12% loan: uniform≈12.668%, date-exact 12.6825%).
 
     Approach:
       1. Try Newton's method (fast convergence on well-shaped problems).
       2. If Newton fails (divergence / non-convergence / poor residual),
-         fall back to bracket-and-bisection search on [-0.99, 5.0] per period.
+         fall back to bracket-and-bisection search on [-0.99, 5.0].
       3. Return None if BOTH methods fail to find a root with |NPV| < 1e-3.
 
     Callers (run_calculation) should treat None as "APR could not be computed"
@@ -2360,18 +2382,41 @@ def calc_effective_rate(principal, schedule, one_time_comm, ppy):
 
     Returns: annualised rate in % (or None on failure).
     """
+    if not schedule or principal <= 0:
+        return None
+
     # Sign convention: CF_0 = −(principal − one_time_comm) is the borrower's
     # initial inflow expressed negatively; CF_t = +payment_t is each outflow.
     cf = [-(principal - one_time_comm)] + [r["payment"] for r in schedule]
 
-    if not schedule or principal <= 0:
-        return None
+    # Build the discount-time axis τ_t for each cash flow.
+    #   • date-exact: τ_0 = 0, τ_t = cumulative sum of per-period year-fractions
+    #   • uniform:    τ_t = t (integer periods)
+    # The date-exact branch is used only when the supplied fraction list lines
+    # up with the schedule length; any mismatch falls back to uniform so a bad
+    # caller can never silently distort the timeline.
+    date_exact = (period_year_fractions is not None
+                  and len(period_year_fractions) == len(schedule))
+    if date_exact:
+        times = [0.0]
+        _acc = 0.0
+        for _f in period_year_fractions:
+            _acc += float(_f)
+            times.append(_acc)
+    else:
+        times = [float(t) for t in range(len(cf))]
 
     def npv(r: float) -> float:
-        return sum(cf[t] / (1 + r) ** t for t in range(len(cf)))
+        return sum(cf[t] / (1 + r) ** times[t] for t in range(len(cf)))
 
     def dnpv(r: float) -> float:
-        return sum(-t * cf[t] / (1 + r) ** (t + 1) for t in range(1, len(cf)))
+        return sum(-times[t] * cf[t] / (1 + r) ** (times[t] + 1)
+                   for t in range(1, len(cf)))
+
+    def _annualise(r: float) -> float:
+        # Date-exact rates are already annual (τ measured in years); uniform
+        # per-period rates still need the (1+r)^ppy − 1 conversion.
+        return (r * 100) if date_exact else (((1 + r) ** ppy - 1) * 100)
 
     # ── Phase 1: Newton's method ──────────────────────────────────────────────
     r_newton = 0.01
@@ -2394,7 +2439,7 @@ def calc_effective_rate(principal, schedule, one_time_comm, ppy):
         r_newton = r_new
 
     if converged and abs(npv(r_newton)) < 1e-3:
-        return ((1 + r_newton) ** ppy - 1) * 100
+        return _annualise(r_newton)
 
     # ── Phase 2: bracket + bisection on [-0.99, 5.0] ──────────────────────────
     lo, hi = -0.99, 5.0
@@ -2408,7 +2453,7 @@ def calc_effective_rate(principal, schedule, one_time_comm, ppy):
         mid = (lo + hi) / 2
         f_mid = npv(mid)
         if abs(f_mid) < 1e-6:
-            return ((1 + mid) ** ppy - 1) * 100
+            return _annualise(mid)
         if f_lo * f_mid < 0:
             hi, f_hi = mid, f_mid
         else:
@@ -2420,7 +2465,7 @@ def calc_effective_rate(principal, schedule, one_time_comm, ppy):
     if abs(npv(r_final)) > 1e-2:
         # Even bisection failed to drive residual below acceptable threshold
         return None
-    return ((1 + r_final) ** ppy - 1) * 100
+    return _annualise(r_final)
 
 # ─────────────────────────────────────────────────────────────────────────────
 #  ИНВЕСТИЦИОННОЕ СРАВНЕНИЕ
@@ -3719,8 +3764,7 @@ def _run_syndicated(tranches: list[dict], t: dict, sym: str,
     # Blended APR — None means root-finder failed; UI surfaces it
     blended_apr_error = None
     try:
-        blended_apr = calc_syndicated_blended_apr(
-            per_tranche, totals.get("total_one_time_comm", 0))
+        blended_apr = calc_syndicated_blended_apr(per_tranche)
         if blended_apr is None:
             blended_apr_error = "irr_failure"
             # Keep None — do not fake "0%" which would be both wrong and
@@ -3858,23 +3902,43 @@ def run_calculation(principal, n, rate_pa, unit, scheme,
     # unchanged. The resolved `_trend_mode` / `_trend_rate` (always a positive
     # magnitude) are threaded into the summary for correct, direction-aware
     # labelling downstream.
+    #
+    # All magnitude reads go through `_safe_abs`: templates are JSON and a rate
+    # can arrive as a string ("5.0"), None, or garbage. resolve_price_trend_rate
+    # is already defensive, but the summary fields and the legacy branch also
+    # touch the raw value, so coerce once, here, to keep abs() off raw strings.
+    def _safe_abs(v) -> float:
+        try:
+            f = abs(float(v))
+            return f if math.isfinite(f) else 0.0
+        except (TypeError, ValueError):
+            return 0.0
+
     if price_trend_mode is not None:
         _trend_mode = price_trend_mode if price_trend_mode in PRICE_TREND_MODES \
             else PRICE_TREND_NONE
-        _trend_rate = abs(price_trend_rate or 0.0)
+        _trend_rate = _safe_abs(price_trend_rate)
         signed_rate = resolve_price_trend_rate(_trend_mode, _trend_rate)
         inflation_enabled = (_trend_mode != PRICE_TREND_NONE and signed_rate != 0.0)
         inflation_rate = signed_rate
     else:
         # Legacy path: infer the mode from the sign of the supplied rate so the
         # summary can still label the panel correctly even for old callers.
-        if inflation_enabled and inflation_rate > 0:
+        _legacy_rate = inflation_rate
+        try:
+            _legacy_rate = float(inflation_rate)
+            if not math.isfinite(_legacy_rate):
+                _legacy_rate = 0.0
+        except (TypeError, ValueError):
+            _legacy_rate = 0.0
+        inflation_rate = _legacy_rate
+        if inflation_enabled and _legacy_rate > 0:
             _trend_mode = PRICE_TREND_INFLATION
-        elif inflation_enabled and inflation_rate < 0:
+        elif inflation_enabled and _legacy_rate < 0:
             _trend_mode = PRICE_TREND_DEFLATION
         else:
             _trend_mode = PRICE_TREND_NONE
-        _trend_rate = abs(inflation_rate or 0.0)
+        _trend_rate = _safe_abs(_legacy_rate)
 
     # ── СИНДИЦИРОВАННЫЙ КРЕДИТ — multi-tranche master schedule ────────────────
     if syndicated_tranches:
@@ -3917,8 +3981,16 @@ def run_calculation(principal, n, rate_pa, unit, scheme,
         sched = calc_balloon(principal, n, rate_pa, unit, mo_comm,
                               day_count=dc_method, start_date=dc_start)
     else:
-        sched = calc_annuity(principal, n, rate_pa, unit, mo_comm,
-                              day_count=dc_method, start_date=dc_start)
+        # Fail loudly on an unrecognised scheme rather than silently computing
+        # an annuity. Deposit and syndicated are dispatched earlier, so the only
+        # valid values here are annuity/classic/balloon. A bad value (e.g. from
+        # a corrupt or hand-edited template) would otherwise be silently swapped
+        # for annuity, returning plausible-but-wrong numbers with no indication.
+        # The UI wraps this call in a try/except that shows a friendly message,
+        # so raising surfaces the problem cleanly instead of misleading the user.
+        raise ValueError(
+            f"run_calculation: unknown loan scheme {scheme!r}. "
+            f"Expected one of: 'annuity', 'classic', 'balloon', 'deposit'.")
 
     # ── Применяем кредитные каникулы (если включены) ──────────────────────────
     grace_error = None
@@ -4041,7 +4113,20 @@ def run_calculation(principal, n, rate_pa, unit, scheme,
     ppy = periods_per_year(unit)
     eff_error = None
     try:
-        eff = calc_effective_rate(principal, sched, ot_comm, ppy)
+        # In day-count mode the schedule's interest was accrued on actual date
+        # fractions, so discount the APR on the SAME timeline (cumulative
+        # year-fractions) instead of assuming uniform months. Built to match
+        # len(sched) exactly — grace may re-amortise but the period dates (and
+        # thus the per-period fractions) are unchanged. When day-count is off,
+        # period_yf stays None and calc_effective_rate uses uniform periods.
+        period_yf = None
+        if dc_method and dc_start is not None:
+            _n_eff = len(sched)
+            _dts_eff = period_dates_for_schedule(dc_start, _n_eff, unit)
+            period_yf = [year_fraction(_dts_eff[i], _dts_eff[i + 1], dc_method)
+                         for i in range(_n_eff)]
+        eff = calc_effective_rate(principal, sched, ot_comm, ppy,
+                                  period_year_fractions=period_yf)
         if eff is None:
             # IRR converged-failure: function returned None to signal it.
             # Do NOT substitute nominal rate — that would silently mislead the
@@ -6343,8 +6428,7 @@ def calc_syndicated_master_schedule(
     return master, totals, per_tranche
 
 
-def calc_syndicated_blended_apr(per_tranche: list[dict],
-                                  total_ot_comm: float = 0.0) -> float | None:
+def calc_syndicated_blended_apr(per_tranche: list[dict]) -> float | None:
     """
     Blended APR across all tranches via IRR on the consolidated cash-flow.
 
@@ -6353,6 +6437,12 @@ def calc_syndicated_blended_apr(per_tranche: list[dict],
     therefore places each tranche's negative disbursement (amount minus its
     own one-time commission) at its offset, and its scheduled payments at
     offset + i for i = 1..n_tranche.
+
+    One-time commissions are taken PER TRANCHE from each `tr["ot_comm"]`; there
+    is no separate aggregate-commission argument, because netting the fees on
+    each tranche's own disbursement at its own offset is what the timeline
+    actually requires (a single pooled figure could not be placed correctly
+    when tranches are staggered).
 
     Cash flow convention (lender perspective, NPV = 0 form):
         CF_offset_k  = -(amount_k - ot_comm_k)       — net disbursement at offset
@@ -6662,6 +6752,28 @@ def load_tpl(name):
     for k, v in snap.items():
         if k != "saved_at":
             st.session_state[k] = v
+    # ── Legacy-template migration ─────────────────────────────────────────────
+    # Templates saved before the price-trend feature express deflation as a
+    # NEGATIVE `inflation_rate` and carry no `price_trend_mode`. Without this
+    # shim, the reset loop above sets the mode to its default ("none"), which
+    # then becomes the source of truth in run_calculation and silently discards
+    # the template's deflation/inflation intent. When the snapshot lacks the
+    # mode but has the legacy inflation pair, reconstruct the mode + a POSITIVE
+    # magnitude from the legacy signed rate. New templates already include the
+    # mode, so they never enter this branch.
+    if "price_trend_mode" not in snap and snap.get("inflation_enabled"):
+        try:
+            _legacy = float(snap.get("inflation_rate", 0.0) or 0.0)
+        except (TypeError, ValueError):
+            _legacy = 0.0
+        if _legacy > 0:
+            st.session_state.price_trend_mode = PRICE_TREND_INFLATION
+            st.session_state.price_trend_rate = _legacy
+        elif _legacy < 0:
+            st.session_state.price_trend_mode = PRICE_TREND_DEFLATION
+            st.session_state.price_trend_rate = abs(_legacy)
+        else:
+            st.session_state.price_trend_mode = PRICE_TREND_NONE
 
 def del_tpl(name):
     st.session_state.templates.pop(name, None)
@@ -7552,8 +7664,7 @@ def main():
                         st.error(_msg)
 
                 if _totals["n_tranches_active"] > 0:
-                    blended = calc_syndicated_blended_apr(
-                        _per_tr, _totals.get("total_one_time_comm", 0))
+                    blended = calc_syndicated_blended_apr(_per_tr)
 
                     # Sync loan amount (used by synd run_calculation). The
                     # blended APR is rendered locally below; it must NOT be
@@ -9297,21 +9408,34 @@ def _render_inflation_panel(t, smry, sym):
     )
     # Third metric: discount (inflation) vs surcharge (deflation).
     display_gap = abs(signed_gap)
-    delta_pct = (display_gap / nominal * 100) if nominal > 0 else 0
+    delta_pct = (display_gap / nominal * 100) if nominal > 0 else 0.0
+    # Build the delta label without a negative-zero glitch: a surcharge that
+    # rounds to 0.0 must read "0.0%", never "-0.0%". Only attach the sign once
+    # the rounded magnitude is actually non-zero.
+    if nominal > 0:
+        _rounded = round(delta_pct, 1)
+        if _rounded == 0.0:
+            delta_label = "0.0%"
+        elif is_deflation:
+            delta_label = f"-{_rounded:.1f}%"   # surcharge → red/negative
+        else:
+            delta_label = f"{_rounded:.1f}%"    # discount → green/positive
+    else:
+        delta_label = "—"
     if is_deflation:
         c3.metric(
             label=t.get("deflation_surcharge", "Deflation Surcharge"),
             value=fmt_money(display_gap, sym),
             # Surcharge raises real cost → show as a negative (red) delta to
             # signal "costs more", mirroring the positive (green) discount.
-            delta=(f"-{delta_pct:.1f}%" if nominal > 0 else "—"),
+            delta=delta_label,
             help=t.get("help_deflation_surcharge", ""),
         )
     else:
         c3.metric(
             label=t.get("inflation_savings", "Inflation Discount"),
             value=fmt_money(display_gap, sym),
-            delta=(f"{delta_pct:.1f}%" if nominal > 0 else "—"),
+            delta=delta_label,
             help=t.get("help_disc", ""),
         )
 
@@ -9352,7 +9476,8 @@ def calc_credit_health_score(ltv: float | None,
       • LTV  (lower better): 60→90 (Safe/Standard line, top of A),
                               80→70 (Standard/High line, mid B),
                               95→45 (High/Critical line, mid C),
-                              ≥110→0. ≤60 saturates toward 100.
+                              ≥110→0. The top anchor is 40→100, so ≤40
+                              saturates at 100 (60 already maps to 90, not 100).
       • DSCR (higher better): 1.25→90 (Safe line, A),
                               1.00→65 (Warning line, B),
                               0.75→45 (deep warning, C),
@@ -9588,8 +9713,19 @@ def _render_invest_loan(t, smry, df_chart, sym):
 
     payments       = smry["payments"]
     invest_vals    = calc_investment(payments, yield_pct, smry["unit"])
-    total_invested = sum(payments)
-    final_val      = invest_vals[-1]
+    # Include the upfront one-time fee in the comparison. The borrower's TRUE
+    # outlay to the loan is the one-time fee (paid at t=0) PLUS the periodic
+    # payments, and the break-even maths already uses that same basis. Leaving
+    # the fee out here would (a) understate total cash invested and (b) evaluate
+    # the same deal on a different basis than break-even. The fee is invested at
+    # t=0, so it compounds for the full term: fee · (1+r_per)^n. calc_investment
+    # invests each periodic payment at end-of-period, so the chart series is
+    # unchanged; only the headline metrics fold the fee in.
+    ot_comm        = smry.get("one_time_comm", 0.0) or 0.0
+    r_per          = yield_pct / 100 / periods_per_year(smry["unit"])
+    fee_fv         = ot_comm * (1 + r_per) ** len(payments)
+    total_invested = sum(payments) + ot_comm
+    final_val      = invest_vals[-1] + fee_fv
     net_gain       = final_val - total_invested
 
     ic1, ic2, ic3 = st.columns(3)
@@ -9644,8 +9780,19 @@ def _render_invest_deposit(t, smry, df_chart, sym):
     unit      = smry["unit"]
     ppy       = periods_per_year(unit)
 
-    # Рост депозита по периодам (balance_close из schedule)
-    dep_vals = [r["balance_close"] for r in smry["schedule"]]
+    # Рост депозита по периодам. ВАЖНО: для режима payout проценты выплачиваются
+    # на руки каждый период, поэтому balance_close остаётся равным телу вклада
+    # всё время. Если сравнивать только balance_close, депозит payout выглядел бы
+    # так, будто он ничего не заработал (плоская линия на уровне principal), что
+    # экономически неверно — вкладчик ведь получил поток процентов. Поэтому к
+    # балансу прибавляем НАКОПЛЕННЫЕ выплаты: для payout это даёт растущую линию
+    # principal + Σ выплат (терминально = principal + total_payout), а для
+    # capitalize выплаты равны 0, и линия совпадает с прежней balance_close.
+    dep_vals  = []
+    _cum_payout = 0.0
+    for _r in smry["schedule"]:
+        _cum_payout += _r.get("payout", 0.0)
+        dep_vals.append(_r["balance_close"] + _cum_payout)
 
     # Рост альтернативных инвестиций: principal * (1 + r_per_period)^t
     r_alt    = alt_yield / 100 / ppy
