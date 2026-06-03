@@ -313,6 +313,22 @@ TRANSLATIONS = {
         "real_cost":               "Реальная стоимость (PV)",
         "inflation_savings":       "Скидка на инфляцию",
         "inflation_note":          "Реальная стоимость дисконтирует будущие платежи к сегодняшней покупательной способности.",
+        # ── Режим динамики цен (инфляция / дефляция как полноценный выбор) ─────
+        "price_trend_expander":    "Учёт инфляции / дефляции",
+        "price_trend_label":       "Динамика цен",
+        "price_trend_none":        "Нет",
+        "price_trend_inflation":   "Инфляция (цены растут)",
+        "price_trend_deflation":   "Дефляция (цены падают)",
+        "deflation_rate":          "Ожидаемая дефляция (% годовых)",
+        "deflation_section":       "💰 Реальная vs Номинальная стоимость (дефляция)",
+        "deflation_surcharge":     "Надбавка за дефляцию",
+        "deflation_note":          "При дефляции деньги со временем дорожают, поэтому будущие платежи стоят БОЛЬШЕ в сегодняшней покупательной способности.",
+        "help_price_trend":        "Выберите, учитывать ли рост цен (инфляция), падение цен (дефляция) или ничего. Ставка вводится положительным числом; направление задаёт режим.",
+        "help_deflation_rate":     "Прогнозная годовая дефляция (вводится положительным числом). Будущие платежи приводятся к сегодняшней более высокой покупательной способности.",
+        "help_deflation_surcharge":"Насколько БОЛЬШЕ стоят ваши номинальные платежи в реальном выражении, потому что дефляция повышает ценность денег.",
+        "caption_deflation":       "💡 Дефляция делает деньги со временем дороже. Платёж $1 000 через 5 лет в реальном выражении стоит больше, чем $1 000 сегодня.",
+        "caption_deflation_full":  "💡 {note} Дефляция повышает реальную ценность денег со временем — будущие платежи экономически БОЛЕЕ обременительны, чем кажутся номинально.",
+        "help_deflation_real_long":"Present Value (PV) всех платежей при дефляции:\n\nPV = Σₜ₌₁ⁿ paymentₜ / (1 − d_per)ᵗ\n\nГде d_per — периодическая ставка дефляции = d_annual / ppy. Поскольку (1 − d_per) < 1, каждый будущий платёж делится на число меньше 1, поэтому его приведённая стоимость растёт выше номинала.",
         # ── Кредитные каникулы ────────────────────────────────────────────────
         "grace_expander":          "Кредитные каникулы",
         "grace_toggle":            "Включить кредитные каникулы",
@@ -343,7 +359,7 @@ TRANSLATIONS = {
         "credit_rank_d":           "Ранг D — Высокий риск",
         "credit_rank_na":          "Н/Д",
         "credit_health_caption":   "Балл объединяет указанные вами метрики ({metrics}). Чем выше — тем здоровее.",
-        "glossary_title":          "📚 Словарь терминов / Glossary",
+        "glossary_title":          "📚 Словарь терминов",
         "help_negative_rate":      "Отрицательные ставки допускаются (редкие продукты с субнулевой ставкой). Расчёт корректно их обрабатывает.",
         "gloss_annuity_term":      "Аннуитет",
         "gloss_annuity_def":       "Схема погашения с равными платежами каждый период. В начале большую часть платежа составляют проценты, к концу — тело кредита.",
@@ -601,6 +617,7 @@ TRANSLATIONS = {
         "audit_impact_first_payment": "Изменение первого платежа: {delta}",
         "audit_field_grace":       "Льготный период",
         "audit_field_inflation":   "Учёт инфляции",
+        "audit_field_price_trend": "Динамика цен",
         "audit_field_day_count":   "База начисления",
         "audit_field_syndicated":  "Синдиц. режим",
         "audit_toggle_on":         "Вкл",
@@ -787,6 +804,22 @@ TRANSLATIONS = {
         "real_cost":               "Реальна вартість (PV)",
         "inflation_savings":       "Знижка на інфляцію",
         "inflation_note":          "Реальна вартість дисконтує майбутні платежі до сьогоднішньої купівельної спроможності.",
+        # ── Режим динаміки цін (інфляція / дефляція як повноцінний вибір) ──────
+        "price_trend_expander":    "Облік інфляції / дефляції",
+        "price_trend_label":       "Динаміка цін",
+        "price_trend_none":        "Немає",
+        "price_trend_inflation":   "Інфляція (ціни зростають)",
+        "price_trend_deflation":   "Дефляція (ціни падають)",
+        "deflation_rate":          "Очікувана дефляція (% річних)",
+        "deflation_section":       "💰 Реальна vs Номінальна вартість (дефляція)",
+        "deflation_surcharge":     "Надбавка за дефляцію",
+        "deflation_note":          "При дефляції гроші з часом дорожчають, тому майбутні платежі коштують БІЛЬШЕ у сьогоднішній купівельній спроможності.",
+        "help_price_trend":        "Оберіть, чи враховувати зростання цін (інфляція), падіння цін (дефляція) або нічого. Ставка вводиться додатним числом; напрямок задає режим.",
+        "help_deflation_rate":     "Прогнозна річна дефляція (вводиться додатним числом). Майбутні платежі приводяться до сьогоднішньої вищої купівельної спроможності.",
+        "help_deflation_surcharge":"Наскільки БІЛЬШЕ коштують ваші номінальні платежі у реальному вираженні, тому що дефляція підвищує цінність грошей.",
+        "caption_deflation":       "💡 Дефляція робить гроші з часом дорожчими. Платіж $1 000 за 5 років у реальному вираженні коштує більше, ніж $1 000 сьогодні.",
+        "caption_deflation_full":  "💡 {note} Дефляція підвищує реальну цінність грошей з часом — майбутні платежі економічно БІЛЬШ обтяжливі, ніж здаються номінально.",
+        "help_deflation_real_long":"Present Value (PV) усіх платежів при дефляції:\n\nPV = Σₜ₌₁ⁿ paymentₜ / (1 − d_per)ᵗ\n\nДе d_per — періодична ставка дефляції = d_annual / ppy. Оскільки (1 − d_per) < 1, кожен майбутній платіж ділиться на число менше 1, тому його приведена вартість зростає вище номіналу.",
         "grace_expander":          "Кредитні канікули",
         "grace_toggle":            "Увімкнути кредитні канікули",
         "grace_duration":          "Тривалість (періодів)",
@@ -815,7 +848,7 @@ TRANSLATIONS = {
         "credit_rank_d":           "Ранг D — Високий ризик",
         "credit_rank_na":          "Н/Д",
         "credit_health_caption":   "Бал поєднує вказані вами метрики ({metrics}). Що вище — тим здоровіше.",
-        "glossary_title":          "📚 Словник термінів / Glossary",
+        "glossary_title":          "📚 Словник термінів",
         "help_negative_rate":      "Від'ємні ставки дозволені (рідкісні продукти із субнульовою ставкою). Розрахунок коректно їх обробляє.",
         "gloss_annuity_term":      "Ануїтет",
         "gloss_annuity_def":       "Схема погашення з рівними платежами щоперіоду. Спочатку більшу частину платежу складають відсотки, наприкінці — тіло кредиту.",
@@ -1058,6 +1091,7 @@ TRANSLATIONS = {
         "audit_impact_first_payment": "Зміна першого платежу: {delta}",
         "audit_field_grace":       "Пільговий період",
         "audit_field_inflation":   "Облік інфляції",
+        "audit_field_price_trend": "Динаміка цін",
         "audit_field_day_count":   "База нарахування",
         "audit_field_syndicated":  "Синдиц. режим",
         "audit_toggle_on":         "Увімк",
@@ -1262,6 +1296,22 @@ TRANSLATIONS = {
         "real_cost":               "Real Total Cost (PV)",
         "inflation_savings":       "Inflation Discount",
         "inflation_note":          "Real cost discounts future payments to today's purchasing power.",
+        # ── Price-trend mode (inflation / deflation as first-class choices) ───
+        "price_trend_expander":    "Inflation / Deflation Adjustment",
+        "price_trend_label":       "Price trend",
+        "price_trend_none":        "None",
+        "price_trend_inflation":   "Inflation (prices rise)",
+        "price_trend_deflation":   "Deflation (prices fall)",
+        "deflation_rate":          "Expected Annual Deflation (%)",
+        "deflation_section":       "💰 Nominal vs Real Cost (Deflation)",
+        "deflation_surcharge":     "Deflation Surcharge",
+        "deflation_note":          "Under deflation, money gains value over time, so future payments cost MORE in today's purchasing power.",
+        "help_price_trend":        "Choose whether to adjust for rising prices (inflation), falling prices (deflation), or neither. Enter the rate as a positive number; the direction is set by the mode.",
+        "help_deflation_rate":     "Forecasted annual deflation rate (entered as a positive number). Future payments are inflated to today's higher purchasing power.",
+        "help_deflation_surcharge":"How much MORE your nominal payments are worth in real terms because deflation raises the value of money.",
+        "caption_deflation":       "💡 Deflation makes money worth MORE over time. A payment of $1,000 in 5 years costs more than $1,000 today in real terms.",
+        "caption_deflation_full":  "💡 {note} Deflation raises the real value of money over time — future payments are economically MORE burdensome than they appear in nominal terms.",
+        "help_deflation_real_long":"Present Value (PV) of all payments under deflation:\n\nPV = Σₜ₌₁ⁿ paymentₜ / (1 − d_per)ᵗ\n\nWhere d_per is the periodic deflation rate = d_annual / ppy. Because (1 − d_per) < 1, each future payment is divided by a number below 1, so its present value rises above nominal.",
         "grace_expander":          "Grace Period (Payment Holiday)",
         "grace_toggle":            "Enable Grace Period",
         "grace_duration":          "Duration (periods)",
@@ -1290,7 +1340,7 @@ TRANSLATIONS = {
         "credit_rank_d":           "Rank D — High Risk",
         "credit_rank_na":          "N/A",
         "credit_health_caption":   "Score combines the metrics you provided ({metrics}). Higher is healthier.",
-        "glossary_title":          "📚 Glossary / Словарь терминов",
+        "glossary_title":          "📚 Glossary",
         "help_negative_rate":      "Negative rates are allowed (rare sub-zero products). The calculation handles them correctly.",
         "gloss_annuity_term":      "Annuity",
         "gloss_annuity_def":       "A repayment scheme with equal payments each period. Early on most of the payment is interest; later it is mostly principal.",
@@ -1533,6 +1583,7 @@ TRANSLATIONS = {
         "audit_impact_first_payment": "First payment impact: {delta}",
         "audit_field_grace":       "Grace period",
         "audit_field_inflation":   "Inflation adj.",
+        "audit_field_price_trend": "Price trend",
         "audit_field_day_count":   "Day-count",
         "audit_field_syndicated":  "Syndicated mode",
         "audit_toggle_on":         "On",
@@ -1703,6 +1754,10 @@ def fmt_money(v, sym="₴"):
     """
     if not isinstance(v, (int, float)):
         return str(v)
+    # Normalize negative zero so a tiny negative (e.g. -0.004) does not render
+    # as "-0.00", which reads as a glitch.
+    if round(v, 2) == 0.0:
+        v = 0.0
     # Форматируем с запятой, потом заменяем на пробел
     return f"{sym} {v:,.2f}".replace(",", "\u202f")   # \u202f = narrow no-break space
 
@@ -1710,6 +1765,8 @@ def fmt_money_plain(v):
     """Число с пробелом-разделителем тысяч, без символа валюты."""
     if not isinstance(v, (int, float)):
         return str(v)
+    if round(v, 2) == 0.0:
+        v = 0.0
     return f"{v:,.2f}".replace(",", "\u202f")
 
 def fmt_pct(v):
@@ -1722,6 +1779,10 @@ def fmt_pct(v):
             return "N/A"
     except (TypeError, ValueError):
         return "N/A"
+    # Normalize negative zero: a value that rounds to 0.00 from below (e.g.
+    # -0.001) would otherwise render as "-0.00%", which looks like a glitch.
+    if round(v, 2) == 0.0:
+        v = 0.0
     return f"{v:.2f}%"
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -2808,6 +2869,126 @@ def discount_payments_to_pv(payments: list, annual_inflation_pct: float,
     return [p / (1.0 + r) ** (t + 1) for t, p in enumerate(payments)]
 
 
+# ─────────────────────────────────────────────────────────────────────────────
+#  PRICE-TREND ADJUSTMENT  —  Inflation & Deflation as first-class modes
+# ─────────────────────────────────────────────────────────────────────────────
+#  Both inflation and deflation discount/inflate a future cash-flow stream to
+#  today's purchasing power. They are NOT separate maths — they are the SAME
+#  present-value operation evaluated at opposite signs of the periodic rate.
+#  Rather than ask the user to type a negative inflation number (which reads
+#  like a bug and is easy to get wrong), the UI exposes an explicit MODE plus a
+#  POSITIVE magnitude, and these helpers translate that into the signed annual
+#  rate the PV maths needs.
+#
+#  Economic meaning, kept consistent everywhere downstream:
+#    • inflation (prices rise): future fixed payments are worth LESS today, so
+#      real cost  <  nominal  → the borrower enjoys a real DISCOUNT.
+#    • deflation (prices fall): future fixed payments are worth MORE today, so
+#      real cost  >  nominal  → the borrower carries a real SURCHARGE.
+#
+#  PRICE_TREND_* are the canonical mode keys persisted in session/template/audit.
+PRICE_TREND_NONE      = "none"
+PRICE_TREND_INFLATION = "inflation"
+PRICE_TREND_DEFLATION = "deflation"
+PRICE_TREND_MODES     = (PRICE_TREND_NONE, PRICE_TREND_INFLATION, PRICE_TREND_DEFLATION)
+
+# A deflation magnitude at/above this annual % is rejected as economically
+# meaningless: a periodic rate of −100% (or worse) would push the discount
+# factor (1 + r_per) to zero or negative — i.e. money ceasing to have value.
+# Real-world deflation is a few percent; we cap the INPUT well below the
+# mathematical breakdown so the degenerate branch is never even approached.
+DEFLATION_RATE_MAX = 99.0   # annual %, exclusive upper bound on magnitude
+INFLATION_RATE_MAX = 200.0  # annual %, matches the UI control's ceiling
+
+
+def resolve_price_trend_rate(mode: str, magnitude_pct: float) -> float:
+    """
+    Translate an explicit price-trend MODE plus a POSITIVE magnitude into the
+    SIGNED annual rate consumed by the present-value maths.
+
+        none      → 0.0          (no adjustment)
+        inflation → +magnitude   (prices rise; real cost < nominal)
+        deflation → −magnitude   (prices fall; real cost > nominal)
+
+    The magnitude is treated as a positive number regardless of how it arrives:
+    a user who somehow typed a negative value still gets its absolute size, so a
+    "deflation of −3%" can never silently flip back into inflation. Unknown
+    modes resolve to 0.0 (safest no-op) rather than raising, because this sits
+    on the hot path of every calculation.
+    """
+    try:
+        mag = abs(float(magnitude_pct))
+    except (TypeError, ValueError):
+        return 0.0
+    if not math.isfinite(mag):
+        return 0.0
+    if mode == PRICE_TREND_INFLATION:
+        return mag
+    if mode == PRICE_TREND_DEFLATION:
+        return -mag
+    return 0.0
+
+
+def calc_deflation_cost(payments: list, annual_deflation_pct: float,
+                        unit: str) -> float:
+    """
+    Real (present-value) cost of a payment stream under DEFLATION, as a
+    dedicated first-class function — not a sign-flipped call into the inflation
+    path.
+
+    The caller passes a POSITIVE deflation magnitude (e.g. 3.0 for 3 % annual
+    deflation). Because prices fall, future fixed payments command MORE of
+    today's purchasing power, so the present value INFLATES above nominal:
+
+        PV = Σ payment_t / (1 − d_per)^t        with d_per = d_annual / ppy
+
+    Guarantees:
+      • magnitude is taken as |value| — a negative input cannot turn this into
+        an inflation discount;
+      • d = 0 returns the exact nominal sum (no rounding drift);
+      • if the periodic deflation would make (1 − d_per) ≤ 0 (mathematically
+        degenerate — money losing all value), the nominal sum is returned as the
+        least-misleading fallback instead of dividing by zero / a negative base.
+    """
+    if not payments:
+        return 0.0
+    try:
+        d = abs(float(annual_deflation_pct))
+    except (TypeError, ValueError):
+        return float(sum(payments))
+    if not math.isfinite(d) or d == 0:
+        return float(sum(payments))
+    ppy = periods_per_year(unit)
+    d_per = d / 100.0 / ppy
+    base = 1.0 - d_per
+    if base <= 0:
+        return float(sum(payments))
+    return sum(p / base ** (t + 1) for t, p in enumerate(payments))
+
+
+def calc_price_adjusted_cost(payments: list, mode: str, magnitude_pct: float,
+                             unit: str) -> float:
+    """
+    Single entry point that routes to the correct present-value engine based on
+    the price-trend MODE, so callers never have to juggle signs themselves:
+
+        none      → nominal sum (identity)
+        inflation → calc_real_cost(..., +magnitude, ...)   (PV < nominal)
+        deflation → calc_deflation_cost(..., magnitude, ...) (PV > nominal)
+
+    Both branches reduce to the same Σ payment_t / (1 ± r_per)^t formula; the
+    split exists purely so each direction is named, documented and individually
+    testable.
+    """
+    if not payments:
+        return 0.0
+    if mode == PRICE_TREND_INFLATION:
+        return calc_real_cost(payments, abs(magnitude_pct), unit)
+    if mode == PRICE_TREND_DEFLATION:
+        return calc_deflation_cost(payments, abs(magnitude_pct), unit)
+    return float(sum(payments))
+
+
 def apply_grace_period(sched: list, grace_start: int, grace_duration: int,
                        grace_type: str, rate_pa: float, unit: str,
                        day_count: str | None = None,
@@ -3622,6 +3803,10 @@ def _run_syndicated(tranches: list[dict], t: dict, sym: str,
         "grace_enabled":         False,
         "inflation_enabled":     inflation_enabled,
         "inflation_rate":        inflation_rate if inflation_enabled else None,
+        "price_trend_mode":      (PRICE_TREND_INFLATION if (inflation_enabled and inflation_rate > 0)
+                                  else PRICE_TREND_DEFLATION if (inflation_enabled and inflation_rate < 0)
+                                  else PRICE_TREND_NONE),
+        "price_trend_rate":      abs(inflation_rate) if inflation_enabled else None,
         "real_cost":             real_cost_val,
         "inflation_savings":     inflation_savings,
         "ltv":                   ltv_val,
@@ -3642,6 +3827,8 @@ def run_calculation(principal, n, rate_pa, unit, scheme,
                     grace_enabled=False, grace_start=1,
                     grace_duration=3, grace_type="interest_only",
                     inflation_enabled=False, inflation_rate=0.0,
+                    price_trend_mode: str | None = None,
+                    price_trend_rate: float = 0.0,
                     ltv_enabled=False, ltv_collateral=0.0,
                     dscr_enabled=False, dscr_noi=0.0,
                     dti_enabled=False, dti_income=0.0, dti_other_debts=0.0,
@@ -3659,6 +3846,35 @@ def run_calculation(principal, n, rate_pa, unit, scheme,
     """
     sym = (_sanitize_currency_symbol(custom_sym) if cur_key == "custom"
             else CURRENCY_SYMBOLS.get(cur_key, "$"))
+
+    # ── Price-trend mode → signed inflation rate ──────────────────────────────
+    # Deflation is a first-class mode here, not "inflation with a minus". When a
+    # `price_trend_mode` is supplied, it is the source of truth: it carries a
+    # POSITIVE magnitude (`price_trend_rate`) and a direction, which we collapse
+    # into the single signed `inflation_rate` the present-value maths consumes
+    # (inflation → +rate, deflation → −rate, none → disabled). When no mode is
+    # supplied we fall back to the legacy `inflation_enabled`/`inflation_rate`
+    # pair so older callers, saved templates and the audit trail keep working
+    # unchanged. The resolved `_trend_mode` / `_trend_rate` (always a positive
+    # magnitude) are threaded into the summary for correct, direction-aware
+    # labelling downstream.
+    if price_trend_mode is not None:
+        _trend_mode = price_trend_mode if price_trend_mode in PRICE_TREND_MODES \
+            else PRICE_TREND_NONE
+        _trend_rate = abs(price_trend_rate or 0.0)
+        signed_rate = resolve_price_trend_rate(_trend_mode, _trend_rate)
+        inflation_enabled = (_trend_mode != PRICE_TREND_NONE and signed_rate != 0.0)
+        inflation_rate = signed_rate
+    else:
+        # Legacy path: infer the mode from the sign of the supplied rate so the
+        # summary can still label the panel correctly even for old callers.
+        if inflation_enabled and inflation_rate > 0:
+            _trend_mode = PRICE_TREND_INFLATION
+        elif inflation_enabled and inflation_rate < 0:
+            _trend_mode = PRICE_TREND_DEFLATION
+        else:
+            _trend_mode = PRICE_TREND_NONE
+        _trend_rate = abs(inflation_rate or 0.0)
 
     # ── СИНДИЦИРОВАННЫЙ КРЕДИТ — multi-tranche master schedule ────────────────
     if syndicated_tranches:
@@ -3888,7 +4104,7 @@ def run_calculation(principal, n, rate_pa, unit, scheme,
             # Pairwise BE is informational — failure shouldn't propagate.
             pass
 
-    # ── Инфляция (real cost) ──────────────────────────────────────────────────
+    # ── Инфляция / дефляция (real cost) ───────────────────────────────────────
     real_cost_val = None
     inflation_savings = None
     if inflation_enabled and inflation_rate != 0:
@@ -3898,7 +4114,13 @@ def run_calculation(principal, n, rate_pa, unit, scheme,
             pv_future = calc_real_cost(payments_list, inflation_rate, unit)
             ot_today  = ot_comm if ot_comm > 0 else 0
             real_cost_val = pv_future + ot_today
-            inflation_savings = tot_payment - real_cost_val
+            # Compare against the DISPLAYED nominal total (`disp_payment`), not
+            # the precise `tot_payment`: the panel shows `disp_payment` as
+            # "Nominal Total Cost", so the on-screen identity
+            #   Nominal − Real = Discount   (inflation)
+            #   Real − Nominal = Surcharge  (deflation)
+            # must hold exactly rather than off by a cent of rounding.
+            inflation_savings = disp_payment - real_cost_val
         except Exception:
             real_cost_val = None
 
@@ -3955,6 +4177,8 @@ def run_calculation(principal, n, rate_pa, unit, scheme,
         # Inflation
         "inflation_enabled":     inflation_enabled,
         "inflation_rate":        inflation_rate if inflation_enabled else None,
+        "price_trend_mode":      _trend_mode,
+        "price_trend_rate":      _trend_rate if inflation_enabled else None,
         "real_cost":             real_cost_val,
         "inflation_savings":     inflation_savings,
         # Risk metrics
@@ -4106,9 +4330,14 @@ def _run_deposit(principal, n, rate_pa, unit, mode, sym, t, start_date=None,
         "overpay_pct":     0,
         "payments":        [r["interest"] for r in sched],
         "schedule":        sched,
-        # Inflation
+        # Inflation / deflation. _run_deposit receives the already-signed rate
+        # from run_calculation, so the direction is recovered from its sign.
         "inflation_enabled": inflation_enabled,
         "inflation_rate":    inflation_rate if inflation_enabled else None,
+        "price_trend_mode":  (PRICE_TREND_INFLATION if (inflation_enabled and inflation_rate > 0)
+                              else PRICE_TREND_DEFLATION if (inflation_enabled and inflation_rate < 0)
+                              else PRICE_TREND_NONE),
+        "price_trend_rate":  abs(inflation_rate) if inflation_enabled else None,
         "real_cost":         real_cost_val,
         "inflation_savings": inflation_savings,
     }
@@ -4783,12 +5012,16 @@ def export_excel(df, summary, t, sym):
             metrics_data.append(
                 ("Absolute Break-even (Balloon)", be_abs / 100, pct_fmt, "#D97706", True))
 
-        # ── Inflation ─────────────────────────────────────────────────────────
+        # ── Inflation / Deflation ─────────────────────────────────────────────
         if summary.get("inflation_enabled") and summary.get("real_cost") is not None:
+            _is_def = (summary.get("price_trend_mode") == PRICE_TREND_DEFLATION)
+            _gap = abs(summary.get("inflation_savings") or 0)
+            _real_lbl = "Real Total Cost (PV, Deflation)" if _is_def else "Real Total Cost (PV)"
+            _gap_lbl  = "Deflation Surcharge" if _is_def else "Inflation Discount"
             metrics_data.append(
-                ("Real Total Cost (PV)", summary.get("real_cost"), num_fmt, "#065F46", True))
+                (_real_lbl, summary.get("real_cost"), num_fmt, "#065F46", True))
             metrics_data.append(
-                ("Inflation Discount", summary.get("inflation_savings", 0), num_fmt, "#0F766E", False))
+                (_gap_lbl, _gap, num_fmt, "#0F766E", False))
 
         # ── Risk metrics ──────────────────────────────────────────────────────
         ltv = summary.get("ltv")
@@ -5355,12 +5588,14 @@ def export_docx(df, summary, t, sym):
         if summary.get("balloon_breakeven_abs") is not None:
             kv_pairs.append(("Absolute Break-even (Balloon)",
                               fmt_pct(summary["balloon_breakeven_abs"])))
-        # Inflation
+        # Inflation / Deflation
         if summary.get("inflation_enabled") and summary.get("real_cost") is not None:
-            kv_pairs.append(("Real Total Cost (PV)",
+            _is_def = (summary.get("price_trend_mode") == PRICE_TREND_DEFLATION)
+            _gap = abs(summary.get("inflation_savings") or 0)
+            kv_pairs.append(("Real Total Cost (PV, Deflation)" if _is_def else "Real Total Cost (PV)",
                               fmt_money(summary["real_cost"], sym)))
-            kv_pairs.append(("Inflation Discount",
-                              fmt_money(summary.get("inflation_savings", 0), sym)))
+            kv_pairs.append(("Deflation Surcharge" if _is_def else "Inflation Discount",
+                              fmt_money(_gap, sym)))
         # Risk
         if summary.get("ltv") is not None:
             kv_pairs.append(("LTV (Loan-to-Value)", fmt_pct(summary["ltv"])))
@@ -5654,15 +5889,17 @@ def export_pdf(df, summary, t, sym):
                 cell("Absolute Break-even (Balloon)", bold=True),
                 cell(fmt_pct(summary["balloon_breakeven_abs"])),
             ])
-        # Inflation
+        # Inflation / Deflation
         if summary.get("inflation_enabled") and summary.get("real_cost") is not None:
+            _is_def = (summary.get("price_trend_mode") == PRICE_TREND_DEFLATION)
+            _gap = abs(summary.get("inflation_savings") or 0)
             metrics_rows.append([
-                cell("Real Total Cost (PV)", bold=True),
+                cell("Real Total Cost (PV, Deflation)" if _is_def else "Real Total Cost (PV)", bold=True),
                 cell(fmt_money(summary["real_cost"], sym)),
             ])
             metrics_rows.append([
-                cell("Inflation Discount", bold=True),
-                cell(fmt_money(summary.get("inflation_savings", 0), sym)),
+                cell("Deflation Surcharge" if _is_def else "Inflation Discount", bold=True),
+                cell(fmt_money(_gap, sym)),
             ])
         # Risk metrics
         if summary.get("ltv") is not None:
@@ -5860,9 +6097,11 @@ def _state_defaults() -> dict:
         "invest_sp500": False, "invest_custom": False, "invest_custom_rate": 8.0,
         "deposit_mode": "capitalize", "is_deposit": False,
         "start_date": date.today(),
-        # ── Inflation Accounting ──────────────────────────────────────────────
+        # ── Inflation / Deflation Accounting ──────────────────────────────────
         "inflation_enabled": False,
         "inflation_rate":    3.5,
+        "price_trend_mode":  PRICE_TREND_NONE,
+        "price_trend_rate":  3.5,
         # ── Grace Period ──────────────────────────────────────────────────────
         "grace_enabled":   False,
         "grace_start":     1,
@@ -6308,6 +6547,7 @@ def record_audit_entry(t: dict, sym: str,
         "currency":         t.get("audit_field_currency",   "Currency"),
         "term_input_mode":  t.get("audit_field_term_mode",  "Term input mode"),
         "day_count_method": t.get("audit_field_dc_method",  "Day-count method"),
+        "price_trend":      t.get("audit_field_price_trend", "Price trend"),
         "start_date":       t.get("audit_field_start_date", "Start date"),
         "one_time":         t.get("audit_field_one_time",   "One-time fee"),
         "monthly":          t.get("audit_field_monthly",    "Periodic fee"),
@@ -6378,8 +6618,9 @@ TEMPLATE_FIELDS = [
     "term_input_mode", "end_date",
     # Grace period
     "grace_enabled", "grace_start", "grace_duration", "grace_type",
-    # Inflation
+    # Inflation / Deflation
     "inflation_enabled", "inflation_rate",
+    "price_trend_mode", "price_trend_rate",
     # Risk metrics
     "ltv_enabled", "ltv_collateral",
     "dscr_enabled", "dscr_noi",
@@ -7609,22 +7850,60 @@ def main():
                     if st.session_state.grace_type == "full_holiday":
                         st.info(t.get("info_full_holiday", ""), icon="⚠️")
 
-        # ── Учёт инфляции ─────────────────────────────────────────────────────
-        with st.expander(t.get("inflation_expander", "Inflation Accounting"),
+        # ── Учёт инфляции / дефляции ──────────────────────────────────────────
+        with st.expander(t.get("price_trend_expander", "Inflation / Deflation Adjustment"),
                           expanded=False):
-            st.session_state.inflation_enabled = st.checkbox(
-                t.get("inflation_toggle", "Enable Inflation Adjustment"),
-                value=st.session_state.inflation_enabled,
-                help=t.get("help_inflation_toggle", ""),
-                key="cb_inflation")
-            if st.session_state.inflation_enabled:
-                st.session_state.inflation_rate = st.number_input(
-                    t.get("inflation_rate", "Expected Annual Inflation (%)"),
-                    min_value=-50.0, max_value=200.0,
-                    value=float(st.session_state.inflation_rate),
-                    step=0.5, format="%.1f", key="ni_inflation",
-                    help=t.get("help_inflation_rate", ""))
-                st.caption(t.get("caption_inflation", ""))
+            # Three explicit modes; the user picks a direction and types a
+            # POSITIVE magnitude. Deflation is a first-class choice here, not
+            # "inflation with a minus sign".
+            _trend_opts = [
+                (PRICE_TREND_NONE,      t.get("price_trend_none", "None")),
+                (PRICE_TREND_INFLATION, t.get("price_trend_inflation", "Inflation (prices rise)")),
+                (PRICE_TREND_DEFLATION, t.get("price_trend_deflation", "Deflation (prices fall)")),
+            ]
+            _trend_keys = [k for k, _ in _trend_opts]
+            _cur_mode = st.session_state.get("price_trend_mode", PRICE_TREND_NONE)
+            if _cur_mode not in _trend_keys:
+                _cur_mode = PRICE_TREND_NONE
+            _sel_label = st.radio(
+                t.get("price_trend_label", "Price trend"),
+                options=[lbl for _, lbl in _trend_opts],
+                index=_trend_keys.index(_cur_mode),
+                help=t.get("help_price_trend", ""),
+                key="rb_price_trend")
+            # Map the chosen label back to its canonical mode key.
+            st.session_state.price_trend_mode = next(
+                k for k, lbl in _trend_opts if lbl == _sel_label)
+
+            if st.session_state.price_trend_mode != PRICE_TREND_NONE:
+                _is_def = (st.session_state.price_trend_mode == PRICE_TREND_DEFLATION)
+                _rate_lbl = (t.get("deflation_rate", "Expected Annual Deflation (%)")
+                             if _is_def
+                             else t.get("inflation_rate", "Expected Annual Inflation (%)"))
+                _rate_help = (t.get("help_deflation_rate", "")
+                              if _is_def else t.get("help_inflation_rate", ""))
+                _rate_cap = (t.get("caption_deflation", "")
+                             if _is_def else t.get("caption_inflation", ""))
+                # Magnitude is ALWAYS a positive number; direction lives in the
+                # mode. Cap deflation below the maths-breakdown bound.
+                _rate_max = (DEFLATION_RATE_MAX if _is_def else INFLATION_RATE_MAX)
+                _cur_rate = abs(float(st.session_state.get("price_trend_rate", 3.5) or 0.0))
+                _cur_rate = min(_cur_rate, _rate_max)
+                st.session_state.price_trend_rate = st.number_input(
+                    _rate_lbl,
+                    min_value=0.0, max_value=_rate_max,
+                    value=_cur_rate,
+                    step=0.5, format="%.1f", key="ni_price_trend",
+                    help=_rate_help)
+                st.caption(_rate_cap)
+            # Keep legacy fields in sync so any code still reading them (and the
+            # audit/template snapshots) sees a consistent signed view.
+            _signed = resolve_price_trend_rate(
+                st.session_state.price_trend_mode,
+                st.session_state.get("price_trend_rate", 0.0))
+            st.session_state.inflation_enabled = (
+                st.session_state.price_trend_mode != PRICE_TREND_NONE and _signed != 0.0)
+            st.session_state.inflation_rate = _signed
 
         # ── DSCR (Business Analysis) ──────────────────────────────────────────
         if is_loan_scheme:
@@ -7705,6 +7984,8 @@ def main():
                 "currency":        str(st.session_state.currency),
                 "term_input_mode": str(st.session_state.term_input_mode),
                 "day_count_method": str(st.session_state.day_count_method),
+                "price_trend":     f"{st.session_state.get('price_trend_mode', PRICE_TREND_NONE)}"
+                                    f"/{abs(float(st.session_state.get('price_trend_rate', 0.0) or 0.0)):.2f}",
                 "start_date":      str(st.session_state.start_date),
                 "one_time":        f"{float(st.session_state.one_time_val):.4f}"
                                     f"/{st.session_state.one_time_type}",
@@ -7751,6 +8032,8 @@ def main():
                     grace_type=st.session_state.grace_type,
                     inflation_enabled=st.session_state.inflation_enabled,
                     inflation_rate=st.session_state.inflation_rate,
+                    price_trend_mode=st.session_state.get("price_trend_mode", PRICE_TREND_NONE),
+                    price_trend_rate=st.session_state.get("price_trend_rate", 0.0),
                     ltv_enabled=st.session_state.ltv_enabled,
                     ltv_collateral=st.session_state.ltv_collateral,
                     dscr_enabled=st.session_state.dscr_enabled,
@@ -8969,19 +9252,36 @@ def _render_breakeven_panel(t, smry):
 #  ИНФЛЯЦИЯ — Real vs Nominal Cost
 # ─────────────────────────────────────────────────────────────────────────────
 def _render_inflation_panel(t, smry, sym):
-    """Рендерит блок Real vs Nominal Cost при включённом учёте инфляции."""
+    """
+    Renders the Real-vs-Nominal cost block. Direction-aware: under inflation it
+    shows a "discount" (real cost below nominal); under deflation it shows a
+    "surcharge" (real cost above nominal). Both are driven by the same PV maths;
+    only the framing, labels and sign differ.
+    """
     if not smry.get("inflation_enabled") or smry.get("real_cost") is None:
         return
 
-    st.markdown(
-        f"<div class='sec-title'>{t.get('inflation_section', 'Real vs Nominal Cost')}</div>",
-        unsafe_allow_html=True,
-    )
+    mode = smry.get("price_trend_mode") or PRICE_TREND_INFLATION
+    is_deflation = (mode == PRICE_TREND_DEFLATION)
 
     nominal  = smry["total_payment"]
     real     = smry["real_cost"]
-    savings  = smry.get("inflation_savings") or (nominal - real)
-    inf_rate = smry.get("inflation_rate") or 0.0
+    # inflation_savings is signed: positive under inflation (nominal − real > 0),
+    # negative under deflation (nominal − real < 0). For display we present the
+    # deflation figure as a POSITIVE surcharge so the user never sees a confusing
+    # "negative discount".
+    signed_gap = smry.get("inflation_savings")
+    if signed_gap is None:
+        signed_gap = nominal - real
+    magnitude = smry.get("price_trend_rate")
+    if magnitude is None:
+        magnitude = abs(smry.get("inflation_rate") or 0.0)
+
+    section_key = "deflation_section" if is_deflation else "inflation_section"
+    st.markdown(
+        f"<div class='sec-title'>{t.get(section_key, '💰 Nominal vs Real Cost')}</div>",
+        unsafe_allow_html=True,
+    )
 
     c1, c2, c3 = st.columns(3)
     c1.metric(
@@ -8992,22 +9292,42 @@ def _render_inflation_panel(t, smry, sym):
     c2.metric(
         label=t.get("real_cost", "Real Total Cost (PV)"),
         value=fmt_money(real, sym),
-        help=t.get("help_real_cost_long", "") + "\n\n" + t.get("help_real", ""),
+        help=((t.get("help_deflation_real_long", "") if is_deflation
+               else t.get("help_real_cost_long", "")) + "\n\n" + t.get("help_real", "")),
     )
-    delta_pct = -savings / nominal * 100 if nominal > 0 else 0
-    c3.metric(
-        label=t.get("inflation_savings", "Inflation Discount"),
-        value=fmt_money(savings, sym),
-        delta=f"{delta_pct:.1f}%" if nominal > 0 else "—",
-        help=t.get("help_disc", ""),
-    )
+    # Third metric: discount (inflation) vs surcharge (deflation).
+    display_gap = abs(signed_gap)
+    delta_pct = (display_gap / nominal * 100) if nominal > 0 else 0
+    if is_deflation:
+        c3.metric(
+            label=t.get("deflation_surcharge", "Deflation Surcharge"),
+            value=fmt_money(display_gap, sym),
+            # Surcharge raises real cost → show as a negative (red) delta to
+            # signal "costs more", mirroring the positive (green) discount.
+            delta=(f"-{delta_pct:.1f}%" if nominal > 0 else "—"),
+            help=t.get("help_deflation_surcharge", ""),
+        )
+    else:
+        c3.metric(
+            label=t.get("inflation_savings", "Inflation Discount"),
+            value=fmt_money(display_gap, sym),
+            delta=(f"{delta_pct:.1f}%" if nominal > 0 else "—"),
+            help=t.get("help_disc", ""),
+        )
 
-    inflation_note = t.get('inflation_note',
-        "Real cost discounts future payments to today's purchasing power.")
-    rate_lbl = t.get('inflation_rate', 'Inflation')
-    full_caption = t.get("caption_inflation_full",
-        "💡 {note} Inflation 'eats' the real value of money over time.").format(note=inflation_note)
-    st.caption(f"{full_caption}  ({rate_lbl}: {inf_rate:.1f}%)")
+    if is_deflation:
+        note = t.get("deflation_note",
+            "Under deflation, future payments cost more in today's purchasing power.")
+        rate_lbl = t.get("deflation_rate", "Deflation")
+        full_caption = t.get("caption_deflation_full",
+            "💡 {note} Deflation raises the real value of money over time.").format(note=note)
+    else:
+        note = t.get("inflation_note",
+            "Real cost discounts future payments to today's purchasing power.")
+        rate_lbl = t.get("inflation_rate", "Inflation")
+        full_caption = t.get("caption_inflation_full",
+            "💡 {note} Inflation 'eats' the real value of money over time.").format(note=note)
+    st.caption(f"{full_caption}  ({rate_lbl}: {magnitude:.1f}%)")
 
 
 # ─────────────────────────────────────────────────────────────────────────────
