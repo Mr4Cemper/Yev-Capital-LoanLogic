@@ -3472,26 +3472,45 @@ def _run_syndicated(tranches: list[dict], t: dict, sym: str,
     # Build display DataFrame
     rows = []
     for i, row in enumerate(master):
+        # Derive each row's displayed payment from its ROUNDED components so
+        # every row satisfies payment == principal + interest + commission
+        # exactly. The master's own `payment` is summed across tranches and can
+        # round 1 cent away from round(P)+round(I)+round(C); deriving it here
+        # keeps each row — and therefore the TOTAL — internally consistent
+        # (matching the single-loan display contract).
+        r_princ = round(row["principal"],  2)
+        r_int   = round(row["interest"],   2)
+        r_comm  = round(row["commission"], 2)
+        r_pay   = round(r_princ + r_int + r_comm, 2)
         rows.append({
             t["period"]:        row["period"],
             t["date"]:          dates[i],
             t["balance_open"]:  round(row["balance_open"], 2),
-            t["payment_total"]: round(row["payment"], 2),
-            t["principal"]:     round(row["principal"], 2),
-            t["interest"]:      round(row["interest"], 2),
-            t["commission"]:    round(row["commission"], 2),
+            t["payment_total"]: r_pay,
+            t["principal"]:     r_princ,
+            t["interest"]:      r_int,
+            t["commission"]:    r_comm,
             t["balance_close"]: round(row["balance_close"], 2),
         })
     df = pd.DataFrame(rows)
 
+    # Display-reconciled TOTAL row: sum the per-row ROUNDED values so a hand-sum
+    # of each displayed column equals the TOTAL row exactly (round(Σx) ≠ Σround(x),
+    # so we use the latter for what the user sees — matching the single-loan
+    # path). The precise unrounded aggregates remain in `totals`/the summary for
+    # APR and other internal math.
+    disp_princ = round(sum(round(r["principal"],   2) for r in master), 2)
+    disp_int   = round(sum(round(r["interest"],    2) for r in master), 2)
+    disp_comm  = round(sum(round(r["commission"],  2) for r in master), 2)
+    disp_pay   = round(disp_princ + disp_int + disp_comm, 2)
     total_row = {
         t["period"]:        t["total_row"],
         t["date"]:          "",
         t["balance_open"]:  "",
-        t["payment_total"]: round(totals["total_payment"],    2),
-        t["principal"]:     round(totals["total_principal"],  2),
-        t["interest"]:      round(totals["total_interest"],   2),
-        t["commission"]:    round(totals["total_commission"], 2),
+        t["payment_total"]: disp_pay,
+        t["principal"]:     disp_princ,
+        t["interest"]:      disp_int,
+        t["commission"]:    disp_comm,
         t["balance_close"]: "",
     }
     df_with_total = pd.concat([df, pd.DataFrame([total_row])], ignore_index=True)
@@ -3769,6 +3788,18 @@ def run_calculation(principal, n, rate_pa, unit, scheme,
     disp_comm      = round(sum(round(r["commission"],2) for r in sched) + round(ot_comm, 2), 2)
     disp_payment   = round(disp_principal + disp_interest + disp_comm, 2)
 
+    # Headline summary interest (the metric card and overpay_pct). This must be
+    # the ECONOMIC interest so the three headline metrics reconcile against the
+    # ORIGINAL principal: total_payment == principal + total_interest +
+    # total_commission. Under full_holiday grace, capitalized interest sits in
+    # the schedule's principal column, so disp_interest (the interest-column
+    # sum) understates it; we add back the capitalized portion
+    # (disp_principal − original principal) so the headline figure matches what
+    # the borrower truly pays beyond principal and fees. Without capitalization
+    # disp_principal == principal, so this reduces to disp_interest unchanged.
+    capitalized = round(disp_principal - round(principal, 2), 2)
+    summary_interest = round(disp_interest + max(capitalized, 0.0), 2)
+
     total_row = {
         t["period"]:        t["total_row"],
         t["date"]:          "",
@@ -3886,7 +3917,7 @@ def run_calculation(principal, n, rate_pa, unit, scheme,
         "commission_per_period": mo_comm,
         "start_date":            start_date or date.today(),
         "total_payment":         disp_payment,
-        "total_interest":        disp_interest,
+        "total_interest":        summary_interest,
         "total_commission":      disp_comm,
         # Precise (unrounded) aggregates retained for any downstream math that
         # needs full precision rather than the cent-reconciled display values.
@@ -3902,7 +3933,7 @@ def run_calculation(principal, n, rate_pa, unit, scheme,
         "day_count_enabled":     day_count_enabled,
         "day_count_method":      day_count_method if day_count_enabled else None,
         "first_payment":         first_pmt,
-        "overpay_pct":           tot_interest / principal * 100 if principal > 0 else 0,
+        "overpay_pct":           summary_interest / principal * 100 if principal > 0 else 0,
         "one_time_comm":         ot_comm,
         "df_chart":              df_chart,
         "principal":             principal,
