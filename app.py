@@ -178,7 +178,7 @@ TRANSLATIONS = {
         "template_name_empty": "Введите название шаблона",
         "template_overwrite_warn": "⚠️ Шаблон «{name}» уже существует. Нажмите «Сохранить» ещё раз, чтобы перезаписать.",
         "currency": "Валюта",
-        "uah": "₴ Гривня (UAH)", "usd": "$ Доллар (USD)", "eur": "€ Евро (EUR)",
+        "uah": "₴ Гривна (UAH)", "usd": "$ Доллар (USD)", "eur": "€ Евро (EUR)",
         "rub": "₽ Рубль (RUB)", "gbp": "£ Фунт стерлингов (GBP)",
         "jpy": "¥ Иена (JPY)", "cad": "C$ Канадский доллар (CAD)",
         "aud": "A$ Австралийский доллар (AUD)", "chf": "Fr Швейцарский франк (CHF)",
@@ -628,7 +628,7 @@ TRANSLATIONS = {
         "calc_scheme": "Схема розрахунку",
         "annuity": "Ануїтет",
         "classic": "Класика (диференційований)",
-        "balloon": "Бульовий (Balloon Payment)",
+        "balloon": "Буліт (Bullet / Balloon)",
         "deposit_scheme": "Вклад / Депозит",
         "section_commissions": "💼 Комісії",
         "one_time_comm": "Разова комісія",
@@ -755,26 +755,26 @@ TRANSLATIONS = {
         "end_date_hint":       "Термін перерахується автоматично в повних періодах",
         "chart_balance_title": "📉 Залишок боргу",
         "chart_balance_hover": "Залишок",
-        "balloon_short":       "Бульовий",
+        "balloon_short":       "Буліт",
         "balloon_breakeven":       "Break-even інвестицій",
-        "balloon_breakeven_tip":   "Мінімальна річна дохідність інвестицій (складний %), при якій бульова схема вигідніша за ануїтет.",
-        "balloon_breakeven_label": "Аналіз Break-even (Бульовий)",
-        "balloon_breakeven_desc":  "Мін. дохідність інвестицій для виправдання бульової схеми",
+        "balloon_breakeven_tip":   "Мінімальна річна дохідність інвестицій (складний %), при якій схема «буліт» вигідніша за ануїтет.",
+        "balloon_breakeven_label": "Аналіз Break-even (Буліт)",
+        "balloon_breakeven_desc":  "Мін. дохідність інвестицій для виправдання схеми «буліт»",
         "term_caption":        "міс. / рок.",
         "welcome_h2":  "Введіть параметри та натисніть",
         "welcome_calc": "Розрахувати",
-        "welcome_sub": "Ануїтет · Класика · Бульовий · Вклад<br>Експорт Excel / PDF / Word / CSV · Порівняння з інвестиціями",
+        "welcome_sub": "Ануїтет · Класика · Буліт · Вклад<br>Експорт Excel / PDF / Word / CSV · Порівняння з інвестиціями",
         "tab_balance": "📉 Залишок боргу",
         "copyright": "© 2026 Bohdan Yevtushenko (MrCemper) · Yev Capital LoanLogic v3.0",
         "invest_breakeven_section":      "📐 Аналіз інвест-беззбитковості",
         "invest_breakeven_universal":    "Універсальна ставка беззбитковості",
         "invest_breakeven_universal_tip":"Річна дохідність, при якій реінвестування платежів повністю перекриє переплату за відсотками.",
-        "invest_breakeven_abs":          "Абсолютна беззбитковість (Бульовий)",
+        "invest_breakeven_abs":          "Абсолютна беззбитковість (Буліт)",
         "invest_breakeven_abs_tip":      "Мінімальна дохідність, при якій FV заощаджених коштів покриє всю переплату.",
-        "invest_breakeven_vs_ann":       "Vs. Ануїтет (Бульовий)",
-        "invest_breakeven_vs_ann_tip":   "Мінімальна дохідність, при якій бульовий вигідніший за ануїтет.",
-        "invest_breakeven_vs_cla_balloon":     "Vs. Класика (Бульовий)",
-        "invest_breakeven_vs_cla_balloon_tip": "Мінімальна річна дохідність, при якій бульова схема (з відкладеною виплатою тіла) до кінця терміну досягає того ж результату, що й класична.",
+        "invest_breakeven_vs_ann":       "Vs. Ануїтет (Буліт)",
+        "invest_breakeven_vs_ann_tip":   "Мінімальна дохідність, при якій буліт вигідніший за ануїтет.",
+        "invest_breakeven_vs_cla_balloon":     "Vs. Класика (Буліт)",
+        "invest_breakeven_vs_cla_balloon_tip": "Мінімальна річна дохідність, при якій схема «буліт» (з відкладеною виплатою тіла) до кінця терміну досягає того ж результату, що й класична.",
         "invest_breakeven_vs_cla_annuity":     "Vs. Класика (Ануїтет)",
         "invest_breakeven_vs_cla_annuity_tip": "Мінімальна річна дохідність, при якій інвестування зекономлених коштів (ануїтет у ранні періоди дешевший за класику) компенсує переплату в пізні періоди.",
         "annuity_be_caption":            "Якщо ви можете заробляти ≥ цієї ставки на зекономлених у ранні періоди грошах — ануїтет до кінця терміну буде не гіршим, ніж класика.",
@@ -2547,9 +2547,16 @@ def calc_pairwise_breakeven(chosen_payments: list,
                 total += d * (1.0 + r_per) ** (n - i)
             return total
         except OverflowError:
-            # If diff has at least one positive entry, FV → +∞; otherwise →
-            # −∞. Use the sign of the largest-magnitude diff as a proxy.
-            return float('inf') if max(diff) > 0 else float('-inf')
+            # At a compounding rate large enough to overflow float, the term
+            # with the LARGEST exponent dominates the sum. In this FV the
+            # exponent is (n - i), so the EARLIEST non-negligible diff (smallest
+            # i) dominates — NOT the largest-magnitude diff. Using max(diff)
+            # would pick the wrong sign whenever the early flows are negative
+            # but a later flow is the biggest positive (or vice-versa).
+            for d in diff:
+                if abs(d) > 1e-9:
+                    return float('inf') if d > 0 else float('-inf')
+            return 0.0
 
     # If FV(0) < 0 ⇒ even with zero return, accumulated savings don't reach
     # the deficit. We need a HIGHER return; root must lie in (0, +∞).
@@ -3732,9 +3739,24 @@ def run_calculation(principal, n, rate_pa, unit, scheme,
     df = pd.DataFrame(rows)
 
     # Precise (unrounded) aggregates — used for internal math (APR, ratios).
-    tot_interest = sum(r["interest"]   for r in sched)
-    tot_comm     = sum(r["commission"] for r in sched) + ot_comm
-    tot_payment  = principal + tot_interest + tot_comm
+    # NOTE: under full_holiday grace, capitalized interest is rolled into the
+    # rows' PRINCIPAL column, so Σ(row principal) can exceed the original
+    # principal and Σ(row interest) captures only interest charged on the
+    # outstanding balance. We therefore derive the aggregates directly from the
+    # actual schedule rows (what the borrower truly pays) rather than assuming
+    # the identity Σprincipal == principal, which only holds without
+    # capitalization. tot_payment is the genuine sum of period cash flows plus
+    # the one-time fee; tot_interest is the economic interest (total paid minus
+    # principal returned minus commissions).
+    sum_row_principal = sum(r["principal"] for r in sched)
+    sum_row_interest  = sum(r["interest"]  for r in sched)
+    sum_row_comm      = sum(r["commission"] for r in sched)
+    tot_comm     = sum_row_comm + ot_comm
+    tot_payment  = sum_row_principal + sum_row_interest + tot_comm
+    # Economic interest = everything paid toward interest, including any portion
+    # that was capitalized into principal during a full holiday. Equivalent to
+    # (total paid − original principal − commissions).
+    tot_interest = tot_payment - principal - tot_comm
 
     # Display aggregates — sum of the per-row ROUNDED values so the visible
     # TOTAL row reconciles exactly with a hand-sum of the displayed columns
@@ -4036,7 +4058,17 @@ def _run_deposit(principal, n, rate_pa, unit, mode, sym, t, start_date=None,
         "sym":             sym,
         "unit":            unit,
         # Совместимость с общим кодом:
-        "total_payment":   final_balance,
+        # total_payment = total cash the depositor RECEIVES over the deposit's
+        # life, defined consistently across both modes:
+        #   • capitalize → interest is retained and compounded, so everything
+        #     comes back as the single final_balance.
+        #   • payout     → interest is paid out each period AND the principal is
+        #     returned at maturity, so the total received is final_balance
+        #     (= principal) PLUS the sum of payouts. Using just final_balance
+        #     here would understate the depositor's total receipts and make the
+        #     field mean different things in each mode.
+        "total_payment":   (final_balance if mode == "capitalize"
+                             else final_balance + total_payout),
         "total_interest":  total_earned,
         "total_commission":0,
         "first_payment":   sched[0]["interest"],
