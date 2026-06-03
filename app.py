@@ -2869,16 +2869,27 @@ def calc_balloon_absolute_breakeven(principal: float, n: int, rate_pa: float,
     return result if result >= 0 else None
 
 
-def calc_real_cost(payments: list, annual_inflation_pct: float, unit: str) -> float:
+def calc_real_cost(payments: list, annual_inflation_pct: float, unit: str,
+                   period_year_fractions=None) -> float:
     """
     Реальная стоимость кредита (Present Value):
     дисконтирует будущие платежи к сегодняшней покупательной способности.
-        PV = Σ payment_t / (1 + r_inflation_per_period)^t
+        PV = Σ payment_t / (1 + r_inflation_per_period)^τ_t
 
     Поддерживает положительную инфляцию (PV < nominal — переплата «съедается»),
     нулевую инфляцию (PV = nominal) и отрицательную инфляцию / дефляцию
     (PV > nominal — будущие деньги дороже нынешних). Старая версия молча
     возвращала sum(payments) при rate ≤ 0, что скрывало случай дефляции.
+
+    Дисконт-таймлайн τ_t:
+      • uniform (period_year_fractions=None): τ_t = t (индекс периода). Каждый
+        период считается равным 1/ppy года — стандартное приближение.
+      • date-exact (передан список из n year-fractions, тех же, что начисляют
+        проценты в day-count режиме): τ_t = (Σ_{k≤t} year_fraction_k) · ppy —
+        накопленное «число периодов», измеренное фактической длиной периодов.
+        Периодическая СТАВКА не меняется (r = i_annual/ppy); меняется только
+        ПОКАЗАТЕЛЬ степени, чтобы PV учитывал реальные длины периодов согласованно
+        с day-count начислением (для равных месяцев τ_t = t, поведение прежнее).
 
     Sanity: для (1 + r) > 0 формула работает. Запрещаем только r ≤ -100%/period
     (это означало бы «вообще никакой денежной системы»).
@@ -2893,7 +2904,17 @@ def calc_real_cost(payments: list, annual_inflation_pct: float, unit: str) -> fl
         # Дегенеративный случай: дисконт-фактор неположителен. Возвращаем
         # nominal как наименее опасное значение и сигнализируем через caller.
         return float(sum(payments))
-    return sum(p / (1.0 + r) ** (t + 1) for t, p in enumerate(payments))
+    # Build the discount exponents. Date-exact only when the supplied fractions
+    # line up with the payment count; any mismatch falls back to uniform.
+    if period_year_fractions is not None and len(period_year_fractions) == len(payments):
+        exps = []
+        _acc = 0.0
+        for _f in period_year_fractions:
+            _acc += float(_f)
+            exps.append(_acc * ppy)   # cumulative "periods" by actual time
+    else:
+        exps = [t + 1 for t in range(len(payments))]
+    return sum(p / (1.0 + r) ** e for p, e in zip(payments, exps))
 
 
 def discount_payments_to_pv(payments: list, annual_inflation_pct: float,
@@ -3764,7 +3785,14 @@ def _run_syndicated(tranches: list[dict], t: dict, sym: str,
     # Blended APR — None means root-finder failed; UI surfaces it
     blended_apr_error = None
     try:
-        blended_apr = calc_syndicated_blended_apr(per_tranche)
+        # When day-count is enabled, discount the blended APR on the actual date
+        # timeline (consistent with the date-exact interest the tranches accrue),
+        # mirroring the single-loan effective-rate behaviour. Off → uniform.
+        blended_apr = calc_syndicated_blended_apr(
+            per_tranche,
+            day_count=day_count_method if day_count_enabled else None,
+            start_date=start_date if day_count_enabled else None,
+        )
         if blended_apr is None:
             blended_apr_error = "irr_failure"
             # Keep None — do not fake "0%" which would be both wrong and
@@ -3779,9 +3807,18 @@ def _run_syndicated(tranches: list[dict], t: dict, sym: str,
     if inflation_enabled and inflation_rate != 0:
         try:
             full_payments = [r["payment"] for r in master]
+            # In day-count mode discount the PV on the actual monthly-date
+            # timeline (same fractions the tranche interest accrues on), keeping
+            # it consistent with the date-exact blended APR. Off → uniform.
+            synd_yf = None
+            if day_count_enabled and start_date is not None:
+                _smd = period_dates_for_schedule(start_date, len(master), "months")
+                synd_yf = [year_fraction(_smd[k], _smd[k + 1], day_count_method)
+                           for k in range(len(master))]
             # One-time fees are paid at t=0 and remain undiscounted; they are
             # added after computing the PV of the future payment stream.
-            pv_future = calc_real_cost(full_payments, inflation_rate, "months")
+            pv_future = calc_real_cost(full_payments, inflation_rate, "months",
+                                       period_year_fractions=synd_yf)
             ot_fee_today = totals.get("total_one_time_comm", 0) or 0
             real_cost_val = pv_future + ot_fee_today
             inflation_savings = totals["total_payment"] - real_cost_val
@@ -4111,20 +4148,22 @@ def run_calculation(principal, n, rate_pa, unit, scheme,
     } for r in sched])
 
     ppy = periods_per_year(unit)
+    # Date-exact discount timeline for day-count mode: the per-period
+    # year-fractions used to accrue interest. Computed ONCE here and reused by
+    # both the effective-rate IRR and the inflation/deflation PV so all
+    # date-aware metrics share the SAME timeline as interest accrual. Matches
+    # len(sched) (grace may re-amortise but the monthly period dates — and thus
+    # the fractions — are unchanged). None when day-count is off → uniform.
+    period_yf = None
+    if dc_method and dc_start is not None:
+        _n_eff = len(sched)
+        _dts_eff = period_dates_for_schedule(dc_start, _n_eff, unit)
+        period_yf = [year_fraction(_dts_eff[i], _dts_eff[i + 1], dc_method)
+                     for i in range(_n_eff)]
     eff_error = None
     try:
         # In day-count mode the schedule's interest was accrued on actual date
-        # fractions, so discount the APR on the SAME timeline (cumulative
-        # year-fractions) instead of assuming uniform months. Built to match
-        # len(sched) exactly — grace may re-amortise but the period dates (and
-        # thus the per-period fractions) are unchanged. When day-count is off,
-        # period_yf stays None and calc_effective_rate uses uniform periods.
-        period_yf = None
-        if dc_method and dc_start is not None:
-            _n_eff = len(sched)
-            _dts_eff = period_dates_for_schedule(dc_start, _n_eff, unit)
-            period_yf = [year_fraction(_dts_eff[i], _dts_eff[i + 1], dc_method)
-                         for i in range(_n_eff)]
+        # fractions, so discount the APR on the SAME timeline (period_yf).
         eff = calc_effective_rate(principal, sched, ot_comm, ppy,
                                   period_year_fractions=period_yf)
         if eff is None:
@@ -4195,8 +4234,11 @@ def run_calculation(principal, n, rate_pa, unit, scheme,
     if inflation_enabled and inflation_rate != 0:
         try:
             # The one-time commission is paid AT t=0 — undiscounted; the
-            # periodic payments are discounted as future cash flows.
-            pv_future = calc_real_cost(payments_list, inflation_rate, unit)
+            # periodic payments are discounted as future cash flows. In
+            # day-count mode use the same date-exact timeline (period_yf) the
+            # APR and interest accrual use, so all date-aware figures agree.
+            pv_future = calc_real_cost(payments_list, inflation_rate, unit,
+                                       period_year_fractions=period_yf)
             ot_today  = ot_comm if ot_comm > 0 else 0
             real_cost_val = pv_future + ot_today
             # Compare against the DISPLAYED nominal total (`disp_payment`), not
@@ -6428,7 +6470,9 @@ def calc_syndicated_master_schedule(
     return master, totals, per_tranche
 
 
-def calc_syndicated_blended_apr(per_tranche: list[dict]) -> float | None:
+def calc_syndicated_blended_apr(per_tranche: list[dict],
+                                day_count: str | None = None,
+                                start_date: date | None = None) -> float | None:
     """
     Blended APR across all tranches via IRR on the consolidated cash-flow.
 
@@ -6448,7 +6492,18 @@ def calc_syndicated_blended_apr(per_tranche: list[dict]) -> float | None:
         CF_offset_k  = -(amount_k - ot_comm_k)       — net disbursement at offset
         CF_{offset_k + i} += payment_k_i             — periodic inflow
 
-    NPV(r) = Σ_t CF_t / (1+r)^t = 0
+    NPV(r) = Σ_t CF_t / (1+r)^τ_t = 0
+
+    Discounting mode mirrors the single-loan APR:
+      • uniform (day_count=None): τ_t = t integer months, annualised via
+        (1+r)^12 − 1.
+      • date-exact (day_count + start_date given): the consolidated cash flows
+        sit on the monthly master grid, but each is discounted at its CUMULATIVE
+        time-in-years τ_t (sum of monthly year-fractions from start_date under
+        the chosen day-count method), and the solved rate is already annual.
+        This keeps the blended APR consistent with the date-exact interest the
+        tranche schedules accrue when day-count is enabled, instead of assuming
+        every month is 1/12 of a year (a ~1–2 bps difference otherwise).
 
     Robust solver:
       1. Newton's method (fast on well-shaped problems).
@@ -6488,12 +6543,33 @@ def calc_syndicated_blended_apr(per_tranche: list[dict]) -> float | None:
             if t < len(cfs):
                 cfs[t] += float(row["payment"])
 
+    # Discount-time axis τ_t for each monthly cash-flow slot.
+    #   • date-exact: τ_0 = 0, τ_t = cumulative year-fraction from start_date to
+    #     month t (consecutive monthly fractions under the day-count method).
+    #   • uniform:    τ_t = t.
+    date_exact = (day_count is not None and start_date is not None)
+    if date_exact:
+        _n_months = len(cfs) - 1
+        _mdates = period_dates_for_schedule(start_date, _n_months, "months")
+        times = [0.0]
+        _acc = 0.0
+        for _k in range(_n_months):
+            _acc += year_fraction(_mdates[_k], _mdates[_k + 1], day_count)
+            times.append(_acc)
+    else:
+        times = [float(t) for t in range(len(cfs))]
+
     def npv(r: float) -> float:
-        return sum(cfs[t] / (1.0 + r) ** t for t in range(len(cfs)))
+        return sum(cfs[t] / (1.0 + r) ** times[t] for t in range(len(cfs)))
 
     def dnpv(r: float) -> float:
-        return sum(-t * cfs[t] / (1.0 + r) ** (t + 1)
+        return sum(-times[t] * cfs[t] / (1.0 + r) ** (times[t] + 1)
                     for t in range(1, len(cfs)))
+
+    def _annualise(r: float) -> float:
+        # Date-exact rates are already annual (τ in years); uniform per-month
+        # rates need the (1+r)^12 − 1 conversion.
+        return (r * 100.0) if date_exact else (((1.0 + r) ** 12 - 1.0) * 100.0)
 
     # ── Phase 1: Newton with safe bounds ──────────────────────────────────────
     r_newton = 0.01
@@ -6517,7 +6593,7 @@ def calc_syndicated_blended_apr(per_tranche: list[dict]) -> float | None:
     if converged and abs(npv(r_newton)) < 1e-3:
         if r_newton <= -1:
             return None
-        return ((1.0 + r_newton) ** 12 - 1.0) * 100.0
+        return _annualise(r_newton)
 
     # ── Phase 2: bracket + bisection ──────────────────────────────────────────
     lo, hi = -0.99, 5.0
@@ -6529,7 +6605,7 @@ def calc_syndicated_blended_apr(per_tranche: list[dict]) -> float | None:
         mid = (lo + hi) / 2
         f_mid = npv(mid)
         if abs(f_mid) < 1e-6:
-            return ((1.0 + mid) ** 12 - 1.0) * 100.0
+            return _annualise(mid)
         if f_lo * f_mid < 0:
             hi, f_hi = mid, f_mid
         else:
@@ -6542,7 +6618,7 @@ def calc_syndicated_blended_apr(per_tranche: list[dict]) -> float | None:
         return None  # residual too large — declare failure
     if r_final <= -1:
         return None
-    return ((1.0 + r_final) ** 12 - 1.0) * 100.0
+    return _annualise(r_final)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
