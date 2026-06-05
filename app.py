@@ -41,7 +41,7 @@ from reportlab.lib.pagesizes import A4
 from reportlab.lib import colors as rl_colors
 from reportlab.platypus import (SimpleDocTemplate, Table, TableStyle,
                                  Paragraph, Spacer, HRFlowable)
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.units import cm
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
@@ -312,6 +312,12 @@ TRANSLATIONS = {
         "nominal_cost":            "Номинальная стоимость",
         "real_cost":               "Реальная стоимость (PV)",
         "inflation_savings":       "Скидка на инфляцию",
+        "nominal_value":           "Номинальная стоимость",
+        "real_value":              "Реальная стоимость (PV)",
+        "inflation_erosion":       "Потери от инфляции",
+        "deflation_bonus":         "Выгода от дефляции",
+        "dep_inflation_caption":   "💡 Инфляция снижает реальную стоимость ваших будущих выплат по вкладу.",
+        "dep_deflation_caption":   "💡 Дефляция повышает реальную стоимость ваших будущих выплат по вкладу.",
         "inflation_note":          "Реальная стоимость дисконтирует будущие платежи к сегодняшней покупательной способности.",
         # ── Режим динамики цен (инфляция / дефляция как полноценный выбор) ─────
         "price_trend_expander":    "Учёт инфляции / дефляции",
@@ -803,6 +809,12 @@ TRANSLATIONS = {
         "nominal_cost":            "Номінальна вартість",
         "real_cost":               "Реальна вартість (PV)",
         "inflation_savings":       "Знижка на інфляцію",
+        "nominal_value":           "Номінальна вартість",
+        "real_value":              "Реальна вартість (PV)",
+        "inflation_erosion":       "Втрати від інфляції",
+        "deflation_bonus":         "Вигода від дефляції",
+        "dep_inflation_caption":   "💡 Інфляція знижує реальну вартість ваших майбутніх виплат за вкладом.",
+        "dep_deflation_caption":   "💡 Дефляція підвищує реальну вартість ваших майбутніх виплат за вкладом.",
         "inflation_note":          "Реальна вартість дисконтує майбутні платежі до сьогоднішньої купівельної спроможності.",
         # ── Режим динаміки цін (інфляція / дефляція як повноцінний вибір) ──────
         "price_trend_expander":    "Облік інфляції / дефляції",
@@ -1295,6 +1307,12 @@ TRANSLATIONS = {
         "nominal_cost":            "Nominal Total Cost",
         "real_cost":               "Real Total Cost (PV)",
         "inflation_savings":       "Inflation Discount",
+        "nominal_value":           "Nominal Total Value",
+        "real_value":              "Real Total Value (PV)",
+        "inflation_erosion":       "Inflation Erosion",
+        "deflation_bonus":         "Deflation Bonus",
+        "dep_inflation_caption":   "💡 Inflation reduces the real value of your future deposit returns.",
+        "dep_deflation_caption":   "💡 Deflation raises the real value of your future deposit returns.",
         "inflation_note":          "Real cost discounts future payments to today's purchasing power.",
         # ── Price-trend mode (inflation / deflation as first-class choices) ───
         "price_trend_expander":    "Inflation / Deflation Adjustment",
@@ -2352,8 +2370,13 @@ def calc_effective_rate(principal, schedule, one_time_comm, ppy,
     """
     Effective annual rate (APR) as the IRR of the cash-flow stream.
 
-    CF_0 = +(principal − one_time_comm)  ─ borrower receives net proceeds
-    CF_t = -(periodic payment) for t ≥ 1 ─ borrower's outflows
+    Sign convention (matches the implementation below): the borrower's initial
+    receipt is written as a NEGATIVE flow and the periodic payments as POSITIVE,
+    so the IRR equation is NPV(r) = 0. (The signs could be flipped wholesale —
+    the root is identical either way — but the code uses this orientation.)
+
+        CF_0 = −(principal − one_time_comm)  ─ net proceeds (written negative)
+        CF_t = +(periodic payment) for t ≥ 1 ─ borrower's outflows (positive)
 
     NPV(r) = Σ_{t=0..n} CF_t / (1+r)^τ_t = 0
 
@@ -2481,7 +2504,9 @@ def calc_investment(payments, annual_yield, unit):
 
 
 def calc_balloon_breakeven(principal: float, n: int, rate_pa: float,
-                            unit: str, mo_comm: float = 0.0) -> float | None:
+                            unit: str, mo_comm: float = 0.0,
+                            day_count: str | None = None,
+                            start_date=None) -> float | None:
     """
     Minimum annual compound investment return such that investing the
     annuity-style principal portions (the cash you don't pay in a Balloon
@@ -2524,8 +2549,14 @@ def calc_balloon_breakeven(principal: float, n: int, rate_pa: float,
         return None
 
     # ── Build annuity schedule to get principal-amortisation amounts ──────────
+    # Honour day-count when the main schedule does, so the "freed cash" (annuity
+    # principal portions) matches the day-count-aware graph rather than a
+    # simplified r/ppy annuity. The reinvestment FV below stays periodic — it
+    # models a periodic compound return on the freed cash, which is the metric's
+    # definition; only the freed AMOUNTS need to track the convention.
     try:
-        sched_ann = calc_annuity(principal, n, rate_pa, unit, mo_comm)
+        sched_ann = calc_annuity(principal, n, rate_pa, unit, mo_comm,
+                                  day_count=day_count, start_date=start_date)
     except Exception:
         return None
 
@@ -2787,7 +2818,9 @@ def calc_universal_breakeven(payments: list, total_interest: float,
 
 
 def calc_balloon_absolute_breakeven(principal: float, n: int, rate_pa: float,
-                                     unit: str, mo_comm: float = 0.0) -> float | None:
+                                     unit: str, mo_comm: float = 0.0,
+                                     day_count: str | None = None,
+                                     start_date=None) -> float | None:
     """
     Absolute Break-even Rate for Balloon (Bullet) loans.
 
@@ -2827,8 +2860,12 @@ def calc_balloon_absolute_breakeven(principal: float, n: int, rate_pa: float,
     if ppy <= 0:
         return None
 
+    # Honour day-count when the main schedule does, so the interest costs the
+    # borrower pays match the day-count-aware graph. The reinvestment side
+    # (principal·(1+r/ppy)^n) stays periodic by the metric's definition.
     try:
-        sched_bal = calc_balloon(principal, n, rate_pa, unit, mo_comm)
+        sched_bal = calc_balloon(principal, n, rate_pa, unit, mo_comm,
+                                  day_count=day_count, start_date=start_date)
     except Exception:
         return None
 
@@ -2996,7 +3033,7 @@ def resolve_price_trend_rate(mode: str, magnitude_pct: float) -> float:
 
 
 def calc_deflation_cost(payments: list, annual_deflation_pct: float,
-                        unit: str) -> float:
+                        unit: str, period_year_fractions=None) -> float:
     """
     Real (present-value) cost of a payment stream under DEFLATION, as a
     dedicated first-class function — not a sign-flipped call into the inflation
@@ -3006,7 +3043,14 @@ def calc_deflation_cost(payments: list, annual_deflation_pct: float,
     deflation). Because prices fall, future fixed payments command MORE of
     today's purchasing power, so the present value INFLATES above nominal:
 
-        PV = Σ payment_t / (1 − d_per)^t        with d_per = d_annual / ppy
+        PV = Σ payment_t / (1 − d_per)^τ_t        with d_per = d_annual / ppy
+
+    Discount timeline τ_t mirrors calc_real_cost:
+      • uniform (period_year_fractions=None): τ_t = t (period index).
+      • date-exact (per-period year-fractions given): τ_t = (Σ_{k≤t} frac_k)·ppy,
+        i.e. cumulative "periods" measured by actual period length, consistent
+        with day-count interest accrual. The periodic RATE is unchanged; only the
+        exponent tracks real time (for equal-length periods τ_t = t, unchanged).
 
     Guarantees:
       • magnitude is taken as |value| — a negative input cannot turn this into
@@ -3015,6 +3059,10 @@ def calc_deflation_cost(payments: list, annual_deflation_pct: float,
       • if the periodic deflation would make (1 − d_per) ≤ 0 (mathematically
         degenerate — money losing all value), the nominal sum is returned as the
         least-misleading fallback instead of dividing by zero / a negative base.
+
+    NOTE: the live calculation path discounts deflation through calc_real_cost
+    with a NEGATIVE rate (which already honours period_year_fractions); this
+    standalone function mirrors that capability so the two stay interchangeable.
     """
     if not payments:
         return 0.0
@@ -3029,11 +3077,19 @@ def calc_deflation_cost(payments: list, annual_deflation_pct: float,
     base = 1.0 - d_per
     if base <= 0:
         return float(sum(payments))
-    return sum(p / base ** (t + 1) for t, p in enumerate(payments))
+    if period_year_fractions is not None and len(period_year_fractions) == len(payments):
+        exps = []
+        _acc = 0.0
+        for _f in period_year_fractions:
+            _acc += float(_f)
+            exps.append(_acc * ppy)
+    else:
+        exps = [t + 1 for t in range(len(payments))]
+    return sum(p / base ** e for p, e in zip(payments, exps))
 
 
 def calc_price_adjusted_cost(payments: list, mode: str, magnitude_pct: float,
-                             unit: str) -> float:
+                             unit: str, period_year_fractions=None) -> float:
     """
     Single entry point that routes to the correct present-value engine based on
     the price-trend MODE, so callers never have to juggle signs themselves:
@@ -3042,16 +3098,19 @@ def calc_price_adjusted_cost(payments: list, mode: str, magnitude_pct: float,
         inflation → calc_real_cost(..., +magnitude, ...)   (PV < nominal)
         deflation → calc_deflation_cost(..., magnitude, ...) (PV > nominal)
 
-    Both branches reduce to the same Σ payment_t / (1 ± r_per)^t formula; the
+    Both branches reduce to the same Σ payment_t / (1 ± r_per)^τ_t formula; the
     split exists purely so each direction is named, documented and individually
-    testable.
+    testable. `period_year_fractions` (optional) is forwarded unchanged so the
+    router supports date-exact discounting symmetrically for both directions.
     """
     if not payments:
         return 0.0
     if mode == PRICE_TREND_INFLATION:
-        return calc_real_cost(payments, abs(magnitude_pct), unit)
+        return calc_real_cost(payments, abs(magnitude_pct), unit,
+                              period_year_fractions=period_year_fractions)
     if mode == PRICE_TREND_DEFLATION:
-        return calc_deflation_cost(payments, abs(magnitude_pct), unit)
+        return calc_deflation_cost(payments, abs(magnitude_pct), unit,
+                                   period_year_fractions=period_year_fractions)
     return float(sum(payments))
 
 
@@ -3746,9 +3805,15 @@ def _run_syndicated(tranches: list[dict], t: dict, sym: str,
     # so we use the latter for what the user sees — matching the single-loan
     # path). The precise unrounded aggregates remain in `totals`/the summary for
     # APR and other internal math.
+    # The tranches' one-time (upfront) commissions are NOT per-period rows, so
+    # they must be ADDED to the commission column of the TOTAL row — exactly as
+    # the single-loan path folds `ot_comm` in. Without this, the displayed total
+    # (and CSV/PDF/DOCX exports built from df_with_total) would understate the
+    # commission and payment by the upfront fees, disagreeing with the summary.
+    _synd_ot_comm = round(totals.get("total_one_time_comm", 0) or 0.0, 2)
     disp_princ = round(sum(round(r["principal"],   2) for r in master), 2)
     disp_int   = round(sum(round(r["interest"],    2) for r in master), 2)
-    disp_comm  = round(sum(round(r["commission"],  2) for r in master), 2)
+    disp_comm  = round(sum(round(r["commission"],  2) for r in master) + _synd_ot_comm, 2)
     disp_pay   = round(disp_princ + disp_int + disp_comm, 2)
     total_row = {
         t["period"]:        t["total_row"],
@@ -4192,10 +4257,16 @@ def run_calculation(principal, n, rate_pa, unit, scheme,
 
     if scheme == "balloon":
         try:
+            # Pass day-count so these derived metrics use the same interest
+            # convention as the displayed balloon schedule.
+            _dc = day_count_method if day_count_enabled else None
+            _sd = start_date if day_count_enabled else None
             breakeven_rate = calc_balloon_breakeven(
-                principal, n, rate_pa, unit, mo_comm)
+                principal, n, rate_pa, unit, mo_comm,
+                day_count=_dc, start_date=_sd)
             breakeven_abs = calc_balloon_absolute_breakeven(
-                principal, n, rate_pa, unit, mo_comm)
+                principal, n, rate_pa, unit, mo_comm,
+                day_count=_dc, start_date=_sd)
         except Exception:
             pass
 
@@ -5105,6 +5176,17 @@ def export_excel(df, summary, t, sym):
             eff_entry,
             ("Profit %",               profit_pct, pct_fmt, "#065F46", True),
         ]
+        # Real-vs-Nominal for the depositor (matches the UI panel). Excel keeps
+        # the report's English labelling convention used for every other metric;
+        # depositor framing: inflation erodes real value, deflation is a bonus.
+        if summary.get("inflation_enabled") and summary.get("real_cost") is not None:
+            _dis_def = (summary.get("price_trend_mode") == PRICE_TREND_DEFLATION)
+            _dis_gap = abs(summary.get("inflation_savings") or 0)
+            metrics_data.append(
+                ("Real Total Value (PV)", summary.get("real_cost"), num_fmt, "#065F46", True))
+            metrics_data.append(
+                ("Deflation Bonus" if _dis_def else "Inflation Erosion",
+                 _dis_gap, num_fmt, "#0F766E", False))
     else:
         # Effective APR: when IRR fails the value is None — passing it through
         # arithmetic would crash. Show "N/A" as a text-format cell instead of
@@ -5302,14 +5384,16 @@ def export_excel(df, summary, t, sym):
                     cell.border        = border(BORDER_C, "thin")
                     continue   # already wrote, skip generic branch
 
-            # Числовое значение или текст
-            if isinstance(val, (int, float)) and not is_total:
+            # Числовое значение или текст. Нечисловые float (inf/nan) пишем
+            # как "N/A" текстом: openpyxl иначе формирует ячейку, которую Excel
+            # не может прочитать. В нормальных потоках значения конечны (их
+            # гарантируют calc_*); это защитный паритет с fmt_money/fmt_pct.
+            if isinstance(val, (int, float)) and math.isfinite(val):
                 cell.value          = val
                 cell.number_format  = num_fmt
                 cell.alignment      = align("right")
-            elif isinstance(val, (int, float)) and is_total:
-                cell.value          = val
-                cell.number_format  = num_fmt
+            elif isinstance(val, (int, float)):
+                cell.value          = "N/A"
                 cell.alignment      = align("right")
             else:
                 cell.value     = val
@@ -5695,6 +5779,16 @@ def export_docx(df, summary, t, sym):
             (t.get("dep_total_earned", "Interest Earned"),  fmt_money(summary.get("total_earned", 0), sym)),
             (t.get("dep_rate_label",   "Annual Rate"),       fmt_pct(summary.get("effective_rate",0))),
         ]
+        # Real-vs-Nominal for the depositor (matches the UI panel). Depositor
+        # framing: inflation erodes real value, deflation is a bonus.
+        if summary.get("inflation_enabled") and summary.get("real_cost") is not None:
+            _is_def = (summary.get("price_trend_mode") == PRICE_TREND_DEFLATION)
+            _gap = abs(summary.get("inflation_savings") or 0)
+            kv_pairs.append((t.get("real_value", "Real Total Value (PV)"),
+                              fmt_money(summary["real_cost"], sym)))
+            kv_pairs.append((t.get("deflation_bonus", "Deflation Bonus") if _is_def
+                              else t.get("inflation_erosion", "Inflation Erosion"),
+                              fmt_money(_gap, sym)))
     else:
         eff_rate_val = summary.get("effective_rate")
         eff_rate_str = fmt_pct(eff_rate_val) if eff_rate_val is not None else "N/A"
@@ -5707,29 +5801,30 @@ def export_docx(df, summary, t, sym):
         ]
         # Investment break-even
         if summary.get("universal_breakeven") is not None:
-            kv_pairs.append(("Universal Break-even Rate",
+            kv_pairs.append((t.get("invest_breakeven_universal", "Universal Break-even Rate"),
                               fmt_pct(summary["universal_breakeven"])))
         if summary.get("balloon_breakeven") is not None:
-            kv_pairs.append(("Vs. Annuity Break-even (Balloon)",
+            kv_pairs.append((t.get("invest_breakeven_vs_ann", "Vs. Annuity Break-even (Balloon)"),
                               fmt_pct(summary["balloon_breakeven"])))
         if summary.get("balloon_breakeven_abs") is not None:
-            kv_pairs.append(("Absolute Break-even (Balloon)",
+            kv_pairs.append((t.get("invest_breakeven_abs", "Absolute Break-even Rate (Balloon)"),
                               fmt_pct(summary["balloon_breakeven_abs"])))
         # Inflation / Deflation
         if summary.get("inflation_enabled") and summary.get("real_cost") is not None:
             _is_def = (summary.get("price_trend_mode") == PRICE_TREND_DEFLATION)
             _gap = abs(summary.get("inflation_savings") or 0)
-            kv_pairs.append(("Real Total Cost (PV, Deflation)" if _is_def else "Real Total Cost (PV)",
+            kv_pairs.append((t.get("real_cost", "Real Total Cost (PV)"),
                               fmt_money(summary["real_cost"], sym)))
-            kv_pairs.append(("Deflation Surcharge" if _is_def else "Inflation Discount",
+            kv_pairs.append((t.get("deflation_surcharge", "Deflation Surcharge") if _is_def
+                              else t.get("inflation_savings", "Inflation Discount"),
                               fmt_money(_gap, sym)))
         # Risk
         if summary.get("ltv") is not None:
-            kv_pairs.append(("LTV (Loan-to-Value)", fmt_pct(summary["ltv"])))
+            kv_pairs.append((t.get("ltv_label", "LTV"), fmt_pct(summary["ltv"])))
         if summary.get("dscr") is not None:
-            kv_pairs.append(("DSCR", f"{summary['dscr']:.2f}"))
+            kv_pairs.append((t.get("dscr_label", "DSCR"), f"{summary['dscr']:.2f}"))
         if summary.get("dti") is not None:
-            kv_pairs.append(("DTI (Debt-to-Income)", fmt_pct(summary["dti"])))
+            kv_pairs.append((t.get("dti_label", "DTI"), fmt_pct(summary["dti"])))
 
     it = doc.add_table(rows=len(kv_pairs), cols=2)
     it.style = "Table Grid"
@@ -5986,6 +6081,19 @@ def export_pdf(df, summary, t, sym):
             [cell(t.get("dep_rate_label",  "Annual Rate"),     bold=True),
              cell(fmt_pct(eff_r))],
         ]
+        # Real-vs-Nominal for the depositor (matches the UI panel).
+        if summary.get("inflation_enabled") and summary.get("real_cost") is not None:
+            _is_def = (summary.get("price_trend_mode") == PRICE_TREND_DEFLATION)
+            _gap = abs(summary.get("inflation_savings") or 0)
+            metrics_rows.append([
+                cell(t.get("real_value", "Real Total Value (PV)"), bold=True),
+                cell(fmt_money(summary["real_cost"], sym)),
+            ])
+            metrics_rows.append([
+                cell(t.get("deflation_bonus", "Deflation Bonus") if _is_def
+                     else t.get("inflation_erosion", "Inflation Erosion"), bold=True),
+                cell(fmt_money(_gap, sym)),
+            ])
     else:
         metrics_rows = [
             [cell(t["total_payment"],    bold=True),
@@ -6003,17 +6111,17 @@ def export_pdf(df, summary, t, sym):
         # Investment break-even
         if summary.get("universal_breakeven") is not None:
             metrics_rows.append([
-                cell("Universal Inv. Break-even", bold=True),
+                cell(t.get("invest_breakeven_universal", "Universal Break-even Rate"), bold=True),
                 cell(fmt_pct(summary["universal_breakeven"])),
             ])
         if summary.get("balloon_breakeven") is not None:
             metrics_rows.append([
-                cell("Vs. Annuity Break-even (Balloon)", bold=True),
+                cell(t.get("invest_breakeven_vs_ann", "Vs. Annuity Break-even (Balloon)"), bold=True),
                 cell(fmt_pct(summary["balloon_breakeven"])),
             ])
         if summary.get("balloon_breakeven_abs") is not None:
             metrics_rows.append([
-                cell("Absolute Break-even (Balloon)", bold=True),
+                cell(t.get("invest_breakeven_abs", "Absolute Break-even Rate (Balloon)"), bold=True),
                 cell(fmt_pct(summary["balloon_breakeven_abs"])),
             ])
         # Inflation / Deflation
@@ -6021,27 +6129,28 @@ def export_pdf(df, summary, t, sym):
             _is_def = (summary.get("price_trend_mode") == PRICE_TREND_DEFLATION)
             _gap = abs(summary.get("inflation_savings") or 0)
             metrics_rows.append([
-                cell("Real Total Cost (PV, Deflation)" if _is_def else "Real Total Cost (PV)", bold=True),
+                cell(t.get("real_cost", "Real Total Cost (PV)"), bold=True),
                 cell(fmt_money(summary["real_cost"], sym)),
             ])
             metrics_rows.append([
-                cell("Deflation Surcharge" if _is_def else "Inflation Discount", bold=True),
+                cell(t.get("deflation_surcharge", "Deflation Surcharge") if _is_def
+                     else t.get("inflation_savings", "Inflation Discount"), bold=True),
                 cell(fmt_money(_gap, sym)),
             ])
         # Risk metrics
         if summary.get("ltv") is not None:
             metrics_rows.append([
-                cell("LTV (Loan-to-Value)", bold=True),
+                cell(t.get("ltv_label", "LTV"), bold=True),
                 cell(fmt_pct(summary["ltv"])),
             ])
         if summary.get("dscr") is not None:
             metrics_rows.append([
-                cell("DSCR", bold=True),
+                cell(t.get("dscr_label", "DSCR"), bold=True),
                 cell(f"{summary['dscr']:.2f}"),
             ])
         if summary.get("dti") is not None:
             metrics_rows.append([
-                cell("DTI (Debt-to-Income)", bold=True),
+                cell(t.get("dti_label", "DTI"), bold=True),
                 cell(fmt_pct(summary["dti"])),
             ])
 
@@ -6850,6 +6959,32 @@ def load_tpl(name):
             st.session_state.price_trend_rate = abs(_legacy)
         else:
             st.session_state.price_trend_mode = PRICE_TREND_NONE
+
+    # ── Clear cached Streamlit widget state ───────────────────────────────────
+    # Streamlit stores each keyed widget's state under its OWN key (e.g.
+    # "cb_grace"), separate from the logical field this app reads ("grace_enabled").
+    # When a widget is created as
+    #     st.session_state.grace_enabled = st.checkbox(value=st.session_state.grace_enabled,
+    #                                                   key="cb_grace")
+    # and "cb_grace" already exists in session_state, Streamlit uses that cached
+    # state and IGNORES the value= we pass. So after load_tpl writes the logical
+    # fields, the next rerun would re-read the OLD widget state and silently
+    # revert the just-loaded template (grace, day-count, LTV/DSCR/DTI, price-trend
+    # and every syndicated-tranche field). Deleting the cached widget keys forces
+    # each widget to re-initialise from value= — i.e. from the loaded template.
+    #
+    # All loan-config widgets use the cb_/ni_/sb_/rd_/rb_ prefixes (this also
+    # covers the syndicated tranche inputs, keyed ni_synd_*/sb_synd_*); a few
+    # are named explicitly. Refinance (refi_*), theme (theme_*), buttons (btn_*)
+    # and the template-name box (tpl_inp) are NOT loan config and are preserved,
+    # as are app-wide keys (language, templates, audit log) which use none of
+    # these prefixes.
+    _widget_prefixes = ("cb_", "ni_", "sb_", "rd_", "rb_")
+    _extra_widget_keys = {"dep_radio", "term_mode_radio",
+                          "end_date_picker", "invest_sldr"}
+    for _wk in list(st.session_state.keys()):
+        if _wk.startswith(_widget_prefixes) or _wk in _extra_widget_keys:
+            del st.session_state[_wk]
 
 def del_tpl(name):
     st.session_state.templates.pop(name, None)
@@ -8807,6 +8942,14 @@ def _render_deposit_results(t, smry, df_d, df_chart, sym):
 
     st.divider()
 
+    # ── Реальная vs Номинальная стоимость (для вкладчика) ─────────────────────
+    # Те же PV-данные считаются в _run_deposit и идут в экспорт; показываем их и
+    # в UI, чтобы строки «Real Value (PV)» в Excel/PDF не возникали «из ниоткуда».
+    # Знак выгоды для вкладчика инвертирован относительно заёмщика (см. панель).
+    if smry.get("inflation_enabled") and smry.get("real_cost") is not None:
+        _render_inflation_panel(t, smry, sym, is_deposit=True)
+        st.divider()
+
     # ── 3. Сравнение депозита с альтернативой ─────────────────────────────────
     _render_invest_deposit(t, smry, df_chart, sym)
     st.divider()
@@ -9438,11 +9581,18 @@ def _render_breakeven_panel(t, smry):
 # ─────────────────────────────────────────────────────────────────────────────
 #  ИНФЛЯЦИЯ — Real vs Nominal Cost
 # ─────────────────────────────────────────────────────────────────────────────
-def _render_inflation_panel(t, smry, sym):
+def _render_inflation_panel(t, smry, sym, is_deposit: bool = False):
     """
-    Renders the Real-vs-Nominal cost block. Direction-aware: under inflation it
-    shows a "discount" (real cost below nominal); under deflation it shows a
-    "surcharge" (real cost above nominal). Both are driven by the same PV maths;
+    Renders the Real-vs-Nominal block. Direction- AND audience-aware.
+
+    Borrower (is_deposit=False): the cash flows are PAYMENTS, so inflation is a
+    "discount" (real cost below nominal — good for the borrower) and deflation a
+    "surcharge" (real cost above nominal — bad).
+
+    Depositor (is_deposit=True): the cash flows are RECEIPTS, so the benefit sign
+    FLIPS — inflation ERODES the real value of future returns (bad), while
+    deflation is a BONUS (the money returned is worth more — good). Labels and
+    the green/red delta are inverted accordingly. Both are the same PV maths;
     only the framing, labels and sign differ.
     """
     if not smry.get("inflation_enabled") or smry.get("real_cost") is None:
@@ -9472,12 +9622,14 @@ def _render_inflation_panel(t, smry, sym):
 
     c1, c2, c3 = st.columns(3)
     c1.metric(
-        label=t.get("nominal_cost", "Nominal Total Cost"),
+        label=(t.get("nominal_value", "Nominal Total Value") if is_deposit
+               else t.get("nominal_cost", "Nominal Total Cost")),
         value=fmt_money(nominal, sym),
         help=t.get("help_nominal", ""),
     )
     c2.metric(
-        label=t.get("real_cost", "Real Total Cost (PV)"),
+        label=(t.get("real_value", "Real Total Value (PV)") if is_deposit
+               else t.get("real_cost", "Real Total Cost (PV)")),
         value=fmt_money(real, sym),
         help=((t.get("help_deflation_real_long", "") if is_deflation
                else t.get("help_real_cost_long", "")) + "\n\n" + t.get("help_real", "")),
@@ -9488,34 +9640,45 @@ def _render_inflation_panel(t, smry, sym):
     # Build the delta label without a negative-zero glitch: a surcharge that
     # rounds to 0.0 must read "0.0%", never "-0.0%". Only attach the sign once
     # the rounded magnitude is actually non-zero.
+    # "Good" (green, positive delta) when the audience BENEFITS:
+    #   • borrower benefits from inflation (payments worth less in real terms);
+    #   • depositor benefits from deflation (receipts worth more in real terms).
+    # The depositor flips the borrower's sign — hence (is_deflation == is_deposit).
+    is_good = (is_deflation == is_deposit)
     if nominal > 0:
         _rounded = round(delta_pct, 1)
         if _rounded == 0.0:
             delta_label = "0.0%"
-        elif is_deflation:
-            delta_label = f"-{_rounded:.1f}%"   # surcharge → red/negative
+        elif is_good:
+            delta_label = f"{_rounded:.1f}%"    # benefit → green/positive
         else:
-            delta_label = f"{_rounded:.1f}%"    # discount → green/positive
+            delta_label = f"-{_rounded:.1f}%"   # cost  → red/negative
     else:
         delta_label = "—"
-    if is_deflation:
-        c3.metric(
-            label=t.get("deflation_surcharge", "Deflation Surcharge"),
-            value=fmt_money(display_gap, sym),
-            # Surcharge raises real cost → show as a negative (red) delta to
-            # signal "costs more", mirroring the positive (green) discount.
-            delta=delta_label,
-            help=t.get("help_deflation_surcharge", ""),
-        )
+    if is_deposit:
+        gap_label = (t.get("deflation_bonus", "Deflation Bonus") if is_deflation
+                     else t.get("inflation_erosion", "Inflation Erosion"))
     else:
-        c3.metric(
-            label=t.get("inflation_savings", "Inflation Discount"),
-            value=fmt_money(display_gap, sym),
-            delta=delta_label,
-            help=t.get("help_disc", ""),
-        )
+        gap_label = (t.get("deflation_surcharge", "Deflation Surcharge") if is_deflation
+                     else t.get("inflation_savings", "Inflation Discount"))
+    c3.metric(
+        label=gap_label,
+        value=fmt_money(display_gap, sym),
+        delta=delta_label,
+        help=(t.get("help_deflation_surcharge", "") if is_deflation
+              else t.get("help_disc", "")),
+    )
 
-    if is_deflation:
+    if is_deposit:
+        # Depositor-specific framing — these are RECEIPTS, not payments.
+        rate_lbl = (t.get("deflation_rate", "Deflation") if is_deflation
+                    else t.get("inflation_rate", "Inflation"))
+        full_caption = (t.get("dep_deflation_caption",
+                            "💡 Deflation raises the real value of your future deposit returns.")
+                        if is_deflation else
+                        t.get("dep_inflation_caption",
+                            "💡 Inflation reduces the real value of your future deposit returns."))
+    elif is_deflation:
         note = t.get("deflation_note",
             "Under deflation, future payments cost more in today's purchasing power.")
         rate_lbl = t.get("deflation_rate", "Deflation")
