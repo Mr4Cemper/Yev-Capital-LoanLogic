@@ -22,6 +22,7 @@
 """
 import io
 import math
+import numbers
 import re
 import html
 import hashlib
@@ -190,6 +191,7 @@ TRANSLATIONS = {
         "download_docx": "⬇️ Word",
         "overpayment_pct": "Переплата от суммы",
         "compare_schemes": "⚖️ Сравнить схемы",
+        "compare_synd_note": "Это сравнение — гипотетический ОДИНОЧНЫЙ кредит на всю сумму по ставке из основного поля. Оно НЕ отражает ваши синдицированные транши (у каждого своя ставка). Реальный график — на вкладке «По траншам».",
         "annuity_vs_classic": "Сравнение схем кредитования",
         "savings_classic": "Экономия при классике",
         "annuity_short": "Аннуитет",
@@ -707,6 +709,7 @@ TRANSLATIONS = {
         "download_docx": "⬇️ Word",
         "overpayment_pct": "Переплата від суми",
         "compare_schemes": "⚖️ Порівняти схеми",
+        "compare_synd_note": "Це порівняння — гіпотетичний ОДИНОЧНИЙ кредит на всю суму за ставкою з основного поля. Воно НЕ відображає ваші синдиковані транші (у кожного своя ставка). Реальний графік — на вкладці «За траншами».",
         "annuity_vs_classic": "Порівняння схем кредитування",
         "savings_classic": "Економія при класиці",
         "annuity_short": "Ануїтет",
@@ -779,9 +782,9 @@ TRANSLATIONS = {
         "chart_balance_title": "📉 Залишок боргу",
         "chart_balance_hover": "Залишок",
         "balloon_short":       "Буліт",
-        "balloon_breakeven":       "Break-even інвестицій",
+        "balloon_breakeven":       "Точка беззбитковості інвестицій",
         "balloon_breakeven_tip":   "Мінімальна річна дохідність інвестицій (складний %), при якій схема «буліт» вигідніша за ануїтет.",
-        "balloon_breakeven_label": "Аналіз Break-even (Буліт)",
+        "balloon_breakeven_label": "Аналіз беззбитковості (Буліт)",
         "balloon_breakeven_desc":  "Мін. дохідність інвестицій для виправдання схеми «буліт»",
         "term_caption":        "міс. / рок.",
         "welcome_h2":  "Введіть параметри та натисніть",
@@ -1196,6 +1199,7 @@ TRANSLATIONS = {
         "download_csv": "⬇️ CSV",
         "overpayment_pct": "Overpayment %",
         "compare_schemes": "⚖️ Compare Schemes",
+        "compare_synd_note": "This comparison is a hypothetical SINGLE loan of the total amount at the rate in the main field. It does NOT reflect your syndicated tranches (each has its own rate). See the “By Tranche” tab for the real schedule.",
         "annuity_vs_classic": "Loan Scheme Comparison",
         "savings_classic": "Savings with Classic",
         "annuity_short": "Annuity",
@@ -1770,7 +1774,10 @@ def fmt_money(v, sym="₴"):
     Форматирует сумму с пробелом как разделителем тысяч — банковский стандарт.
     Например: 1 000 000.00  (не 1,000,000.00)
     """
-    if not isinstance(v, (int, float)):
+    # numbers.Real also covers numpy scalars (np.int64/np.float64 register with
+    # the numbers ABCs), so values pulled from a DataFrame format consistently
+    # instead of falling through to a bare str() without separators/decimals.
+    if not isinstance(v, numbers.Real):
         return str(v)
     # Guard against inf/nan (consistent with fmt_pct): show "N/A" rather than
     # the literal "inf"/"nan", which would look broken. Not reachable through
@@ -1786,7 +1793,7 @@ def fmt_money(v, sym="₴"):
 
 def fmt_money_plain(v):
     """Число с пробелом-разделителем тысяч, без символа валюты."""
-    if not isinstance(v, (int, float)):
+    if not isinstance(v, numbers.Real):
         return str(v)
     if not math.isfinite(v):
         return "N/A"
@@ -2350,6 +2357,13 @@ def calc_deposit(principal, n, rate_pa, unit, mode):
         open_bal = bal
         interest = open_bal * r
         if mode == "capitalize":
+            # Banking method: credit interest ROUNDED to the minor unit each
+            # period before compounding. Otherwise the table sums rounded
+            # per-period interest while the balance compounds the UNROUNDED
+            # figure, so principal + Σ(shown interest) drifts 1–2 cents from the
+            # shown final balance. Rounding here keeps every displayed number
+            # reconciling: final_balance == principal + Σ interest exactly.
+            interest = round(interest, 2)
             bal += interest
             payout_val = 0.0
         else:
@@ -5110,13 +5124,22 @@ def export_excel(df, summary, t, sym):
     }.get(summary.get("scheme_key", "annuity"), "Annuity")
 
     principal = summary.get("principal", 0)
-    rate_pa   = summary.get("rate_pa", 0) or summary.get("effective_rate", 0)
+    # rate_pa may be None when a syndicated blended-APR (IRR) fails to converge —
+    # _run_syndicated stores None in BOTH rate_pa and effective_rate, so the old
+    # `get(...,0) or get(...,0)` coalesced to None and crashed on `rate_pa / 100`.
+    # Coerce to a finite float and flag N/A so the cells stay text instead.
+    _raw_rate = summary.get("rate_pa")
+    if not isinstance(_raw_rate, (int, float)) or not math.isfinite(_raw_rate):
+        _raw_rate = summary.get("effective_rate")
+    rate_na = not (isinstance(_raw_rate, (int, float)) and math.isfinite(_raw_rate))
+    rate_pa = 0.0 if rate_na else float(_raw_rate)
     n_periods = len(summary.get("schedule", []))
     unit_lbl  = summary.get("unit", "months")
 
     params_data = [
         ("Loan Amount",           principal,     num_fmt,  sym),
-        ("Annual Interest Rate",  rate_pa / 100, pct_fmt,  ""),
+        (("Annual Interest Rate", "N/A", "@", "") if rate_na
+         else ("Annual Interest Rate", rate_pa / 100, pct_fmt, "")),
         ("Number of Periods",     n_periods,     "#,##0",  f" {unit_lbl}"),
         ("Payment Type",          scheme_display,"@",      ""),
         ("Currency",              sym,           "@",      ""),
@@ -5309,7 +5332,7 @@ def export_excel(df, summary, t, sym):
 
     ws2.merge_cells(f"A2:{last_col}2")
     sh2 = ws2["A2"]
-    sh2.value     = (f"Principal: {sym}{principal:,.2f}  ·  Rate: {rate_pa:.2f}%  ·  "
+    sh2.value     = (f"Principal: {sym}{principal:,.2f}  ·  Rate: {('N/A' if rate_na else f'{rate_pa:.2f}%')}  ·  "
                      f"Periods: {n_periods}  ·  Generated: {datetime.now().strftime('%d.%m.%Y %H:%M')}")
     sh2.font      = Font(name="Calibri", italic=True, size=9, color=SUBTEXT)
     sh2.fill      = fill(NAVY)
@@ -5487,17 +5510,49 @@ def export_excel(df, summary, t, sym):
         princ_r   = summary.get("principal", 0)
         mo_comm_r = sched_ref[0]["commission"] if sched_ref else 0
 
-        try:
-            sched_ann = calc_annuity(princ_r, n_r, rate_r, unit_r, mo_comm_r)
-            sched_cla = calc_classic(princ_r, n_r, rate_r, unit_r, mo_comm_r)
-            sched_bal = calc_balloon(princ_r, n_r, rate_r, unit_r, mo_comm_r)
+        # Run each scheme through the SAME pipeline/config as the user's loan
+        # (grace, day-count, one-time commission) so this comparison matches the
+        # rest of the report rather than a stripped-down baseline. Inflation is a
+        # present-value overlay that does NOT change nominal payment totals, so it
+        # is intentionally omitted here. If any scheme run fails, fall back to the
+        # plain base-terms calculation for all three so the section still renders.
+        _cmp_kwargs = dict(
+            grace_enabled     = summary.get("grace_enabled", False),
+            grace_start       = summary.get("grace_start", 1),
+            grace_duration    = summary.get("grace_duration", 0),
+            grace_type        = summary.get("grace_type", "interest_only"),
+            day_count_enabled = summary.get("day_count_enabled", False),
+            day_count_method  = summary.get("day_count_method", DAY_COUNT_DEFAULT),
+            start_date        = summary.get("start_date"),
+        )
+        _ot_comm_r = summary.get("one_time_comm", 0) or 0.0
+        def _cmp_run(_scheme):
+            try:
+                _, _s = run_calculation(
+                    princ_r, n_r, rate_r, unit_r, _scheme,
+                    _ot_comm_r, "fixed", mo_comm_r, "fixed",
+                    "usd", None, t, **_cmp_kwargs)
+                return _s
+            except Exception:
+                return None
 
-            ann_total = sum(x["payment"] for x in sched_ann)
-            cla_total = sum(x["payment"] for x in sched_cla)
-            bal_total = sum(x["payment"] for x in sched_bal)
-            ann_int   = sum(x["interest"] for x in sched_ann)
-            cla_int   = sum(x["interest"] for x in sched_cla)
-            bal_int   = sum(x["interest"] for x in sched_bal)
+        try:
+            _sa, _sc, _sb = _cmp_run("annuity"), _cmp_run("classic"), _cmp_run("balloon")
+            if _sa and _sc and _sb:
+                sched_ann, sched_cla, sched_bal = _sa["schedule"], _sc["schedule"], _sb["schedule"]
+                ann_total, cla_total, bal_total = _sa["total_payment"], _sc["total_payment"], _sb["total_payment"]
+                ann_int,   cla_int,   bal_int   = _sa["total_interest"], _sc["total_interest"], _sb["total_interest"]
+            else:
+                # Fallback to plain base-terms schedules (original behaviour).
+                sched_ann = calc_annuity(princ_r, n_r, rate_r, unit_r, mo_comm_r)
+                sched_cla = calc_classic(princ_r, n_r, rate_r, unit_r, mo_comm_r)
+                sched_bal = calc_balloon(princ_r, n_r, rate_r, unit_r, mo_comm_r)
+                ann_total = sum(x["payment"] for x in sched_ann)
+                cla_total = sum(x["payment"] for x in sched_cla)
+                bal_total = sum(x["payment"] for x in sched_bal)
+                ann_int   = sum(x["interest"] for x in sched_ann)
+                cla_int   = sum(x["interest"] for x in sched_cla)
+                bal_int   = sum(x["interest"] for x in sched_bal)
 
             headers = ["Metric", "Annuity", "Classic (Diff.)", "Balloon"]
             hdr_bg  = [MIDBLUE, "1D4ED8", "065F46", "7C3AED"]
@@ -6297,9 +6352,14 @@ def periods_from_dates(start: date, end: date, unit: str) -> int:
             f"periods_from_dates: unknown unit {unit!r}. "
             f"Supported: {list(delta_map.keys())}.")
     delta = delta_map[unit]
-    count, d = 0, start
-    while d + delta <= end:
-        d += delta
+    # Count periods by OFFSET from `start` (start + k·delta), mirroring
+    # generate_dates / period_dates_for_schedule. Accumulating via `d += delta`
+    # drifts at month-end (31.01 → 29.02 → 29.03 instead of 31.03), which made
+    # this reverse counter disagree with the no-drift forward schedule: choosing
+    # end = 29.03 from a 31.01 start wrongly counted 2 periods, yet the schedule
+    # placed the 2nd payment at 31.03 — past the user's end date. Offset matches.
+    count = 0
+    while start + delta * (count + 1) <= end:
         count += 1
     if count < 1:
         raise ValueError(
@@ -8616,6 +8676,15 @@ def main():
         # reflects the actual configured loan (grace, day-count, inflation,
         # risk metrics) rather than a stripped-down baseline.
         ss = st.session_state
+        if is_syndicated:
+            # The comparison below runs single-loan schemes on the total amount at
+            # ss.interest_rate — which is NOT used in syndicated mode (each tranche
+            # carries its own rate). Flag the numbers as a single-loan hypothetical
+            # so they are not mistaken for the syndicate's actual economics.
+            st.info(t.get("compare_synd_note",
+                "This comparison is a hypothetical SINGLE loan of the total amount at "
+                "the rate in the main field. It does NOT reflect your syndicated "
+                "tranches (each has its own rate). See the “By Tranche” tab."))
         common_kwargs = dict(
             grace_enabled = ss.get("grace_enabled", False),
             grace_start   = ss.get("grace_start", 1),
@@ -9503,7 +9572,11 @@ def _render_breakeven_panel(t, smry):
     #         3 columns for balloon (Universal + Vs Annuity + Vs Classic + Abs → 4-col)
     #         1 column for classic.
     if is_balloon:
-        ncols = 4 if be_vs_cla is not None else 3
+        # Size the column count to the metrics that WILL render. "Vs. Annuity"
+        # and "Absolute" are always shown; Universal and "Vs. Classic" only when
+        # computed. Sizing as `4 if be_vs_cla else 3` assumed Universal was always
+        # present, so a None universal_be left a trailing empty column.
+        ncols = 2 + (1 if universal_be is not None else 0) + (1 if be_vs_cla is not None else 0)
         cols = st.columns(ncols)
         ci = 0
         if universal_be is not None:
