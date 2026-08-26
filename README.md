@@ -21,7 +21,7 @@ The app opens at <http://localhost:8501>.
 > **Windows note:** if the project lives on a different drive than your current one, `cd` alone will not switch drives — the prompt stays where it was and `streamlit` will report `File does not exist: app.py`. Use the `/d` flag, and quote the path if it contains spaces:
 >
 > ```bash
-> cd /d "D:\x\Yev-Capital-LoanLogic"
+> cd /d "D:\Yev-Capital-LoanLogic"
 > ```
 
 Port 8501 must be free. If another Streamlit instance is already running, pass a different port:
