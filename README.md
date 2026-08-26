@@ -37,6 +37,7 @@ python -m streamlit run app.py --server.port 8502
 * **Syndicated Loans (Multi-Tranche):** Consolidate debt from multiple lenders with different rates, terms, and disbursement offsets into a single master schedule with a blended APR calculation.
 * **Day-Count Conventions:** Market-standard interest accrual methods including `30/360 (ISDA)`, `30E/360`, `ACT/360`, `ACT/365`, and `ACT/ACT`.
 * **Refinancing Analysis:** NPV-based comparison to determine if switching to a new loan is economically viable, including break-even point calculations.
+* **Early Repayment (What-If):** Model a recurring overpayment, a one-off lump sum, or both, and see how many periods and how much interest they save. Uses the "shorten the term" strategy and works for all three schemes; the main schedule is left untouched.
 
 ### Risk & Investment Analytics
 * **Risk Metrics:** Built-in calculators for essential banking metrics: **LTV** (Loan-to-Value), **DSCR** (Debt Service Coverage Ratio), and **DTI** (Debt-to-Income). Debt service is normalised to a monthly basis, so the ratios stay comparable whatever term unit the schedule uses.

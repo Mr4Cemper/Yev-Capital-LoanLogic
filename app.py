@@ -300,6 +300,25 @@ TRANSLATIONS = {
         "dep_total_earned":    "Начислено процентов",
         "dep_rate_label":      "Ставка годовых",
         "dep_period_payout":   "Выплата за период",
+        "prepay_section":        "🏃 Досрочное погашение (what-if)",
+        "prepay_caption":        "Прикидка «что если платить больше». Основной график выше не меняется.",
+        "prepay_extra":          "Доплата каждый период",
+        "prepay_extra_help":     "Сумма сверх планового платежа. Целиком идёт в тело долга.",
+        "prepay_lump":           "Разовый платёж",
+        "prepay_lump_help":      "Единовременная сумма сверх графика — например, премия или продажа актива.",
+        "prepay_lump_period":    "Период разового платежа",
+        "prepay_new_term":       "Новый срок",
+        "prepay_periods_saved":  "Периодов сэкономлено",
+        "prepay_interest_saved": "Экономия на процентах",
+        "prepay_total_saved":    "Экономия всего",
+        "prepay_payoff_date":    "Дата закрытия",
+        "prepay_extra_paid":     "Внесено сверх графика",
+        "prepay_strategy":       "Стратегия: срок сокращается, платёж остаётся прежним — так экономия максимальна. Банк может вместо этого уменьшать платёж и сохранять срок; экономия тогда заметно ниже.",
+        "prepay_none":           "Введите доплату или разовый платёж, чтобы увидеть результат.",
+        "prepay_check_terms":    "⚠️ Проверьте договор: банк может брать комиссию за досрочное погашение или ограничивать его.",
+        "prepay_na_grace":       "Недоступно вместе с кредитными каникулами: расчёт строится на графике без каникул и ввёл бы в заблуждение.",
+        "prepay_na_synd":        "Недоступно в синдицированном режиме — порядок досрочного погашения между траншами неоднозначен.",
+        "prepay_periods":        "периодов",
         "dep_gain_label":      "Прибыль",
         "dep_mode_label":      "Режим",
         "dep_growth_title":    "📈 Рост вклада",
@@ -815,6 +834,25 @@ TRANSLATIONS = {
         "dep_total_earned":    "Нараховано відсотків",
         "dep_rate_label":      "Ставка річних",
         "dep_period_payout":   "Виплата за період",
+        "prepay_section":        "🏃 Дострокове погашення (what-if)",
+        "prepay_caption":        "Прикидка «що коли платити більше». Основний графік вище не змінюється.",
+        "prepay_extra":          "Доплата щоперіоду",
+        "prepay_extra_help":     "Сума понад плановий платіж. Повністю йде в тіло боргу.",
+        "prepay_lump":           "Разовий платіж",
+        "prepay_lump_help":      "Одноразова сума понад графік — наприклад, премія або продаж активу.",
+        "prepay_lump_period":    "Період разового платежу",
+        "prepay_new_term":       "Новий термін",
+        "prepay_periods_saved":  "Періодів заощаджено",
+        "prepay_interest_saved": "Економія на відсотках",
+        "prepay_total_saved":    "Економія загалом",
+        "prepay_payoff_date":    "Дата закриття",
+        "prepay_extra_paid":     "Внесено понад графік",
+        "prepay_strategy":       "Стратегія: термін скорочується, платіж лишається тим самим — так економія максимальна. Банк може натомість зменшувати платіж і зберігати термін; економія тоді помітно нижча.",
+        "prepay_none":           "Введіть доплату або разовий платіж, щоб побачити результат.",
+        "prepay_check_terms":    "⚠️ Перевірте договір: банк може брати комісію за дострокове погашення або обмежувати його.",
+        "prepay_na_grace":       "Недоступно разом із кредитними канікулами: розрахунок будується на графіку без канікул і вводив би в оману.",
+        "prepay_na_synd":        "Недоступно в синдикованому режимі — порядок дострокового погашення між траншами неоднозначний.",
+        "prepay_periods":        "періодів",
         "dep_gain_label":      "Прибуток",
         "dep_mode_label":      "Режим",
         "dep_growth_title":    "📈 Зростання вкладу",
@@ -1311,6 +1349,25 @@ TRANSLATIONS = {
         "dep_total_earned":    "Total Interest Earned",
         "dep_rate_label":      "Annual Rate",
         "dep_period_payout":   "Period Payout",
+        "prepay_section":        "🏃 Early Repayment (What-If)",
+        "prepay_caption":        "A what-if on paying more than required. The schedule above is left untouched.",
+        "prepay_extra":          "Extra per period",
+        "prepay_extra_help":     "Added to every instalment. All of it goes to principal.",
+        "prepay_lump":           "One-off payment",
+        "prepay_lump_help":      "A single payment on top of the schedule — a bonus, or the proceeds of a sale.",
+        "prepay_lump_period":    "One-off payment period",
+        "prepay_new_term":       "New Term",
+        "prepay_periods_saved":  "Periods Saved",
+        "prepay_interest_saved": "Interest Saved",
+        "prepay_total_saved":    "Total Saved",
+        "prepay_payoff_date":    "Payoff Date",
+        "prepay_extra_paid":     "Paid Above Schedule",
+        "prepay_strategy":       "Strategy: the term shortens while the instalment stays the same — this is where the saving is largest. A bank may instead lower the instalment and keep the term, which saves considerably less.",
+        "prepay_none":           "Enter an extra payment or a one-off amount to see the result.",
+        "prepay_check_terms":    "⚠️ Check your contract: a lender may charge for early repayment or restrict it.",
+        "prepay_na_grace":       "Not available together with a grace period: the model is built on the schedule without the holiday, so the figures would mislead.",
+        "prepay_na_synd":        "Not available in syndicated mode — the order in which tranches are prepaid is ambiguous.",
+        "prepay_periods":        "periods",
         "dep_gain_label":      "Gain",
         "dep_mode_label":      "Mode",
         "dep_growth_title":    "📈 Deposit Growth",
@@ -3506,6 +3563,180 @@ def apply_grace_period(sched: list, grace_start: int, grace_duration: int,
                     })
 
     return new_sched
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+#  ДОСРОЧНОЕ ПОГАШЕНИЕ  —  what-if поверх уже рассчитанного графика
+# ─────────────────────────────────────────────────────────────────────────────
+
+def calc_early_repayment(principal: float, n: int, rate_pa: float, unit: str,
+                         scheme: str, monthly_comm: float = 0.0,
+                         extra_per_period: float = 0.0,
+                         lump_sum: float = 0.0, lump_period: int = 1,
+                         day_count: str | None = None,
+                         start_date: date | None = None) -> dict | None:
+    """
+    Models paying MORE than the schedule requires, under the "shorten the term"
+    strategy — the borrower keeps paying the same instalment and the loan simply
+    ends sooner. (The alternative bank practice, keeping the term and lowering
+    the instalment, saves far less and is not modelled here.)
+
+    Two kinds of overpayment, usable together:
+      • `extra_per_period` — a constant amount added to every instalment.
+      • `lump_sum` at `lump_period` — a single one-off payment, applied at the
+        END of that period, after that period's interest has accrued.
+
+    Every surplus goes straight to PRINCIPAL, which is what makes the loan
+    close early. The scheduled part of each payment keeps following the chosen
+    scheme, so the model is correct for all three:
+
+      • annuity — the instalment stays at the original constant PMT, so each
+        period the interest share falls and the principal share grows;
+      • classic — the fixed principal portion (principal / n) continues;
+      • balloon — the scheduled principal portion is zero, so the overpayment
+        eats directly into the balance and shrinks the final bullet.
+
+    Interest accrual mirrors the main schedule: per-period rate r/ppy by
+    default, or the exact day-count fraction when `day_count` and `start_date`
+    are supplied.
+
+    Returns a dict with the new totals and the savings against the base
+    schedule, or None when the inputs are degenerate or no overpayment was
+    requested. Keys:
+
+        periods_new       int    — periods actually needed
+        periods_saved     int    — n − periods_new
+        interest_new      float  — interest paid under overpayment
+        interest_base     float  — interest paid on the untouched schedule
+        interest_saved    float  — base − new (≥ 0)
+        total_new         float  — everything paid, incl. commissions
+        total_base        float  — same for the base schedule
+        total_saved       float
+        extra_paid        float  — how much overpayment went in
+        payoff_date       date|None
+        schedule          list   — the accelerated schedule rows
+    """
+    if scheme not in ("annuity", "classic", "balloon"):
+        return None
+    try:
+        principal = float(principal)
+        rate_pa   = float(rate_pa)
+        extra_per_period = max(0.0, float(extra_per_period or 0.0))
+        lump_sum         = max(0.0, float(lump_sum or 0.0))
+        n = int(n)
+        lump_period = int(lump_period or 1)
+    except (TypeError, ValueError):
+        return None
+    if n < 1 or principal <= 0:
+        return None
+    if not (math.isfinite(principal) and math.isfinite(rate_pa)
+            and math.isfinite(extra_per_period) and math.isfinite(lump_sum)):
+        return None
+    if extra_per_period <= 0 and lump_sum <= 0:
+        return None                      # nothing to model
+    lump_period = max(1, min(lump_period, n))
+
+    # ── Base schedule: what the borrower pays if they change nothing ─────────
+    calc = {"annuity": calc_annuity, "classic": calc_classic,
+            "balloon": calc_balloon}[scheme]
+    try:
+        base = calc(principal, n, rate_pa, unit, monthly_comm,
+                    day_count=day_count, start_date=start_date)
+    except Exception:
+        return None
+    interest_base = sum(r["interest"] for r in base)
+    total_base    = sum(r["payment"] for r in base)
+
+    # ── Per-period rate, matching however the base schedule accrued ──────────
+    ppy = periods_per_year(unit)
+    if day_count and start_date is not None:
+        dates = period_dates_for_schedule(start_date, n, unit)
+        r_annual = rate_pa / 100.0
+        def _rate(i: int) -> float:      # i is 1-based
+            return r_annual * year_fraction(dates[i - 1], dates[i], day_count)
+    else:
+        r_flat = rate_pa / 100.0 / ppy
+        def _rate(i: int) -> float:
+            return r_flat
+
+    # The scheduled principal portion each period, by scheme. Annuity keeps the
+    # original instalment, so its scheduled principal is derived per period as
+    # (PMT − interest); the other two are known up front.
+    pmt_annuity = base[0]["payment"] - monthly_comm if scheme == "annuity" else 0.0
+    pp_classic  = principal / n if scheme == "classic" else 0.0
+
+    rows, balance, extra_paid = [], principal, 0.0
+    for i in range(1, n + 1):
+        if balance <= 1e-9:
+            break
+        interest = balance * _rate(i)
+
+        if scheme == "annuity":
+            sched_principal = pmt_annuity - interest
+        elif scheme == "classic":
+            sched_principal = pp_classic
+        else:                              # balloon
+            sched_principal = 0.0
+        sched_principal = max(0.0, sched_principal)
+
+        surplus = extra_per_period + (lump_sum if i == lump_period else 0.0)
+        principal_part = sched_principal + surplus
+        # Never repay more than what is actually owed; trim the surplus first
+        # so `extra_paid` reflects money that genuinely went into the loan.
+        if principal_part > balance:
+            over = principal_part - balance
+            surplus = max(0.0, surplus - over)
+            principal_part = balance
+        extra_paid += surplus
+
+        balance -= principal_part
+        rows.append({
+            "period": i,
+            "balance_open": balance + principal_part,
+            "payment": principal_part + interest + monthly_comm,
+            "principal": principal_part,
+            "interest": interest,
+            "commission": monthly_comm,
+            "balance_close": max(balance, 0.0),
+            "extra": surplus,
+        })
+
+    if not rows:
+        return None
+
+    # A balloon that was never fully overpaid still owes its bullet at maturity.
+    if balance > 1e-9:
+        last = rows[-1]
+        last["principal"]     += balance
+        last["payment"]       += balance
+        last["balance_close"]  = 0.0
+        balance = 0.0
+
+    interest_new = sum(r["interest"] for r in rows)
+    total_new    = sum(r["payment"] for r in rows)
+    periods_new  = len(rows)
+
+    payoff_date = None
+    if start_date is not None:
+        try:
+            payoff_date = period_dates_for_schedule(start_date, periods_new,
+                                                    unit)[-1]
+        except Exception:
+            payoff_date = None
+
+    return {
+        "periods_new":    periods_new,
+        "periods_saved":  max(0, n - periods_new),
+        "interest_new":   interest_new,
+        "interest_base":  interest_base,
+        "interest_saved": max(0.0, interest_base - interest_new),
+        "total_new":      total_new,
+        "total_base":     total_base,
+        "total_saved":    total_base - total_new,
+        "extra_paid":     extra_paid,
+        "payoff_date":    payoff_date,
+        "schedule":       rows,
+    }
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -9405,7 +9636,11 @@ def main():
     _render_invest_loan(t, smry, df_chart, sym)
     st.divider()
 
-    # 7. Анализ рефинансирования (модуль)
+    # 7. Досрочное погашение (what-if)
+    _render_prepayment_panel(t, smry, sym)
+    st.divider()
+
+    # 8. Анализ рефинансирования (модуль)
     _render_refinance_panel(t, smry, sym)
     st.divider()
 
@@ -9828,6 +10063,101 @@ def _render_email_panel(t, df_d, smry, sym, is_deposit: bool = False):
 # ─────────────────────────────────────────────────────────────────────────────
 #  МОДУЛЬ РЕФИНАНСИРОВАНИЯ
 # ─────────────────────────────────────────────────────────────────────────────
+def _render_prepayment_panel(t, smry, sym):
+    """
+    "What if I pay more?" panel.
+
+    Deliberately read-only with respect to the main calculation: it re-derives
+    its own schedule from the summary and never touches `st.session_state`
+    beyond its own widget keys, so experimenting here cannot disturb the
+    figures, charts or exports above it.
+    """
+    with st.expander(t.get("prepay_section", "🏃 Early Repayment (What-If)"),
+                      expanded=False):
+        st.caption(t.get("prepay_caption", ""))
+
+        # Grace re-amortises the schedule and syndicated mode spreads the debt
+        # across tranches; in both cases a single-loan prepayment model would
+        # quietly disagree with the schedule above, so decline instead.
+        if smry.get("grace_enabled") and not smry.get("grace_error"):
+            st.info(t.get("prepay_na_grace", ""), icon="ℹ️")
+            return
+        if smry.get("syndicated"):
+            st.info(t.get("prepay_na_synd", ""), icon="ℹ️")
+            return
+
+        scheme = smry.get("scheme_key")
+        n      = int(smry.get("n_periods") or 0)
+        if scheme not in ("annuity", "classic", "balloon") or n < 2:
+            return
+
+        sched     = smry.get("schedule") or []
+        mo_comm   = sched[0].get("commission", 0.0) if sched else 0.0
+        principal = float(smry.get("principal") or 0.0)
+        base_pmt  = float(smry.get("first_payment") or 0.0)
+
+        c1, c2, c3 = st.columns([2, 2, 1])
+        with c1:
+            extra = st.number_input(
+                t.get("prepay_extra", "Extra per period"),
+                min_value=0.0, max_value=max(1e10, principal),
+                value=float(st.session_state.get("prepay_extra_val", 0.0)),
+                step=max(50.0, round(base_pmt * 0.1, -1) or 50.0),
+                format="%.2f", key="prepay_extra_val",
+                help=t.get("prepay_extra_help", ""))
+        with c2:
+            lump = st.number_input(
+                t.get("prepay_lump", "One-off payment"),
+                min_value=0.0, max_value=max(1e10, principal),
+                value=float(st.session_state.get("prepay_lump_val", 0.0)),
+                step=1000.0, format="%.2f", key="prepay_lump_val",
+                help=t.get("prepay_lump_help", ""))
+        with c3:
+            lump_period = st.number_input(
+                t.get("prepay_lump_period", "One-off payment period"),
+                min_value=1, max_value=n,
+                value=min(int(st.session_state.get("prepay_lump_period_val", 1)), n),
+                step=1, key="prepay_lump_period_val",
+                disabled=(lump <= 0))
+
+        if extra <= 0 and lump <= 0:
+            st.caption(t.get("prepay_none", ""))
+            return
+
+        res = calc_early_repayment(
+            principal, n, float(smry.get("rate_pa") or 0.0),
+            smry.get("unit", "months"), scheme, mo_comm,
+            extra_per_period=extra, lump_sum=lump, lump_period=int(lump_period),
+            day_count=(smry.get("day_count_method")
+                        if smry.get("day_count_enabled") else None),
+            start_date=(smry.get("start_date")
+                        if smry.get("day_count_enabled") else None),
+        )
+        if res is None:
+            return
+
+        unit_lbl = t.get(smry.get("unit", "months"), t.get("prepay_periods", "periods"))
+        m1, m2, m3, m4 = st.columns(4)
+        m1.metric(t.get("prepay_new_term", "New Term"),
+                  f"{res['periods_new']} {unit_lbl}",
+                  delta=f"-{res['periods_saved']}" if res["periods_saved"] else None)
+        m2.metric(t.get("prepay_interest_saved", "Interest Saved"),
+                  fmt_money(res["interest_saved"], sym))
+        m3.metric(t.get("prepay_total_saved", "Total Saved"),
+                  fmt_money(res["total_saved"], sym))
+        m4.metric(t.get("prepay_extra_paid", "Paid Above Schedule"),
+                  fmt_money(res["extra_paid"], sym))
+
+        if res.get("payoff_date") is not None:
+            st.markdown(
+                f"<div class='scheme-info'>{t.get('prepay_payoff_date', 'Payoff Date')}: "
+                f"<b>{res['payoff_date'].strftime('%d.%m.%Y')}</b></div>",
+                unsafe_allow_html=True)
+
+        st.caption(t.get("prepay_strategy", ""))
+        st.caption(t.get("prepay_check_terms", ""))
+
+
 def _render_refinance_panel(t, smry, sym):
     """Самостоятельный модуль анализа рефинансирования.
     Все поля вводятся пользователем независимо от текущего расчёта."""
