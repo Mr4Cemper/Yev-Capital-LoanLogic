@@ -7243,6 +7243,8 @@ def build_css(theme: dict) -> str:
   --app-border:       {border};
   --app-border-subtle:{border_subtle};
   --app-input-text:   {input_text};
+  /* Подложка виджетов: задаём явно, иначе Streamlit оставит свою (белую) */
+  --app-input-bg:     {bg_tertiary};
   --app-radius:       {radius}px;
   --app-radius-lg:    {radius + 4}px;
   --app-pad-md:       {pad_md}px;
@@ -7257,20 +7259,29 @@ section[data-testid="stSidebar"]{{
   border-right:1px solid var(--app-border)
 }}
 section[data-testid="stSidebar"] *{{color:var(--app-text)!important}}
-div[data-testid="metric-container"]{{
+/* Карточки метрик. `metric-container` — старый testid Streamlit,
+   `stMetric` — актуальный; держим оба, чтобы не зависеть от версии. */
+div[data-testid="metric-container"],
+div[data-testid="stMetric"]{{
   background:linear-gradient(135deg,var(--app-bg-secondary),var(--app-bg-tertiary));
   border:1px solid var(--app-border);
   border-radius:var(--app-radius-lg);
   padding:var(--app-pad-lg) calc(var(--app-pad-lg) + 2px);
   box-shadow:0 4px 20px rgba(0,0,0,.35)
 }}
-div[data-testid="metric-container"] label{{
+div[data-testid="metric-container"] label,
+div[data-testid="stMetric"] label,
+div[data-testid="stMetric"] [data-testid="stMetricLabel"]{{
   color:var(--app-text-muted)!important;
   font-size:.74rem!important;font-weight:600;
   text-transform:uppercase;letter-spacing:.06em
 }}
-div[data-testid="metric-container"] div[data-testid="metric-value"]{{
+div[data-testid="metric-container"] div[data-testid="metric-value"],
+div[data-testid="stMetric"] [data-testid="stMetricValue"]{{
   color:var(--app-accent)!important;font-size:1.2rem!important;font-weight:700
+}}
+div[data-testid="stMetric"] [data-testid="stMetricDelta"]{{
+  font-size:.78rem!important
 }}
 /* ── Шапка приложения ── */
 .app-header{{
@@ -7364,7 +7375,7 @@ div[data-testid="metric-container"] div[data-testid="metric-value"]{{
 /* ── Подпись "Made by Yevtush" ── */
 .made-by{{
   position:fixed;bottom:10px;right:14px;
-  color:var(--app-border);font-size:.68rem;font-weight:700;
+  color:var(--app-text-subtle);font-size:.68rem;font-weight:700;
   letter-spacing:.05em;z-index:9999;
   pointer-events:none;user-select:none;
   background:var(--app-bg-secondary);
@@ -7400,7 +7411,239 @@ button[data-testid="collapsedControl"] svg,
   color:#FFFFFF!important;
   fill:#FFFFFF!important;
 }}
-/* ── Контрастный текст в полях ввода (mobile-fix + theme support) ── */
+/* ══════════════════════════════════════════════════════════════════════════
+   ВИДЖЕТЫ: ПОВЕРХНОСТИ И ТЕКСТ  (фикс «белых засветов на месте текста»)
+   ──────────────────────────────────────────────────────────────────────────
+   Внутренности виджетов (поля ввода, селекты, выпадающие списки, календарь,
+   чекбоксы) рисует сам Streamlit — в своей базовой теме. Если базовая тема
+   светлая, подложка виджета остаётся белой, а наш CSS красит текст в
+   светлый: получается белый прямоугольник с невидимым текстом.
+   Базовая тема закреплена в .streamlit/config.toml, а здесь фон каждой
+   поверхности задан ещё и из переменных активной темы — чтобы кастомные
+   темы из редактора работали и чтобы приложение не «белело», если
+   config.toml потерян при деплое или переопределён в Settings → Appearance.
+
+   Селекторы намеренно продублированы:
+     * data-testid  — актуальный DOM Streamlit (react-aria);
+     * data-baseweb — старые сборки Streamlit (BaseWeb).
+   Неподходящая ветка просто не совпадёт ни с одним узлом.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* ── 1. Текстовые / числовые / date / time / textarea ─────────────────────── */
+[data-testid="stTextInputRootElement"],
+[data-testid="stTextAreaRootElement"],
+[data-testid="stNumberInputContainer"],
+[data-testid="stDateInput"] > div > div,
+[data-testid="stTimeInput"] > div > div,
+div[data-baseweb="input"],
+div[data-baseweb="base-input"],
+div[data-baseweb="textarea"]{{
+  background:var(--app-input-bg)!important;
+  border:1px solid var(--app-border)!important;
+  border-radius:var(--app-radius)!important;
+  box-shadow:none!important;
+}}
+[data-testid="stTextInputRootElement"] input,
+[data-testid="stTextAreaRootElement"] textarea,
+[data-testid="stNumberInputField"],
+[data-testid="stDateInputField"],
+[data-testid="stDateInput"] input,
+.stTextArea textarea{{
+  background:transparent!important;
+}}
+[data-testid="stTextInputRootElement"]:focus-within,
+[data-testid="stTextAreaRootElement"]:focus-within,
+[data-testid="stNumberInputContainer"]:focus-within,
+[data-testid="stDateInput"] > div > div:focus-within,
+div[data-baseweb="input"]:focus-within{{
+  border-color:var(--app-accent)!important;
+  box-shadow:0 0 0 1px var(--app-accent)!important;
+}}
+/* Степперы «−/+» у st.number_input */
+[data-testid="stNumberInputStepUp"],
+[data-testid="stNumberInputStepDown"]{{
+  background:var(--app-bg-secondary)!important;
+  color:var(--app-text-muted)!important;
+  border-color:var(--app-border)!important;
+}}
+[data-testid="stNumberInputStepUp"]:hover,
+[data-testid="stNumberInputStepDown"]:hover{{
+  background:var(--app-accent-strong)!important;
+  color:#FFFFFF!important;
+}}
+[data-testid="stNumberInputStepUp"] svg,
+[data-testid="stNumberInputStepDown"] svg{{fill:currentColor!important}}
+
+/* ── 2. Селекты ───────────────────────────────────────────────────────────── */
+[data-testid="stSelectbox"] div[role="group"],
+[data-testid="stMultiSelect"] div[role="group"],
+.react-aria-ComboBox > div[role="group"],
+div[data-baseweb="select"] > div{{
+  background:var(--app-input-bg)!important;
+  border:1px solid var(--app-border)!important;
+  border-radius:var(--app-radius)!important;
+}}
+[data-testid="stSelectbox"] div[role="group"]:focus-within,
+[data-testid="stMultiSelect"] div[role="group"]:focus-within,
+div[data-baseweb="select"] > div:focus-within{{
+  border-color:var(--app-accent)!important;
+  box-shadow:0 0 0 1px var(--app-accent)!important;
+}}
+[data-testid="stSelectbox"] input,
+[data-testid="stMultiSelect"] input{{
+  background:transparent!important;
+  color:var(--app-input-text)!important;
+  -webkit-text-fill-color:var(--app-input-text)!important;
+}}
+[data-testid="stSelectbox"] button,
+[data-testid="stMultiSelect"] button{{background:transparent!important;border:none!important}}
+[data-testid="stSelectbox"] svg,
+[data-testid="stMultiSelect"] svg,
+div[data-baseweb="select"] svg{{
+  fill:var(--app-text-muted)!important;color:var(--app-text-muted)!important;
+}}
+[data-testid="stMultiSelect"] span[data-baseweb="tag"],
+span[data-baseweb="tag"]{{background:var(--app-accent-strong)!important;color:#FFFFFF!important}}
+span[data-baseweb="tag"] span{{color:#FFFFFF!important}}
+
+/* ── 3. Всплывающие слои: списки, поповеры, календарь, тултипы ─────────────
+   Рисуются в портале вне .stApp, поэтому селекторы глобальные.            */
+[data-testid="stSelectboxVirtualDropdown"],
+[data-testid="stVirtualDropdown"],
+.react-aria-Popover,
+.react-aria-ListBox,
+div[data-baseweb="popover"] div[data-baseweb="menu"],
+div[data-baseweb="popover"] ul[role="listbox"],
+ul[data-baseweb="menu"],
+div[role="listbox"]{{
+  background:var(--app-bg-secondary)!important;
+  border:1px solid var(--app-border)!important;
+  border-radius:var(--app-radius)!important;
+  box-shadow:0 10px 30px rgba(0,0,0,.45)!important;
+  color:var(--app-text)!important;
+}}
+[role="option"],
+.react-aria-ListBoxItem,
+ul[role="listbox"] li{{background:transparent!important;color:var(--app-text)!important}}
+[role="option"]:hover,
+[role="option"][data-focused],
+[role="option"][data-hovered],
+[role="option"][aria-selected="true"],
+.react-aria-ListBoxItem[data-focused],
+ul[role="listbox"] li:hover{{
+  background:var(--app-bg-tertiary)!important;color:var(--app-accent)!important;
+}}
+[data-testid="stDateInputCalendar"],
+div[data-baseweb="calendar"],
+.react-aria-Calendar{{
+  background:var(--app-bg-secondary)!important;
+  color:var(--app-text)!important;
+  border:1px solid var(--app-border)!important;
+}}
+[data-testid="stTooltipContent"],
+div[data-baseweb="tooltip"]{{
+  background:var(--app-bg-tertiary)!important;
+  color:var(--app-text)!important;
+  border:1px solid var(--app-border)!important;
+}}
+[data-testid="stPopoverButton"]{{
+  background:var(--app-bg-tertiary)!important;
+  color:var(--app-text)!important;
+  border:1px solid var(--app-border)!important;
+}}
+[data-testid="stPopoverButton"]:hover{{
+  border-color:var(--app-accent)!important;color:var(--app-accent)!important;
+}}
+[data-testid="stPopoverBody"]{{
+  background:var(--app-bg-secondary)!important;
+  border:1px solid var(--app-border)!important;
+  color:var(--app-text)!important;
+}}
+
+/* ── 4. Чекбоксы и радиокнопки ────────────────────────────────────────────── */
+[data-testid="stCheckbox"] label > div:not([data-testid]){{
+  background-color:var(--app-input-bg)!important;
+  border-color:var(--app-border)!important;
+}}
+[data-testid="stCheckbox"] label:has(input:checked) > div:not([data-testid]){{
+  background-color:var(--app-accent-strong)!important;
+  border-color:var(--app-accent)!important;
+}}
+/* :not([data-testid]) обязателен — на этом же уровне лежит подпись
+   (stMarkdownContainer), и без исключения она получала бы фон кружка. */
+label[data-testid="stRadioOption"] > div > div > div:not([data-testid]){{
+  background-color:var(--app-border)!important
+}}
+label[data-testid="stRadioOption"] > div > div > div:not([data-testid]) > div{{
+  background-color:var(--app-bg-secondary)!important
+}}
+label[data-testid="stRadioOption"]:has(input:checked) > div > div > div:not([data-testid]){{
+  background-color:var(--app-accent)!important
+}}
+label[data-testid="stRadioOption"]:has(input:checked) > div > div > div:not([data-testid]) > div{{
+  background-color:#FFFFFF!important
+}}
+
+/* ── 5. Экспандеры, вкладки, таблицы, слайдер, загрузка файлов ────────────── */
+[data-testid="stExpander"] summary{{
+  background:var(--app-bg-tertiary)!important;
+  border-radius:var(--app-radius)!important;
+}}
+[data-testid="stExpander"] summary:hover{{color:var(--app-accent)!important}}
+[data-testid="stExpander"] details{{
+  background:transparent!important;border-color:var(--app-border)!important;
+}}
+[data-testid="stTabs"] [data-baseweb="tab-list"],
+[data-testid="stTabs"] [role="tablist"]{{
+  background:transparent!important;
+  border-bottom:1px solid var(--app-border)!important;
+}}
+[data-testid="stTab"],
+button[role="tab"]{{background:transparent!important;color:var(--app-text-muted)!important}}
+[data-testid="stTab"][aria-selected="true"],
+button[role="tab"][aria-selected="true"]{{color:var(--app-accent)!important}}
+[data-baseweb="tab-highlight"]{{background:var(--app-accent)!important}}
+[data-testid="stDataFrame"],
+[data-testid="stDataFrameResizable"],
+[data-testid="stTable"]{{
+  border:1px solid var(--app-border)!important;
+  border-radius:var(--app-radius)!important;
+}}
+[data-testid="stTable"] th,
+[data-testid="stTable"] td{{
+  background:var(--app-bg-secondary)!important;
+  color:var(--app-text)!important;
+  border-color:var(--app-border)!important;
+}}
+[data-testid="stSliderThumbValue"]{{color:var(--app-accent)!important;background:transparent!important}}
+[data-testid="stSliderTickBar"],
+[data-testid="stSliderTickBarMin"],
+[data-testid="stSliderTickBarMax"]{{
+  color:var(--app-text-subtle)!important;background:transparent!important;
+}}
+[data-testid="stFileUploaderDropzone"],
+[data-testid="stFileUploader"] section{{
+  background:var(--app-bg-tertiary)!important;
+  border:1px dashed var(--app-border)!important;
+  color:var(--app-text)!important;
+}}
+[data-testid="stCode"],
+[data-testid="stMarkdownPre"] pre{{
+  background:var(--app-bg-tertiary)!important;
+  border:1px solid var(--app-border-subtle)!important;
+}}
+
+/* ── 6. Подписи виджетов вне сайдбара ──────────────────────────────────────
+   В сайдбаре цвет текста задан правилом выше; в основной области подписи
+   иначе достались бы от базовой темы Streamlit (тёмный текст на тёмном).  */
+[data-testid="stWidgetLabel"],
+[data-testid="stWidgetLabel"] p,
+[data-testid="stWidgetLabel"] label,
+.stApp label{{color:var(--app-text)!important}}
+[data-testid="stCaptionContainer"],
+[data-testid="stCaptionContainer"] p{{color:var(--app-text-muted)!important}}
+
+/* ── 7. Контрастный текст в самих полях (mobile-fix + theme support) ─────── */
 .stTextInput input,
 .stNumberInput input,
 .stTextArea textarea,
@@ -8516,14 +8759,15 @@ def main():
         wcal = t.get("welcome_calc", "Calculate")
         wsub = t.get("welcome_sub",  "Annuity · Classic · Balloon · Deposit<br>Excel / PDF / Word / CSV · Investment Comparison")
         st.markdown(f"""
-        <div style="text-align:center;padding:70px 40px;color:#475569">
+        <div style="text-align:center;padding:70px 40px;
+                    color:var(--app-text-muted)">
           <div style="font-size:3.5rem"></div>
-          <h2 style="color:#334155;margin-top:14px">
+          <h2 style="color:var(--app-text-muted);margin-top:14px">
             {wh2}
-            <span style="color:#4FC3F7">{wcal}</span>
+            <span style="color:var(--app-accent)">{wcal}</span>
           </h2>
-          <p style="color:#475569;font-size:.88rem;margin-top:8px">{wsub}</p>
-          <p style="color:#334155;font-size:.72rem;margin-top:24px">
+          <p style="color:var(--app-text-muted);font-size:.88rem;margin-top:8px">{wsub}</p>
+          <p style="color:var(--app-text-subtle);font-size:.72rem;margin-top:24px">
             Yev Capital LoanLogic v3.0 ·
             © 2026 Bohdan Yevtushenko (MrCemper)
           </p>
