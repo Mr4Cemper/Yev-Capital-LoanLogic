@@ -6,3 +6,4 @@ python-docx
 reportlab
 numpy
 scipy
+python-dateutil
