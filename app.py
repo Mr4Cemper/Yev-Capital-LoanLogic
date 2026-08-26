@@ -10649,7 +10649,10 @@ def _render_schedule(t, df_d, smry, sym, is_deposit=False):
     for _col in df_show.columns:
         if _col == _period_col or df_show[_col].dtype != object:
             continue
-        _blanked = df_show[_col].replace("", None)
+        # Dict form on purpose: Series.replace("", None) is read by pandas as
+        # "replace '' using the pad method", i.e. a forward-fill, so the TOTAL
+        # row would inherit the previous row's balance instead of going blank.
+        _blanked = df_show[_col].replace({"": None})
         _numeric = pd.to_numeric(_blanked, errors="coerce")
         # Adopt the numeric view only when nothing was lost to coercion, which
         # leaves genuinely textual columns (the date) as they are.

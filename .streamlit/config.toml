@@ -1,84 +1,26 @@
-# ─────────────────────────────────────────────────────────────────────────────
-#  Yev Capital | LoanLogic — базовая тема Streamlit
-# ─────────────────────────────────────────────────────────────────────────────
-#  ЗАЧЕМ ЭТОТ ФАЙЛ.
-#  Приложение красит интерфейс своим CSS (build_css) в тёмную палитру.
-#  Но внутренности виджетов (поля ввода, селекты, выпадающие списки,
-#  календарь, таблицы) рисует сам Streamlit — в СВОЕЙ базовой теме.
-#  Без этого файла базовая тема выбиралась по настройке ОС/браузера: при
-#  светлой системной теме поверхности виджетов оставались белыми, а текст
-#  на них — светлым. Отсюда «белые засветы на месте текста».
+# -----------------------------------------------------------------------------
+#  Yev Capital | LoanLogic - Streamlit base theme
+# -----------------------------------------------------------------------------
+#  WHY THIS FILE EXISTS.
+#  The app paints its own UI dark via build_css(), but the INTERNALS of every
+#  widget (inputs, selects, dropdowns, the calendar, dataframes) are rendered
+#  by Streamlit itself, in Streamlit's base theme. With no base theme pinned
+#  that theme came from the OS setting: under a light system theme the widget
+#  surfaces stayed white while the app's CSS painted the text near-white, which
+#  is what produced the white blocks where text should be.
 #
-#  Здесь тема закреплена явно и продублирована в [theme.light] / [theme.dark],
-#  поэтому переключатель Settings → Appearance больше не может вернуть
-#  белые подложки. Палитра совпадает с пресетом "dark_navy" из THEME_PRESETS.
-# ─────────────────────────────────────────────────────────────────────────────
+#  Only the five theme options that have existed since Streamlit 0.79 are used
+#  here on purpose. Newer keys (borderColor, baseRadius, chartCategoricalColors,
+#  the [theme.sidebar] / [theme.light] / [theme.dark] sections, ...) are
+#  rejected by older Streamlit releases, and everything they covered is already
+#  handled by build_css(), which follows the active theme anyway.
+#
+#  Palette matches the "dark_navy" preset in THEME_PRESETS.
+# -----------------------------------------------------------------------------
 
 [theme]
-base                           = "dark"
-primaryColor                   = "#0EA5E9"
-backgroundColor                = "#0F172A"
-secondaryBackgroundColor       = "#1E293B"
-textColor                      = "#E2E8F0"
-linkColor                      = "#4FC3F7"
-codeBackgroundColor            = "#0F2444"
-codeTextColor                  = "#E2E8F0"
-borderColor                    = "#334155"
-dataframeBorderColor           = "#334155"
-dataframeHeaderBackgroundColor = "#0F2444"
-showWidgetBorder               = true
-showSidebarBorder              = true
-baseRadius                     = "8px"
-buttonRadius                   = "8px"
-chartCategoricalColors = ["#4FC3F7", "#10B981", "#F59E0B", "#C084FC",
-                          "#F472B6", "#22D3EE", "#FBBF24", "#94A3B8"]
-
-[theme.sidebar]
-backgroundColor          = "#1E293B"
-secondaryBackgroundColor = "#0F2444"
-textColor                = "#E2E8F0"
-borderColor              = "#334155"
+base                     = "dark"
 primaryColor             = "#0EA5E9"
-
-# Светлый режим намеренно повторяет тёмную палитру: весь CSS приложения
-# рассчитан на тёмный фон, светлые подложки виджетов ломали читаемость.
-[theme.light]
-primaryColor                   = "#0EA5E9"
-backgroundColor                = "#0F172A"
-secondaryBackgroundColor       = "#1E293B"
-textColor                      = "#E2E8F0"
-linkColor                      = "#4FC3F7"
-codeBackgroundColor            = "#0F2444"
-codeTextColor                  = "#E2E8F0"
-borderColor                    = "#334155"
-dataframeBorderColor           = "#334155"
-dataframeHeaderBackgroundColor = "#0F2444"
-
-[theme.light.sidebar]
-backgroundColor          = "#1E293B"
-secondaryBackgroundColor = "#0F2444"
+backgroundColor          = "#0F172A"
+secondaryBackgroundColor = "#1E293B"
 textColor                = "#E2E8F0"
-borderColor              = "#334155"
-primaryColor             = "#0EA5E9"
-
-[theme.dark]
-primaryColor                   = "#0EA5E9"
-backgroundColor                = "#0F172A"
-secondaryBackgroundColor       = "#1E293B"
-textColor                      = "#E2E8F0"
-linkColor                      = "#4FC3F7"
-codeBackgroundColor            = "#0F2444"
-codeTextColor                  = "#E2E8F0"
-borderColor                    = "#334155"
-dataframeBorderColor           = "#334155"
-dataframeHeaderBackgroundColor = "#0F2444"
-
-[theme.dark.sidebar]
-backgroundColor          = "#1E293B"
-secondaryBackgroundColor = "#0F2444"
-textColor                = "#E2E8F0"
-borderColor              = "#334155"
-primaryColor             = "#0EA5E9"
-
-[browser]
-gatherUsageStats = false
