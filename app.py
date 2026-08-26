@@ -1899,6 +1899,12 @@ def _sanitize_currency_symbol(raw: str) -> str:
     s = re.sub(r'[<>&"\'`{}\\/]', "", s)
     # Collapse any CR/LF/tabs that could disrupt layout or injected contexts.
     s = re.sub(r"[\r\n\t]+", "", s).strip()
+    # Strip leading spreadsheet formula triggers. A symbol reaching a cell in
+    # an .xlsx/.csv export while starting with one of these is interpreted as
+    # a FORMULA by Excel, LibreOffice and Sheets — the classic formula
+    # injection, and these reports are emailed to other people. No real
+    # currency symbol or code begins with any of them.
+    s = s.lstrip("=+-@\t\r").strip()
     # Cap length — real currency symbols/codes are short.
     s = s[:10]
     return s or "?"
@@ -5132,6 +5138,46 @@ def chart_dep_vs_alternative(df_chart, alt_vals, deposit_vals, t, yield_label, s
 #  ЭКСПОРТ В EXCEL  —  Bloomberg / Investment-Bank grade
 #  Три листа: 1) Summary  2) Payment Schedule  3) Analysis
 # ─────────────────────────────────────────────────────────────────────────────
+# Cells the app itself writes as real formulas. Anything else that Excel
+# would evaluate is user-derived and gets forced back to text.
+_XLSX_ALLOWED_FORMULA_RE = re.compile(r'^=SUM\([A-Z]{1,3}\d+:[A-Z]{1,3}\d+\)$')
+# Leading characters that make a spreadsheet treat a string as a formula.
+_XLSX_FORMULA_TRIGGERS = ("=", "+", "-", "@", "\t", "\r")
+
+
+def _xlsx_neutralize_formulas(wb) -> int:
+    """
+    Forces every unexpected formula-looking cell in `wb` back to plain text.
+
+    openpyxl turns any string starting with "=" into a live formula, so a
+    value that originated from user input — a custom currency symbol such as
+    `=cmd|'/c calc'!A0`, say — became an executable cell in the exported
+    workbook. These reports are downloaded and emailed on to other people, so
+    the payload travels.
+
+    The app writes exactly one kind of genuine formula (the =SUM() column
+    verification row on the schedule sheet); that shape is allowed through and
+    everything else is demoted to a string. This runs once, just before save,
+    so it cannot be bypassed by a write site added later.
+
+    Returns the number of cells neutralised (useful in tests).
+    """
+    fixed = 0
+    for ws in wb.worksheets:
+        for row in ws.iter_rows():
+            for cell in row:
+                val = cell.value
+                if not isinstance(val, str) or not val.startswith(_XLSX_FORMULA_TRIGGERS):
+                    continue
+                if val.startswith("=") and _XLSX_ALLOWED_FORMULA_RE.match(val):
+                    continue          # the app's own verification formula
+                # Demote to text: the characters stay visible to the reader,
+                # but the spreadsheet no longer evaluates them.
+                cell.data_type = "s"
+                fixed += 1
+    return fixed
+
+
 def export_excel(df, summary, t, sym):
     """
     Создаёт профессиональный многолистовый Excel-файл уровня Bloomberg:
@@ -5917,6 +5963,10 @@ def export_excel(df, summary, t, sym):
     # ── Сохраняем ─────────────────────────────────────────────────────────────
     # Активируем Summary
     wb.active = ws1
+
+    # Last line of defence before the bytes leave the process: demote any
+    # formula-looking cell that is not one of the app's own =SUM() checks.
+    _xlsx_neutralize_formulas(wb)
 
     wb.save(buf)
     return buf.getvalue()
@@ -8411,6 +8461,22 @@ def main():
             st.divider()
         # else: amount and rate are set by syndicated_enabled block above
 
+        # ── Дата начала кредита / вклада ──────────────────────────────────
+        # Rendered BEFORE the term block on purpose. In "By End Date" mode the
+        # term is derived from (start_date, end_date); when this input sat
+        # below that block it still held the PREVIOUS value while the term was
+        # being computed, so moving the start date by a year left the term
+        # showing its old figure until some other interaction forced another
+        # rerun. Creating the widget first means the term is always derived
+        # from the date the user is actually looking at.
+        st.session_state.start_date = st.date_input(
+            t["start_date_label"],
+            value=st.session_state.start_date,
+            min_value=date(2000, 1, 1),
+            max_value=date(2099, 12, 31),
+            help=t["start_date_hint"],
+        )
+
         # ── Срок кредита / вклада ─────────────────────────────────────────
         # Выбор единицы срока (нужна в обоих режимах)
         unit_opts = {t["weeks"]:"weeks", t["months"]:"months",
@@ -8504,15 +8570,6 @@ def main():
                 t["interest_rate"], min_value=-20.0, max_value=999.9,
                 value=float(st.session_state.interest_rate), step=0.5, format="%.2f",
                 help=t.get("help_negative_rate", ""))
-
-        # Дата начала кредита / вклада
-        st.session_state.start_date = st.date_input(
-            t["start_date_label"],
-            value=st.session_state.start_date,
-            min_value=date(2000, 1, 1),
-            max_value=date(2099, 12, 31),
-            help=t["start_date_hint"],
-        )
 
         # Схема
         scheme_opts = {t["annuity"]:"annuity", t["classic"]:"classic",
