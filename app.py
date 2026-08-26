@@ -32,6 +32,62 @@ import streamlit as st
 import pandas as pd
 import plotly.graph_objects as go
 
+
+# ─────────────────────────────────────────────────────────────────────────────
+#  STREAMLIT VERSION SHIMS
+# ─────────────────────────────────────────────────────────────────────────────
+#  Two APIs this app relies on are past the removal date Streamlit announced
+#  for them, yet their replacements only exist in newer releases. Both are
+#  resolved once, here, so a single codebase runs on either generation instead
+#  of emitting a deprecation warning on every rerun (or breaking outright once
+#  the old names finally go).
+# ─────────────────────────────────────────────────────────────────────────────
+
+def _resolve_stretch_kwarg() -> dict:
+    """
+    Returns the kwargs that make an element fill its container.
+
+    `use_container_width=True` was renamed to `width="stretch"`; the old name
+    warns on every call and was slated for removal after 2025-12-31. `width`
+    only exists from Streamlit 1.54, so pick whichever the installed version
+    actually understands.
+    """
+    try:
+        import inspect as _inspect
+        if "width" in _inspect.signature(st.plotly_chart).parameters:
+            return {"width": "stretch"}
+    except (TypeError, ValueError, AttributeError):
+        pass
+    return {"use_container_width": True}
+
+
+#: Spread into element calls: `st.button(label, **W_STRETCH)`.
+W_STRETCH = _resolve_stretch_kwarg()
+
+
+def render_hidden_html(snippet: str, height: int = 0) -> None:
+    """
+    Renders an HTML/JS snippet in an iframe, by default zero-height.
+
+    Used for the localStorage theme bridge, which needs real JavaScript
+    execution — so `st.html` (which sanitizes and drops scripts by default) is
+    NOT a substitute. `st.components.v1.html` was slated for removal after
+    2026-06-01 and `st.iframe` replaces it, so prefer the new API and fall
+    back on older installs.
+
+    Never raises: the theme bridge is a convenience, and a component that
+    fails to render must not take the page down with it.
+    """
+    try:
+        iframe = getattr(st, "iframe", None)
+        if callable(iframe):
+            iframe(snippet, height=height)
+            return
+        import streamlit.components.v1 as _components
+        _components.html(snippet, height=height)
+    except Exception:
+        pass
+
 from openpyxl import Workbook
 from openpyxl.styles import PatternFill, Font, Alignment, Border, Side
 from openpyxl.utils import get_column_letter
@@ -3508,9 +3564,11 @@ def calc_refinance_analysis(
        Tells you when the SAVINGS PER MONTH have offset upfront cost.
        Independent of either loan's term.
 
-    2) NPV-BASED TOTAL COST DIFFERENCE (apples-to-apples):
-         Discounts BOTH cash-flow streams to present value over the
-         common horizon = max(remaining_months, new_term_months).
+    2) NPV-BASED TOTAL COST COMPARISON:
+         Each stream is discounted to present value over ITS OWN life — the
+         current loan over its remaining term, the new loan over its new term.
+         This is the present value of what each option COSTS IN TOTAL, which
+         is the figure that answers "which is cheaper overall".
 
          NPV_current = Σ_{t=1..remaining_months} cur_pmt / (1+d)^t
          NPV_new     = (penalty + fees)
@@ -3519,8 +3577,25 @@ def calc_refinance_analysis(
        net_savings_pv = NPV_current − NPV_new
        net_savings_pv > 0  →  refinancing is economically advantageous.
 
-       If discount_rate_pa = 0, this reduces to a simple sum (still correct,
-       but ignores time-value of money).
+       The two terms are deliberately NOT forced onto a shared horizon. Padding
+       the shorter loan with zeros to match the longer one would understate the
+       longer loan's cost, and assuming reinvestment of the freed cash flow
+       would require an assumed yield the user never supplied. Comparing total
+       PV cost keeps the answer free of both assumptions — at the price of one
+       caveat: stretching the same debt over a longer term lowers the monthly
+       payment while RAISING total PV cost. That is a real result, not an
+       artefact, and the verdict reconciliation below names it explicitly
+       ("longer_term_trap") instead of letting the cash-flow view hide it.
+
+       If discount_rate_pa ≤ 0, no discounting is applied and the comparison
+       reduces to a nominal sum of payments — still a valid total-cost view,
+       but one that ignores the time value of money.
+
+    The new loan is sized at `current_balance`: the penalty and fees are
+    modelled as cash paid up front at t=0 (undiscounted), NOT rolled into the
+    new principal. Rolling them in would inflate every subsequent payment and
+    is a different product; callers wanting that should pass an already-
+    increased `current_balance`.
 
     Returns dict with both views; the UI labels them clearly so users don't
     confuse "monthly savings × N months" with the NPV-based answer.
@@ -3577,8 +3652,11 @@ def calc_refinance_analysis(
             verdict  = "worth"
             worth_it = True
 
-    # ── NPV-based comparison on common horizon ────────────────────────────────
-    # discount per month
+    # ── NPV comparison, each stream over its own term ─────────────────────────
+    # Monthly discount rate. A non-positive input means "do not discount": a
+    # negative opportunity cost of capital is not a case this tool models, and
+    # treating it as 0 keeps the comparison a plain nominal total rather than
+    # inflating future payments.
     d = (discount_rate_pa / 100.0 / 12.0) if discount_rate_pa > 0 else 0.0
 
     def pv_stream(pmt: float, n: int, d_per: float) -> float:
@@ -7903,7 +7981,7 @@ def render_glossary(t: dict):
     # st.popover was added in newer Streamlit; degrade gracefully if absent.
     popover = getattr(st, "popover", None)
     if callable(popover):
-        with popover(title, use_container_width=True):
+        with popover(title, **W_STRETCH):
             _body()
     else:
         with st.expander(title, expanded=False):
@@ -7913,7 +7991,6 @@ def render_glossary(t: dict):
 def render_theme_editor(t: dict):
     """Renders the theme editor in the sidebar."""
     import json as _json
-    import streamlit.components.v1 as _components
 
     current_theme = get_active_theme()
 
@@ -8011,7 +8088,7 @@ def render_theme_editor(t: dict):
         # ── 3) Reset & info ───────────────────────────────────────────────────
         if st.button(t.get("theme_reset", "↻ Reset to Default"),
                        key="btn_theme_reset",
-                       use_container_width=True):
+                       **W_STRETCH):
             st.session_state.theme = dict(THEME_PRESETS[THEME_DEFAULT_KEY])
             st.session_state.theme_preset = THEME_DEFAULT_KEY
             _save_theme_to_localstorage(st.session_state.theme)
@@ -8022,11 +8099,10 @@ def _save_theme_to_localstorage(theme: dict):
     """Pushes theme JSON to browser localStorage via an invisible JS snippet."""
     try:
         import json as _json
-        import streamlit.components.v1 as _components
-        js = _theme_save_js(_json.dumps(theme))
-        _components.html(js, height=0)
+        render_hidden_html(_theme_save_js(_json.dumps(theme)))
     except Exception:
-        # Component-rendering may fail in unusual harnesses; silently degrade.
+        # Serializing the theme may fail on a corrupt value; silently degrade.
+        # (render_hidden_html swallows its own rendering errors.)
         pass
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -8047,11 +8123,7 @@ def main():
     # ── localStorage bridge: on first load, recover saved theme via query param.
     # Rendered as zero-height iframe; runs JS that copies localStorage →
     # ?theme_b64=... and reloads once (sessionStorage guards re-reload loop).
-    try:
-        import streamlit.components.v1 as _components
-        _components.html(_theme_persistence_js(), height=0)
-    except Exception:
-        pass
+    render_hidden_html(_theme_persistence_js())
 
     # Постоянная подпись
     st.markdown('<div class="made-by">© 2026 Bohdan Yevtushenko · Yev Capital v3.0</div>', unsafe_allow_html=True)
@@ -8693,7 +8765,7 @@ def main():
                     st.caption(t.get("caption_dti", ""))
 
         # Кнопка расчёта
-        if st.button(t["calc_btn"], use_container_width=True):
+        if st.button(t["calc_btn"], **W_STRETCH):
             # ── Снимок параметров ДО расчёта (для audit-trail) ───────────────
             new_snapshot = {
                 "amount": float(st.session_state.loan_amount),
@@ -9008,14 +9080,14 @@ def main():
         tab_dc   = None
 
     with tab1:
-        st.plotly_chart(chart_bar(df_chart, t), use_container_width=True,
+        st.plotly_chart(chart_bar(df_chart, t), **W_STRETCH,
                         config={"displayModeBar": False})
     with tab2:
         st.plotly_chart(chart_pie(smry["principal"], smry["total_interest"],
                                   smry["total_commission"], t),
-                        use_container_width=True, config={"displayModeBar": False})
+                        **W_STRETCH, config={"displayModeBar": False})
     with tab3:
-        st.plotly_chart(chart_balance(df_chart, t), use_container_width=True,
+        st.plotly_chart(chart_balance(df_chart, t), **W_STRETCH,
                         config={"displayModeBar": False})
     with tab4:
         # Compose the same kwargs the main loan used, so the comparison
@@ -9079,7 +9151,7 @@ def main():
         st.plotly_chart(
             chart_compare(ann_pay, cla_pay, ann_int, cla_int, t,
                           bal_total=bal_pay, bal_int=bal_int),
-            use_container_width=True, config={"displayModeBar": False})
+            **W_STRETCH, config={"displayModeBar": False})
 
         # ── Comparative summary message ───────────────────────────────────────
         # Show the savings line relative to the scheme the user actually picked.
@@ -9181,7 +9253,7 @@ def main():
             )
 
             if fig_dc is not None:
-                st.plotly_chart(fig_dc, use_container_width=True,
+                st.plotly_chart(fig_dc, **W_STRETCH,
                                  config={"displayModeBar": False})
 
                 # Numeric difference summary (min vs max). Helps the user
@@ -9219,7 +9291,7 @@ def main():
                           t.get("total_interest", "Total Interest"):
                               (fmt_money(v, sym) if v is not None else "—")}
                          for m, v in results.items()]
-                st.dataframe(pd.DataFrame(rows), use_container_width=True,
+                st.dataframe(pd.DataFrame(rows), **W_STRETCH,
                               hide_index=True)
             else:
                 st.warning(t.get("daycount_no_data",
@@ -9231,7 +9303,7 @@ def main():
             tranche_series = smry.get("tranche_payments_series", {})
             chart = chart_syndicated_tranches(tranche_series, t)
             if chart is not None:
-                st.plotly_chart(chart, use_container_width=True,
+                st.plotly_chart(chart, **W_STRETCH,
                                 config={"displayModeBar": False})
                 st.caption(t.get("syndicated_chart_caption",
                                    "Each color = one tranche."))
@@ -9253,7 +9325,7 @@ def main():
                             "Σ Interest":fmt_money(sched_int, sym),
                         })
                     st.dataframe(pd.DataFrame(summary_rows),
-                                  use_container_width=True, hide_index=True)
+                                  **W_STRETCH, hide_index=True)
 
     st.divider()
 
@@ -9351,19 +9423,19 @@ def _render_deposit_results(t, smry, df_d, df_chart, sym):
     ])
     with tab1:
         st.plotly_chart(chart_dep_growth(df_chart, principal, t),
-                        use_container_width=True, config={"displayModeBar": False})
+                        **W_STRETCH, config={"displayModeBar": False})
     with tab2:
         st.plotly_chart(chart_dep_bar(df_chart, principal, t),
-                        use_container_width=True, config={"displayModeBar": False})
+                        **W_STRETCH, config={"displayModeBar": False})
     with tab3:
         st.plotly_chart(chart_dep_pie(principal, total_earned, t),
-                        use_container_width=True, config={"displayModeBar": False})
+                        **W_STRETCH, config={"displayModeBar": False})
     with tab4:
         st.plotly_chart(
             chart_dep_compare_modes(
                 principal, st.session_state.loan_term,
                 st.session_state.interest_rate, st.session_state.term_unit, t, sym),
-            use_container_width=True, config={"displayModeBar": False})
+            **W_STRETCH, config={"displayModeBar": False})
 
     st.divider()
 
@@ -10359,7 +10431,7 @@ def _render_risk_panel(t, smry, sym):
     score = calc_credit_health_score(ltv, dscr, dti)
     if score is not None:
         st.plotly_chart(chart_credit_health_gauge(score, t),
-                         use_container_width=True)
+                         **W_STRETCH)
         contributing = ", ".join(
             lbl for lbl, val in (("LTV", ltv), ("DSCR", dscr), ("DTI", dti))
             if val is not None)
@@ -10426,7 +10498,7 @@ def _render_invest_loan(t, smry, df_chart, sym):
     ic3.metric(t["invest_net_gain"], fmt_money(net_gain, sym), delta=delta_str)
 
     st.plotly_chart(chart_invest(df_chart, invest_vals, t, yield_label),
-                    use_container_width=True, config={"displayModeBar": False})
+                    **W_STRETCH, config={"displayModeBar": False})
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -10507,7 +10579,7 @@ def _render_invest_deposit(t, smry, df_chart, sym):
 
     # График
     fig = chart_dep_vs_alternative(df_chart, alt_vals, dep_vals, t, yield_label, sym)
-    st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
+    st.plotly_chart(fig, **W_STRETCH, config={"displayModeBar": False})
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -10658,7 +10730,7 @@ def _render_schedule(t, df_d, smry, sym, is_deposit=False):
         # leaves genuinely textual columns (the date) as they are.
         if _numeric.notna().sum() == _blanked.notna().sum():
             df_show[_col] = _numeric
-    st.dataframe(df_show, use_container_width=True,
+    st.dataframe(df_show, **W_STRETCH,
                  height=min(640, 42 + 36*len(df_d)))
 
 
@@ -10680,7 +10752,7 @@ def _render_templates(t):
                               deposit_mode="capitalize"),
     }
     for col, (name, params) in zip(cols4, presets.items()):
-        if col.button(name, use_container_width=True, key=f"pre_{name}"):
+        if col.button(name, **W_STRETCH, key=f"pre_{name}"):
             for k, v in params.items():
                 st.session_state[k] = v
             st.rerun()
@@ -10693,7 +10765,7 @@ def _render_templates(t):
         tpl_name = st.text_input(t["template_name"], placeholder=t["enter_name"],
                                   label_visibility="collapsed", key="tpl_inp")
     with cs:
-        if st.button(t["save_template"], use_container_width=True, key="btn_save"):
+        if st.button(t["save_template"], **W_STRETCH, key="btn_save"):
             clean = tpl_name.strip()
             if clean:
                 # Warn (don't silently clobber) if a template with this name
@@ -10728,14 +10800,14 @@ def _render_templates(t):
             # avoids DuplicateWidgetID and oversized keys from long/unicode names.
             name_key = hashlib.md5(str(name).encode("utf-8")).hexdigest()[:12]
             if c2.button(t["load_template"], key=f"load_{name_key}",
-                          use_container_width=True):
+                          **W_STRETCH):
                 load_tpl(name)
                 # Surface confirmation on the *next* run (after st.rerun), since
                 # rerun would otherwise wipe the success message immediately.
                 st.session_state["_tpl_flash"] = ("loaded", name)
                 st.rerun()
             if c3.button(t["delete_template"], key=f"del_{name_key}",
-                          use_container_width=True):
+                          **W_STRETCH):
                 del_tpl(name)
                 st.session_state["_tpl_flash"] = ("deleted", name)
                 st.rerun()
