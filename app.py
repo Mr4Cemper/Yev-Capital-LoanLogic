@@ -244,6 +244,8 @@ TRANSLATIONS = {
         "dep_total_earned":    "Начислено процентов",
         "dep_rate_label":      "Ставка годовых",
         "dep_period_payout":   "Выплата за период",
+        "dep_gain_label":      "Прибыль",
+        "dep_mode_label":      "Режим",
         "dep_growth_title":    "📈 Рост вклада",
         "dep_balance_label":   "Баланс вклада",
         "dep_interest_label":  "Начисленные проценты",
@@ -286,6 +288,7 @@ TRANSLATIONS = {
         "balloon_breakeven_desc":  "Мин. доходность инвестиций для оправдания буллитной схемы",
         # Срок — подпись
         "term_caption":        "мес. / лет",
+        "term_mode_label":     "Способ ввода срока",
         # Приветственный экран
         "welcome_h2":  "Введите параметры и нажмите",
         "welcome_calc": "Рассчитать",
@@ -756,6 +759,8 @@ TRANSLATIONS = {
         "dep_total_earned":    "Нараховано відсотків",
         "dep_rate_label":      "Ставка річних",
         "dep_period_payout":   "Виплата за період",
+        "dep_gain_label":      "Прибуток",
+        "dep_mode_label":      "Режим",
         "dep_growth_title":    "📈 Зростання вкладу",
         "dep_balance_label":   "Баланс вкладу",
         "dep_interest_label":  "Нараховані відсотки",
@@ -787,6 +792,7 @@ TRANSLATIONS = {
         "balloon_breakeven_label": "Аналіз беззбитковості (Буліт)",
         "balloon_breakeven_desc":  "Мін. дохідність інвестицій для виправдання схеми «буліт»",
         "term_caption":        "міс. / рок.",
+        "term_mode_label":     "Спосіб введення терміну",
         "welcome_h2":  "Введіть параметри та натисніть",
         "welcome_calc": "Розрахувати",
         "welcome_sub": "Ануїтет · Класика · Буліт · Вклад<br>Експорт Excel / PDF / Word / CSV · Порівняння з інвестиціями",
@@ -1249,6 +1255,8 @@ TRANSLATIONS = {
         "dep_total_earned":    "Total Interest Earned",
         "dep_rate_label":      "Annual Rate",
         "dep_period_payout":   "Period Payout",
+        "dep_gain_label":      "Gain",
+        "dep_mode_label":      "Mode",
         "dep_growth_title":    "📈 Deposit Growth",
         "dep_balance_label":   "Deposit Balance",
         "dep_interest_label":  "Accrued Interest",
@@ -1274,6 +1282,7 @@ TRANSLATIONS = {
         "end_date_hint":       "Term auto-calculated as full periods from start to end date",
         # Term caption
         "term_caption":        "mo. / yrs",
+        "term_mode_label":     "Term input mode",
         # Balloon break-even
         "balloon_breakeven":       "Inv. Break-even Rate",
         "balloon_breakeven_tip":   (
@@ -1624,6 +1633,13 @@ TRANSLATIONS = {
 # ─────────────────────────────────────────────────────────────────────────────
 #  ЦВЕТА
 # ─────────────────────────────────────────────────────────────────────────────
+# Chart palette. Seeded with the dark_navy defaults and REBOUND to the active
+# theme on every run by sync_chart_palette() (called from main()). Every chart
+# reads C[...] at draw time, so refreshing this dict in place is what makes
+# Plotly follow the theme editor — previously the whole UI recoloured on a
+# preset change while every chart stayed Dark Navy.
+_CHART_HEX_RE = re.compile(r'^#(?:[0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$')
+
 C = {
     "principal":  "#4FC3F7",
     "interest":   "#FF6B6B",
@@ -1636,6 +1652,42 @@ C = {
     "accent":     "#7DD3FC",
     "muted":      "#94A3B8",
 }
+
+# Which theme field feeds which chart colour. Series colours keep their
+# semantic roles (interest = danger, commission = warning, investment =
+# success) so a chart stays readable in every preset.
+_CHART_COLOR_MAP = {
+    "principal":  "accent",
+    "interest":   "danger",
+    "commission": "warning",
+    "invest":     "success",
+    "bg":         "bg",
+    "card":       "bg_secondary",
+    "text":       "text",
+    "grid":       "border",
+    "accent":     "accent",
+    "muted":      "text_muted",
+}
+
+
+def sync_chart_palette(theme: dict | None) -> None:
+    """
+    Rebinds the module-level chart palette `C` to the active theme, in place.
+
+    Called once per run from main(), before any chart is built. Values are
+    validated the same way build_css() validates colours (well-formed hex
+    only), so a corrupt entry from browser storage falls back to the field's
+    dark_navy default instead of producing an unrenderable Plotly colour.
+    """
+    if not isinstance(theme, dict):
+        return
+    base = THEME_PRESETS[THEME_DEFAULT_KEY]
+    for chart_key, theme_field in _CHART_COLOR_MAP.items():
+        val = theme.get(theme_field, base.get(theme_field))
+        if isinstance(val, str) and _CHART_HEX_RE.match(val.strip()):
+            C[chart_key] = val.strip()
+        elif isinstance(base.get(theme_field), str):
+            C[chart_key] = base[theme_field]
 
 CURRENCY_SYMBOLS = {
     "uah": "₴",   # Ukrainian Hryvnia
@@ -1664,6 +1716,32 @@ def periods_per_year(unit: str) -> float:
             f"periods_per_year: unknown unit {unit!r}. "
             f"Supported: {list(ppy.keys())}.")
     return ppy[unit]
+
+def payment_to_monthly(payment: float, unit: str) -> float:
+    """
+    Converts a per-period payment into its MONTHLY equivalent.
+
+    DSCR and DTI weigh debt service against income the UI collects per MONTH
+    ("Monthly NOI", "Total Monthly Income", "Other Monthly Debt Payments").
+    The schedule's payment, however, is denominated in the loan's own period
+    unit, so feeding it in raw made both ratios wrong by a factor of
+    periods_per_year(unit)/12 for every non-monthly term: a yearly schedule
+    read ~12x too risky (DTI 527% instead of 42% on the same loan), a weekly
+    one ~4.3x too safe. Only unit == "months" was ever correct.
+
+        monthly = payment x periods_per_year(unit) / 12
+
+    Returns 0.0 for non-finite/non-numeric input so a degenerate schedule
+    yields "N/A" downstream rather than propagating NaN into a risk tier.
+    """
+    try:
+        p = float(payment)
+    except (TypeError, ValueError):
+        return 0.0
+    if not math.isfinite(p):
+        return 0.0
+    return p * periods_per_year(unit) / 12.0
+
 
 def term_to_months(term: float, unit: str) -> float:
     """Float-precise conversion of (term, unit) → months. Used for display."""
@@ -3908,11 +3986,16 @@ def _run_syndicated(tranches: list[dict], t: dict, sym: str,
     # offset gap when tranches are staggered; master[0]["payment"] could be 0
     # if no tranche starts in period 1.
     first_pmt = totals.get("first_payment", 0.0) or 0.0
+    # The master schedule is always built on a MONTHLY grid (base_unit="months"),
+    # so the conversion is the identity here — it is applied explicitly anyway so
+    # both risk-metric call sites read the same and stay correct if the master
+    # grid ever changes unit.
+    monthly_debt_service = payment_to_monthly(first_pmt, "months")
     ltv_val  = (calc_ltv(totals["total_principal"], ltv_collateral)
                 if ltv_enabled and ltv_collateral > 0 else None)
-    dscr_val = (calc_dscr(dscr_noi, first_pmt)
+    dscr_val = (calc_dscr(dscr_noi, monthly_debt_service)
                 if dscr_enabled and dscr_noi > 0 else None)
-    dti_val  = (calc_dti(first_pmt, dti_other_debts, dti_income)
+    dti_val  = (calc_dti(monthly_debt_service, dti_other_debts, dti_income)
                 if dti_enabled and dti_income > 0 else None)
 
     # Universal break-even on consolidated cash flow (includes one-time commissions)
@@ -4338,10 +4421,17 @@ def run_calculation(principal, n, rate_pa, unit, scheme,
 
     # ── Риск-аналитика ────────────────────────────────────────────────────────
     first_pmt = sched[0]["payment"] if sched else 0.0
+    # DSCR/DTI weigh debt service against income the user enters per MONTH, so
+    # the payment must be converted from the loan's own period unit first —
+    # otherwise a yearly schedule reads ~12x too risky and a weekly one ~4.3x
+    # too safe. LTV is a pure stock ratio and needs no such conversion.
+    monthly_debt_service = payment_to_monthly(first_pmt, unit)
 
     ltv_val  = calc_ltv(principal, ltv_collateral)  if ltv_enabled  and ltv_collateral > 0 else None
-    dscr_val = calc_dscr(dscr_noi, first_pmt)        if dscr_enabled and dscr_noi > 0       else None
-    dti_val  = calc_dti(first_pmt, dti_other_debts, dti_income) if dti_enabled and dti_income > 0 else None
+    dscr_val = (calc_dscr(dscr_noi, monthly_debt_service)
+                if dscr_enabled and dscr_noi > 0 else None)
+    dti_val  = (calc_dti(monthly_debt_service, dti_other_debts, dti_income)
+                if dti_enabled and dti_income > 0 else None)
 
     summary = {
         "is_deposit":            False,
@@ -7107,7 +7197,12 @@ THEME_PRESETS = {
         "bg_tertiary":     "#1E0F3D",
         "text":            "#E9D5FF",
         "text_muted":      "#A78BFA",
-        "text_subtle":     "#7C3AED",
+        # Was #7C3AED — a saturated purple that only reached 2.67:1 against the
+        # Midnight sidebar, so the slogan and the corner watermark were barely
+        # legible. #8B6FD8 keeps the dimmer "subtle" role (still well below
+        # text_muted) while clearing 3:1 on both Midnight surfaces, in line with
+        # the other presets.
+        "text_subtle":     "#8B6FD8",
         "accent":          "#C084FC",
         "accent_strong":   "#9333EA",
         "accent_gradient": "linear-gradient(135deg,#9333EA,#C084FC)",
@@ -7945,6 +8040,9 @@ def main():
     # ── Theme: read from session_state / localStorage / default ───────────────
     active_theme = get_active_theme()
     st.markdown(build_css(active_theme), unsafe_allow_html=True)
+    # Charts read the module-level palette at draw time, so rebind it to the
+    # active theme here — before any figure is built further down.
+    sync_chart_palette(active_theme)
 
     # ── localStorage bridge: on first load, recover saved theme via query param.
     # Rendered as zero-height iframe; runs JS that copies localStorage →
@@ -8256,8 +8354,11 @@ def main():
         # Переключатель режима ввода срока
         mode_manual  = t.get("term_mode_manual",  "Manual (periods)")
         mode_enddate = t.get("term_mode_enddate",  "By End Date")
+        # A non-empty label is required even when hidden: Streamlit logs an
+        # accessibility warning for every empty label on every rerun and has
+        # announced it will become an exception.
         term_mode = st.radio(
-            "",
+            t.get("term_mode_label", "Term input mode"),
             options=[mode_manual, mode_enddate],
             index=0 if st.session_state.term_input_mode == "manual" else 1,
             horizontal=True,
@@ -8294,9 +8395,10 @@ def main():
                     st.session_state.term_unit,
                 )
                 st.session_state.loan_term = computed_n
-                st.caption(
-                    f"→ {computed_n} {st.session_state.term_unit}"
-                )
+                # Show the LOCALIZED unit label (u_lbl), not the internal key —
+                # a Russian user was being shown "24 months", and every user
+                # was shown the non-word "halfyears".
+                st.caption(f"→ {computed_n} {u_lbl}")
             except ValueError as e:
                 # The interval is too short to contain even one full period
                 # (end<=start is already excluded by min_value above). Rather
@@ -9214,16 +9316,26 @@ def _render_deposit_results(t, smry, df_d, df_chart, sym):
     gain_pct = total_earned / principal * 100 if principal > 0 else 0
     mode_lbl = t["deposit_capitalize"] if mode == "capitalize" else t["deposit_payout"]
     st.markdown(
-        f"<span style='color:#94A3B8;font-size:.81rem'>"
-        f"Прибыль: <b style='color:#06D6A0'>+{gain_pct:.2f}%</b> &nbsp;·&nbsp; "
-        f"Режим: <b style='color:#4FC3F7'>{mode_lbl}</b>"
+        f"<span style='color:var(--app-text-muted);font-size:.81rem'>"
+        f"{t['dep_gain_label']}: "
+        f"<b style='color:var(--app-success)'>+{gain_pct:.2f}%</b> &nbsp;·&nbsp; "
+        f"{t['dep_mode_label']}: "
+        f"<b style='color:var(--app-accent)'>{mode_lbl}</b>"
         f"</span>",
         unsafe_allow_html=True,
     )
     if mode == "payout" and total_payout > 0:
+        # Divide by the real period count from the schedule. The previous
+        # `len(df_d.dropna(subset=[balance_close]))` counted the TOTAL row too —
+        # its balance_close is a NUMBER, not NaN, so dropna never removed it —
+        # and the per-period payout came out understated by a factor of
+        # n/(n+1) (e.g. 92.31 instead of 100.00 on a 12-period deposit).
+        _n_periods = len(smry.get("schedule") or []) or 1
         st.markdown(
-            f"<span style='color:#94A3B8;font-size:.81rem'>"
-            f"{t['dep_period_payout']}: <b style='color:#FFD166'>{fmt_money(total_payout/len(df_d.dropna(subset=[t['dep_balance_close']])), sym)}</b>"
+            f"<span style='color:var(--app-text-muted);font-size:.81rem'>"
+            f"{t['dep_period_payout']}: "
+            f"<b style='color:var(--app-warning)'>"
+            f"{fmt_money(total_payout / _n_periods, sym)}</b>"
             f"</span>",
             unsafe_allow_html=True,
         )
@@ -9637,14 +9749,37 @@ def _render_refinance_panel(t, smry, sym):
                 options=list(penalty_type_opts.keys()),
                 index=pt_idx, horizontal=True, key="refi_penalty_type_radio",
                 help=t.get("refi_help_penalty", ""))
-            st.session_state["refi_penalty_type"] = penalty_type_opts[pt_lbl]
+            _pen_type = penalty_type_opts[pt_lbl]
+            st.session_state["refi_penalty_type"] = _pen_type
+
+            # Switching the penalty TYPE changes what the number means (a
+            # percent of the balance vs an absolute amount) and, with it, the
+            # field's ceiling. The widget keeps its value across the switch
+            # under key "refi_penalty_val", so a fixed penalty of e.g. 5000
+            # was still passed as `value` when the ceiling dropped to 100 —
+            # st.number_input then raised StreamlitValueAboveMaxError and took
+            # the whole page down. Reset to the new type's default on a real
+            # type change, and clamp defensively for any other path (restored
+            # session, loaded template).
+            _pen_max     = 100.0 if _pen_type == "pct" else 1e10
+            _pen_default = 2.0   if _pen_type == "pct" else 1000.0
+            if st.session_state.get("_refi_penalty_type_prev") not in (None, _pen_type):
+                st.session_state.pop("refi_penalty_val", None)
+            st.session_state["_refi_penalty_type_prev"] = _pen_type
+            try:
+                _pen_value = float(st.session_state.get("refi_penalty_val",
+                                                        _pen_default))
+            except (TypeError, ValueError):
+                _pen_value = _pen_default
+            _pen_value = min(max(_pen_value, 0.0), _pen_max)
+            st.session_state["refi_penalty_val"] = _pen_value
+
             penalty_input = st.number_input(
                 t.get("refi_penalty", "Early Closure Penalty"),
                 min_value=0.0,
-                max_value=100.0 if st.session_state["refi_penalty_type"] == "pct" else 1e10,
-                value=float(st.session_state.get("refi_penalty_val",
-                            2.0 if st.session_state["refi_penalty_type"] == "pct" else 1000.0)),
-                step=0.1 if st.session_state["refi_penalty_type"] == "pct" else 100.0,
+                max_value=_pen_max,
+                value=_pen_value,
+                step=0.1 if _pen_type == "pct" else 100.0,
                 format="%.2f", key="refi_penalty_val")
 
         st.divider()
@@ -10500,8 +10635,27 @@ def _render_schedule(t, df_d, smry, sym, is_deposit=False):
                         "Clean data for ERP import: numbers only, ISO dates, no totals."),
         )
 
-    # Таблица
-    st.dataframe(df_d, use_container_width=True,
+    # Таблица.
+    # The TOTAL row mixes types into otherwise-uniform columns: the "TOTAL"
+    # label sits in the integer period column, and "" placeholders sit in the
+    # float balance columns. Arrow cannot serialize either, so Streamlit logged
+    # a full ArrowInvalid traceback on EVERY render and then silently repaired
+    # the frame. Repair it here instead, in a DISPLAY-ONLY copy — every export
+    # keeps working off the original, correctly-typed frame.
+    _period_col = t.get("period", "Period")
+    df_show = df_d.copy()
+    if _period_col in df_show.columns:
+        df_show[_period_col] = df_show[_period_col].astype(str)
+    for _col in df_show.columns:
+        if _col == _period_col or df_show[_col].dtype != object:
+            continue
+        _blanked = df_show[_col].replace("", None)
+        _numeric = pd.to_numeric(_blanked, errors="coerce")
+        # Adopt the numeric view only when nothing was lost to coercion, which
+        # leaves genuinely textual columns (the date) as they are.
+        if _numeric.notna().sum() == _blanked.notna().sum():
+            df_show[_col] = _numeric
+    st.dataframe(df_show, use_container_width=True,
                  height=min(640, 42 + 36*len(df_d)))
 
 
